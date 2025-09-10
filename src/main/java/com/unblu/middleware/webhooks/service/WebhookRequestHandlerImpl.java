@@ -1,0 +1,84 @@
+package com.unblu.middleware.webhooks.service;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.unblu.middleware.common.config.MiddlewareConfiguration;
+import com.unblu.middleware.common.entity.ContextEntrySpec;
+import com.unblu.middleware.common.entity.Request;
+import com.unblu.middleware.common.error.InvalidRequestException;
+import com.unblu.middleware.common.error.NoHandlerException;
+import com.unblu.middleware.common.registry.RequestOrderSpec;
+import com.unblu.middleware.common.registry.RequestQueue;
+import com.unblu.middleware.common.registry.RequestQueueServiceImpl;
+import com.unblu.middleware.webhooks.entity.EventName;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+
+import static com.unblu.middleware.common.request.RequestHandler.withRequestContext;
+
+@Service
+@Slf4j
+public class WebhookRequestHandlerImpl extends RequestQueueServiceImpl implements WebhookHandlerService, WebhookRequestHandler {
+
+    private final MiddlewareConfiguration middlewareConfiguration;
+    private final WebhookRegistrationService webhookRegistrationService;
+    private final ObjectMapper objectMapper;
+    private final Map<EventName, Class<?>> eventTypeMap = new ConcurrentHashMap<>();
+
+    public WebhookRequestHandlerImpl(RequestQueue requestQueue, MiddlewareConfiguration middlewareConfiguration, WebhookRegistrationService webhookRegistrationService, ObjectMapper objectMapper) {
+        super(requestQueue);
+        this.middlewareConfiguration = middlewareConfiguration;
+        this.webhookRegistrationService = webhookRegistrationService;
+        this.objectMapper = objectMapper;
+    }
+
+    @Override
+    public <T> void onWrappedWebhook(@NonNull EventName eventName, @NonNull Class<T> expectedType, @NonNull Function<Request<T>, Mono<Void>> processAction, @NonNull RequestOrderSpec<Request<T>> requestOrderSpec, @NonNull Collection<ContextEntrySpec<Request<T>>> contextEntries) {
+        checkThatIsRegisteredFor(eventName);
+        eventTypeMap.put(eventName, expectedType);
+        requestQueue.onWrapped(expectedType, processAction, requestOrderSpec, contextEntries);
+    }
+
+    private void checkThatIsRegisteredFor(EventName eventName) {
+        if (middlewareConfiguration.isAutoRegister()) {
+            webhookRegistrationService.assertRegistered(eventName);
+        } else if (!webhookRegistrationService.isRegisteredFor(eventName)) {
+            throw new RuntimeException("Cannot register handler for event " + eventName +
+                    " because no webhook is registered for it. Either enable auto-registration in the middleware configuration; " +
+                    "or register a webhook for this event prior to this call by calling webhookRegistrationService.assertRegistered(eventName).");
+        }
+    }
+
+    @Override
+    public void handle(EventName eventName, byte[] body, HttpHeaders headers) {
+        var expectedType = eventTypeMap.get(eventName);
+        if (expectedType == null) {
+            throw new NoHandlerException("No handler registered for event: " + eventName);
+        }
+        try {
+            var requestBody = objectMapper.readValue(body, expectedType);
+            requestQueue.queueRequest(new Request<>(requestBody, headers));
+        } catch (IOException e) {
+            throw new InvalidRequestException(withRequestContext("Failed to parse webhook", headers), e);
+        }
+    }
+
+    @Override
+    public void subscribe() {
+        getFlux().subscribe();
+    }
+
+    @Override
+    public Flux<Void> getFlux() {
+        return requestQueue.getFlux();
+    }
+}

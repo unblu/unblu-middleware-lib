@@ -1,0 +1,295 @@
+= Unblu middleware lib
+:toc:
+
+This library is used to create a middleware for the Unblu v8 platform (API v4), based on Spring Boot. It provides a set of tools and utilities to facilitate the integration with Unblu services.
+
+Usage example: https://github.com/unblu/example-middleware[example-middleware]
+
+Main features:
+
+* Provides beans for Unblu API clients - you can simply just inject conversationApi, webhooksApi, botsApi, etc. where needed
+* Automatically creates, manages and heals bot and/or webhook registrations
+* Correctly handles all registered webhooks, bot outbound requests and pings
+* Uses reactor to handle backpressure, supports options for asynchronous processing, as well as order guarantees where needed
+* Provides utility methods to define webhook handlers, declare conditions to accept boarding requests, or allowing you to react on different types of dialog bot outbound requests
+
+== Quick start - webhooks
+
+Add a dependency to your `build.gradle` file:
+
+[source,gradle]
+----
+dependencies {
+    implementation 'com.unblu.middleware:unblu-middleware-lib:${unbluMiddlewareLibVersion}'
+}
+----
+
+Configure the Unblu connection in your `application.yml` file. (You can also include unblu.bot settings, if you want to handle bots in the same middleware app.)
+
+[source,yaml]
+----
+unblu:
+  host: https://some-installation.unblu.com
+  user: some-unblu-admin-user
+  password: hello-im-some-unblu-admin-user-password
+  middleware:
+    url: https://where.my.middleware.is.running
+    name: Test middleware
+    description: Does stuff
+    autoSubscribe: true
+  webhook:
+    secret: hello-im-secure
+----
+
+Annotate your service (or middleware app) with `@Import(UnbluWebhooks.class)`. This brings all necessary beans into your application context. (You can also use `UnbluBots.class`: `@Import({UnbluWebhooks.class, UnbluBots.class})` if you want to handle bots in the same middleware app).
+
+Use `webhookHandlerService.handleWebhook()` to process incoming webhooks.
+
+[source,java]
+----
+@Service
+@RequiredArgsConstructor
+@Import(UnbluWebhooks.class)
+public class MyAwesomeMiddlewareService implements ApplicationRunner {
+
+    private final WebhookHandlerService webhookHandlerService;
+
+    @Override
+    public void run(ApplicationArguments args) {
+        // log every message sent anywhere using a webhook handler
+        webhookHandlerService.onWebhook(eventName("conversation.new_message"), ConversationNewMessageEvent.class,
+                e -> Mono.fromRunnable(() -> log.info("Message received: {}", e.getConversationMessage().getFallbackText())),
+                canIgnoreOrder());
+    }
+}
+----
+
+== Quick start - bots
+
+Add a dependency to your `build.gradle` file:
+
+[source,gradle]
+----
+dependencies {
+    implementation 'com.unblu.middleware:unblu-middleware-lib:${unbluMiddlewareLibVersion}'
+}
+----
+
+Configure the Unblu connection in your `application.yml` file.
+
+[source,yaml]
+----
+unblu:
+  host: https://some-installation.unblu.com
+  user: superadmin
+  password: hello-im-superadmin-password
+  middleware:
+    url: https://where.my.middleware.is.running
+    name: Test middleware
+    autoSubscribe: true
+  bot:
+    secret: hello-im-secure
+    onboardingFilter: VISITORS
+    person:
+      firstName: Test
+      lastName: Bot
+      sourceId: Test middleware
+----
+
+Annotate your service (or middleware app) with `@Import(UnbluBots.class)`.
+
+Use `dialogBotService.accept...OfferIf()` to define conditions for accepting dialog offers. Every offer is rejected by default. Use `dialogBotService.onDialog...()` methods to react on dialog events.
+
+[source,java]
+----
+@Service
+@RequiredArgsConstructor
+@Import(UnbluBots.class)
+public class MyAwesomeMiddlewareService implements ApplicationRunner {
+
+    private final DialogBotService dialogBotService;
+
+    @Override
+    public void run(ApplicationArguments args) {
+        // accept every onboarding offer
+        dialogBotService.acceptOnboardingOfferIf(_o -> Mono.just(true));
+
+        // greet the user when a dialog is opened
+        dialogBotService.onDialogOpen(r ->
+                Mono.fromRunnable(() -> sendMessage(r.getDialogToken(), "Hello, I am a bot!")));
+
+        // echo every message back to the user
+        dialogBotService.onDialogMessage(r ->
+                Mono.fromRunnable(() -> echoIfSentByHuman(r)));
+    }
+
+    private void echoIfSentByHuman(BotDialogMessageRequest r) {
+        if (r.getConversationMessage().getSenderPerson().getPersonType() == EPersonType.VISITOR) {
+            sendMessage(r.getDialogToken(), "You wrote: " + r.getConversationMessage().getFallbackText());
+        }
+    }
+
+    private void sendMessage(String dialogToken, String text) {
+        try {
+            botsApi.botsSendDialogMessage(new BotDialogPostMessage()
+                    .dialogToken(dialogToken)
+                    .messageData(new TextPostMessageData().text(text)));
+        } catch (ApiException e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
+----
+
+== Configuration options
+
+[source,yaml]
+----
+unblu:
+  host: https://some-installation.unblu.com # mandatory, set me
+  user: superadmin                  # mandatory, set me
+  password: hello-im-superadmin-password  # mandatory, set me
+  apiBasePath: /app/rest/v4   # this is the default
+  idPropagationHeaderName:
+  idPropagationUserId:       # content of the id propagation header
+
+  middleware:
+    url: https://where.my.middleware.is.running
+    name: Test middleware
+    description: This is a test middleware # optional, but recommended
+    selfHealingEnabled: true  # see below, this is the default
+    selfHealingCheckIntervalInSeconds: 60 # see below, this is the default
+    autoSubscribe: true # if true, the middleware will automatically subscribe to webhooks and bots after startup, otherwise you need to call webhookHandlerService.subscribe() and dialogBotService.subscribe() manually or retrieve the Flux and subscribe to it yourself
+
+  webhook:
+    secret: another-secure-secret  # mandatory if webhooks are used
+    cleanPrevious: false # see below, this is the default
+    eventNames:    # useful to specify but not needed - event names passed to onWebhook are registered on the fly
+      - conversation.onboarding
+      - conversation.new_message
+
+  bot:
+    secret: a-secure-secret     # mandatory if bots are used
+    person:
+      firstName: Test                      # mandatory if bots are used
+      lastName: Bot                        # mandatory if bots are used
+      sourceId: Test middleware            # mandatory if bots are used
+
+    cleanPrevious: false       # see below, this is the default
+    onboardingFilter: VISITORS # can be VISITORS, AGENTS, BOTH, or NONE (default)
+    onboardingOrder: 100       # this is the default
+    offboardingFilter: NONE                # can be VISITORS, AGENTS, BOTH, or NONE (default)
+    offboardingOrder: 100                  # this is the default
+    reboardingEnabled: false               # this is the default
+    reboardingOrder: 100                   # this is the default
+    automaticTypingStateHandlingEnabled: true  # this is the default
+    messageStateHandledExternally: false  # this is the default
+    needsCounterpartPresence: true        # this is the default
+    timeoutInMilliSeconds: 1000           # this is the default
+    onTimeoutBehavior: ABORT              # can be HAND_OFF or ABORT (default)
+----
+
+`cleanPrevious: false` means that the registration will update the existing webhook registration, if it exists (register for given event names and activate). If you want to remove the previous registration and create a new one, set it to `true`.
+
+This is useful when after a middleware restart, you don't want to receive webhook events sent during the middleware downtime. Since Unblu hasn't received a response to those webhooks, it will try to send them again.
+
+`selfHealingEnabled: true` means that every `selfHealingCheckIntervalInSeconds` seconds, the middleware will check and perform repare actions if the webhook and bot registrations are still valid and correctly configured, in particular if they haven't been auto-disabled by Unblu.
+
+== Subscribe
+Note that you must subscribe to the fluxes in `webhookHandlerService` and `dialogBotService`.
+
+You can do this by one of the following:
+
+* Setting `unblu.middleware.autoSubscribe=true`. Library then subscribes on `ApplicationReadyEvent`, so you must register your handlers before, e.g. in `@PostConstruct` or `@Bean` methods or in `ApplicationRunner.run()` method.
+* Calling `.subscribe()` methods on the beans, e.g. `webhookHandlerService.subscribe()` and `dialogBotService.subscribe()` after registering your handlers.
+* Retrieving the fluxes (`.getFlux()`) and ensuring they are subscribed after registering your handlers.
+
+== Webhook handling
+All `webhookHandlerService` webhook handling methods (processActions) should return a `Mono<Void>`. This allows the method to be asynchronous and non-blocking, which is essential for performance in a middleware context.
+
+=== Processing order guarantees
+Parameter `requestOrderSpec` determines what order guarantees the library should provide when processing webhooks. It can be one of the following:
+
+* `RequestOrderSpec.canIgnoreOrder()` - no order guarantees, the library will process webhooks as they arrive, without any specific order. This is the fastest option, allowing parallel processing of all webhooks.
+* `RequestOrderSpec.mustPreserveOrder()` - webhook handler functions (and Monos in them) will be called strictly in the order, in which the webhooks were received. You can still launch a parallel processing of an event e.g. by providing a `Mono.fromRunnable().publishOn(Schedulers.parallel())` inside the handler function
+* `RequestOrderSpec.mustPreserveOrderForThoseWithTheSame(...)` - webhook handler functions will be called in the order the webhooks were received, but only for the webhook calls that have the same value for the specified key. This allows you to process webhooks related to different entities in parallel, while still preserving the order for the same entity (e.g., conversation ID, branch ID, etc.). The entity id/key can be extracted from the event object using the lambda function passed.
+
+=== Wrapped (with headers)
+The processAction (but also other lambdas passed to the same `.onWebhook()` call) take the webhook event object as a parameter. In certain cases, headers of the request may be also important for processing (e.g. to propagate in the logback context - see below). For this purpose, the library provides a `.onWrappedWebhook()` method family, which allows you to access the headers of the request in your lambdas, in addition to the event object.
+
+=== With logback context entries
+As an optional last parameter, handling methods also allow you to pass a list of context entry specs, which allows you to populate the logback context with event-related information. Example usage:
+
+[source,java]
+----
+webhookHandlerService.onWrappedWebhook(
+        eventName("branch.branch"),
+        BranchModificationEvent.class,
+        e -> processBranchModified(e.event()),
+        canIgnoreOrder(),
+        List.of(
+                contextOf("eventId", e -> e.header().eventID()),
+                contextOf("branchId", e -> e.event().getEntity().getId()),
+                contextOf("method", _e -> "processBranchModified")
+        )
+)
+----
+
+logback.xml:
+[source,xml]
+----
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <pattern>{"message": "%message %ex","eventId": "%X{eventId}","branchId": "%X{branchId}","method": "%X{method}" ...}</pattern>
+            </providers>
+        </encoder>
+    </appender>
+    <springProfile name="production">
+        <root level="info">
+            <appender-ref ref="STDOUT"/>
+        </root>
+    </springProfile>
+</configuration>
+----
+
+== Bots
+Bots are a special type of middleware that can interact with Unblu dialogs and conversations. They can be used to automate tasks, provide information, or interact with users in a conversational manner. More details about bots can be found in the https://www.unblu.com/en/docs/latest/knowledge-base/integration/third-party-software/bots.html[Unblu documentation - Bot integration].
+
+=== Accepting boarding offers
+DialogBotService allows you to define which onboarding, offboarding, and reboarding offers the bot should accept. You can use the `acceptOnboardingOfferIf()`, `acceptOffboardingOfferIf()` and `acceptReboardingOfferIf()` methods to define conditions for accepting boarding offers. The methods take a function that returns a `Mono<Boolean>`, which determines whether the offer should be accepted or not. By default, no offers are accepted.
+
+As an Unblu requirement, a bot needs to send a message after a dialog is open (after accepting an offer), before a configured timeout, otherwise it will be disabled by Unblu.
+
+=== Reacting on dialog events
+DialogBotService allows you to react to various dialog events, such as dialog opening, dialog messages, and dialog closing. The handlers take a function that gets the received request, passed as a parameter, and returns a `Mono<Void>`, which allows you to perform asynchronous operations in response to the event. As stated above, you need to implement at least `onDialogOpen()` and send a message in response (see the example app). You can call each function multiple times, e.g. to register handlers in different parts of your middleware application. Processing order of these handlers not guaranteed. Available methods are:
+
+* `onDialogOpen()` - called when a dialog is opened (after accepting an onboarding offer)
+* `onDialogMessage()` - called when a message is sent in a dialog
+* `onDialogMessageState()` - called when a message state is changed (e.g., when a message is read or delivered)
+* `onDialogCounterpartChanged()` - called when the counterpart of a dialog changes (e.g., when a user joins or leaves a dialog)
+* `onDialogClose()` - called when a dialog is closed
+
+=== Processing order guarantees
+Dialog bot handler guarantees the order of events for the same dialog token. This means that if you have multiple events for the same dialog, they will be processed in the order they were received. However, events for different dialogs can be processed in parallel.
+
+=== Method flavors
+Like the webhook handler, the dialog bot handler also provides a `.onWrapped...()` method family, which allows you to access the headers of the request in your lambdas, in addition to the event object. The parameters are the same as for the webhook handler.
+
+Also like the webhook handler, the dialog bot handler allows you to pass a list of context entry specs, which allows you to populate the logback context with event-related information. The usage is the same as for the webhook handler.
+
+
+== Troubleshooting
+
+=== Configuration issues
+Property must not be blank - you must populate required properties in your `application.yml` file, such as `unblu.host`, `unblu.user`, `unblu.password`, `unblu.middleware.url`, `unblu.middleware.name`, and either `unblu.webhook.secret` or `unblu.bot.secret`.
+
+=== Bean collisions
+The bean 'xxxxApi', defined in ..., could not be registered. A bean with that name has already been defined - library already defines all the unblu api client beans in the application context. If you need your own unblu api bean definitions for some reason, you can either rename them or use `@Primary` annotation to indicate which bean should be used as the primary one.
+
+=== Errors during registration management
+Errors during webhook registration management (typically 403 forbidden) are usually caused either by wrong Unblu credentials, or by using a non-admin Unblu user.
+
+=== Handlers are not triggered
+This is usually caused by not subscribing, see the "Subscribe" section above.

@@ -1,0 +1,19 @@
+unblu:
+  host:       # populate me
+  apiBasePath: /app/rest/v4
+  user:       # populate me
+  password:   # populate me
+  middleware:
+    url:       # populate me
+    name:      # populate me
+    description: # populate me
+    autoSubscribe: true # set to true if you don't want to explicitly control subscriptions
+    autoRegister: true # should always be true, only exists for testing purposes
+    selfHealingEnabled: true # set to true to enable self-healing, false to disable
+    selfHealingCheckIntervalInSeconds: 60 # interval in seconds to check for self-healing, default is 60 seconds
+  webhook:
+    secret:           # populate me
+    cleanPrevious: true # set to true to clean previous webhooks, false to keep them
+    eventNames: []   # populate with event names you want to register, e.g. ["something.happened", "another.event"]
+  externalMessenger:
+    secret:           # populate me

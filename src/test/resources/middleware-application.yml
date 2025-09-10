@@ -1,0 +1,22 @@
+unblu:
+  host: https://dummy
+  apiBasePath: /app/rest/v4
+  user: dummy
+  password: hello-im-secure
+  middleware:
+    url: https://dummy-webhook
+    name: middleware
+    autoRegister: false # only changed for testing purposes, never change in production
+    autoSubscribe: false
+  bot:
+    secret: hello-im-also-secure
+    person:
+      firstName: Test
+      lastName: Bot
+      sourceId: Test middleware
+  webhook:
+    secret: hello-im-also-secure
+    cleanPrevious: false
+    eventNames: []
+  externalMessenger:
+    secret: a-very-secret

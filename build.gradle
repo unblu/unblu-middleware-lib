@@ -1,0 +1,184 @@
+plugins {
+    id "java"
+    id "maven-publish"
+    id "org.jreleaser" version '1.19.0'
+    id "net.researchgate.release" version '3.1.0'
+    id "org.springframework.boot" version "${springBootVersion}"
+}
+
+wrapper {
+    gradleVersion = '8.13'
+    distributionType = 'all'
+}
+
+group "com.unblu.middleware"
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+    compileJava.options.encoding = "UTF-8"
+    
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+
+    implementation "org.springframework.boot:spring-boot-starter-actuator"
+    implementation "org.springframework.boot:spring-boot-starter-webflux"
+    implementation "org.springframework.boot:spring-boot-starter-validation"
+    implementation "org.springframework:spring-messaging"
+    implementation "io.micrometer:context-propagation"
+    implementation "org.projectlombok:lombok:${lombokVersion}"
+    implementation "com.google.guava:guava:[32.1.2-jre,)"
+
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor:${springBootVersion}"
+
+    implementation "net.logstash.logback:logstash-logback-encoder:[7.4,)"
+
+    implementation "com.unblu.openapi:jersey3-client-v4:[8.0.0,)"
+
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+    // various
+    implementation "commons-codec:commons-codec"
+    implementation "io.projectreactor.addons:reactor-extra"
+
+    // (unit) testing
+    testImplementation "org.springframework.boot:spring-boot-starter-test"
+    testImplementation "io.projectreactor:reactor-test"
+
+    testImplementation platform("org.junit:junit-bom")
+    testImplementation "org.junit.jupiter:junit-jupiter-api"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+}
+
+test {
+    apply plugin: "org.springframework.boot"
+    // use this to see the output of tests (e.g. Spring dependency problems)
+    // testLogging.showStandardStreams = true
+}
+
+// We do not want the 'plain' classifier for the jar, see https://docs.spring.io/spring-boot/gradle-plugin/packaging.html#packaging-executable.and-plain-archives
+tasks.named("jar") {
+	archiveClassifier = ''
+}
+
+tasks.named("bootJar") {
+    enabled = false
+}
+
+tasks.named("test") {
+    useJUnitPlatform()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            pom {
+                name = 'Unblu middleware lib'
+                description = 'This library is used to create a middleware for the Unblu v8 platform (API v4), based on Spring Boot. It provides a set of tools and utilities to facilitate the integration with Unblu services.'
+                packaging = 'jar'
+                url = 'https://' + "$githubRepositoryOwner" + '.github.io/' + "$githubRepositoryName" + '/'
+                licenses {
+                    license {
+                        name = 'Apache 2.0 License'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'unblu'
+                        url = 'https://github.com/orgs/' + "$githubRepositoryOwner" + '/people'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/' + "$githubRepositoryOwner" + '/' + "$githubRepositoryName" + '.git'
+                    developerConnection = 'scm:git:https://github.com/' + "$githubRepositoryOwner" + '/' + "$githubRepositoryName" + '.git'
+                    url = 'https://github.com/' + "$githubRepositoryOwner" + '/' + "$githubRepositoryName" + '/'
+                }
+            }
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            url = rootProject.file('build/staging-deploy')
+        }
+    }
+}
+
+tasks.register('checkLastVersionValue') {
+    doLast {
+        if(version.endsWith('SNAPSHOT')) {
+            throw new GradleException("version '$version' ends with SNAPSHOT, this is not a release build!")
+        }
+        if(lastVersion != version) {
+            throw new GradleException("lastVersion '$lastVersion' does not match version '$version', fix it in the 'gradle.properties' file.")
+        }
+    }
+}
+
+def updateLastVersionValueTask = tasks.register('updateLastVersionValue') {
+    doLast {
+        def propertiesFile = file('gradle.properties')
+        def content = propertiesFile.text
+        def newVersion = project.findProperty('release.releaseVersion') ?: version.replace('-SNAPSHOT', '')
+        content = content.replaceAll("lastVersion=[0-9a-z\\.\\-]+", "lastVersion=" + newVersion)
+        propertiesFile.text = content
+    }
+}
+
+jreleaser {
+    signing {
+        active = 'RELEASE'
+        armored = true
+    }
+    deploy {
+        maven {
+            mavenCentral {
+                unblu {
+                    active = 'RELEASE'
+                    namespace = 'com.unblu'
+                    url = 'https://central.sonatype.com/api/v1/publisher'
+                    stagingRepository('build/staging-deploy')
+                    retryDelay = 30
+                    maxRetries = 150
+                }
+            }
+        }
+    }
+    //One releaser must be configured, see https://github.com/jreleaser/jreleaser/discussions/1725
+    release {
+        generic {
+            skipRelease = true
+        }
+    }
+}
+
+model {
+    tasks.unSnapshotVersion {
+        dependsOn updateLastVersionValueTask
+    }
+}
+
+release {
+    buildTasks = [
+            'checkLastVersionValue',
+            'clean',
+            'publish',
+            'jreleaserDeploy'
+    ]
+    git {
+        requireBranch.set('main')
+    }
+}
