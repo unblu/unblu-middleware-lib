@@ -40,19 +40,19 @@ public abstract class RegistrationService<T> implements SelfHealing, AutoRegistr
 
     protected void reconcile(boolean shouldCleanPrevious) {
         if (shouldCleanPrevious) {
-            log.info("Deleting existing registration '{}'", getRegistrationName());
+            log.debug("Deleting existing registration '{}'", getRegistrationName());
             deleteRegistration();
-            log.info("Creating new '{}' registration", getRegistrationName());
+            log.debug("Creating new '{}' registration", getRegistrationName());
             createNewRegistration();
         } else {
             getRegistration()
                     .ifPresentOrElse(
                             registration -> {
-                                log.info("Updating '{}' registration", getRegistrationName());
+                                log.debug("Updating '{}' registration", getRegistrationName());
                                 updateRegistration(registration);
                             },
                             () -> {
-                                log.info("Registration '{}' not found. Creating new registration", getRegistrationName());
+                                log.debug("Registration '{}' not found. Creating new registration", getRegistrationName());
                                 createNewRegistration();
                             });
         }
@@ -66,7 +66,7 @@ public abstract class RegistrationService<T> implements SelfHealing, AutoRegistr
                                 callDeleteRegistration(registration);
                             } catch (ApiException e) {
                                 if (e.getCode() == 404) {
-                                    log.info("No existing registration '{}' found, continuing", getRegistrationName());
+                                    log.debug("No existing registration '{}' found, continuing", getRegistrationName());
                                 } else {
                                     throw error(e);
                                 }

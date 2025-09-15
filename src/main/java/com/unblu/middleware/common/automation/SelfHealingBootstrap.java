@@ -21,7 +21,7 @@ public class SelfHealingBootstrap {
 
     @Scheduled(initialDelayString = "${unblu.middleware.selfHealingCheckIntervalInSeconds}", fixedRateString = "${unblu.middleware.selfHealingCheckIntervalInSeconds}", timeUnit = TimeUnit.SECONDS)
     public void selfHealing() {
-        log.info("Launched self-healing");
+        log.debug("Launched self-healing");
         selfHealingBeans.forEach(SelfHealing::selfHeal);
     }
 }
