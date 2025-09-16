@@ -18,6 +18,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import static com.unblu.middleware.common.utils.ObjectUtils.copyOf;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.*;
@@ -60,12 +61,12 @@ class WebhookRegistrationServiceSelfHealingTest {
         verify(webhookRegistrationsApi).webhookRegistrationsCreate(registrationCaptor.capture());
         var registration = registrationCaptor.getValue();
 
-        doReturn(registration.status(ERegistrationStatus.INACTIVE_UNAVAILABLE))
+        doReturn(copyOf(registration).status(ERegistrationStatus.INACTIVE_UNAVAILABLE))
                 .when(webhookRegistrationsApi)
                 .webhookRegistrationsGetByName("middleware webhook");
 
         // wait for self-healing to kick in
-        await().atMost(3000, SECONDS).untilAsserted(() ->
+        await().atMost(3, SECONDS).untilAsserted(() ->
                 verify(webhookRegistrationsApi, atLeast(1)).webhookRegistrationsUpdate(registration));
     }
 }

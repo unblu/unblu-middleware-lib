@@ -12,6 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import static com.unblu.middleware.common.utils.ObjectUtils.copyOf;
+
 @Slf4j
 @RequiredArgsConstructor
 public abstract class RegistrationService<T> implements SelfHealing, AutoRegistrable {
@@ -40,21 +42,14 @@ public abstract class RegistrationService<T> implements SelfHealing, AutoRegistr
 
     protected void reconcile(boolean shouldCleanPrevious) {
         if (shouldCleanPrevious) {
-            log.debug("Deleting existing registration '{}'", getRegistrationName());
             deleteRegistration();
-            log.debug("Creating new '{}' registration", getRegistrationName());
             createNewRegistration();
         } else {
             getRegistration()
                     .ifPresentOrElse(
-                            registration -> {
-                                log.debug("Updating '{}' registration", getRegistrationName());
-                                updateRegistration(registration);
-                            },
-                            () -> {
-                                log.debug("Registration '{}' not found. Creating new registration", getRegistrationName());
-                                createNewRegistration();
-                            });
+                            this::updateRegistration,
+                            this::createNewRegistration
+                    );
         }
     }
 
@@ -63,10 +58,11 @@ public abstract class RegistrationService<T> implements SelfHealing, AutoRegistr
                 .ifPresent(
                         registration -> {
                             try {
+                                log.info("Deleting existing registration '{}'", getRegistrationName());
                                 callDeleteRegistration(registration);
                             } catch (ApiException e) {
                                 if (e.getCode() == 404) {
-                                    log.debug("No existing registration '{}' found, continuing", getRegistrationName());
+                                    log.info("No existing registration '{}' found, continuing", getRegistrationName());
                                 } else {
                                     throw error(e);
                                 }
@@ -77,14 +73,24 @@ public abstract class RegistrationService<T> implements SelfHealing, AutoRegistr
 
     public void createNewRegistration() {
         applyConfiguration(emptyConfiguration())
-                .ifPresent(wrapException(this::callCreateNewRegistration));
+                .ifPresent(wrapException(c -> {
+                    log.info("Creating new '{}' registration", getRegistrationName());
+                    callCreateNewRegistration(c);
+                }));
     }
 
-    public void updateRegistration(T registration) {
-        applyConfiguration(registration)
+    public void updateRegistration(T originalRegistration) {
+        applyConfiguration(copyOf(originalRegistration))
                 .ifPresentOrElse(
-                        wrapException(this::callUpdateRegistration),
+                        wrapException(newRegistration -> updateRegistrationIfChanged(originalRegistration, newRegistration)),
                         this::deleteRegistration);
+    }
+
+    private void updateRegistrationIfChanged(T originalRegistration, T newRegistration) throws ApiException {
+        if (!newRegistration.equals(originalRegistration)) {
+            log.info("Registration '{}' has changed, updating", getRegistrationName());
+            callUpdateRegistration(newRegistration);
+        }
     }
 
     public Optional<T> getRegistration() {
