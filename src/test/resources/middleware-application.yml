@@ -16,7 +16,6 @@ unblu:
       sourceId: Test middleware
   webhook:
     secret: hello-im-also-secure
-    cleanPrevious: false
     eventNames: []
   externalMessenger:
     secret: a-very-secret

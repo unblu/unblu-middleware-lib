@@ -13,7 +13,6 @@ unblu:
     selfHealingCheckIntervalInSeconds: 60 # interval in seconds to check for self-healing, default is 60 seconds
   webhook:
     secret:           # populate me
-    cleanPrevious: true # set to true to clean previous webhooks, false to keep them
     eventNames: []   # populate with event names you want to register, e.g. ["something.happened", "another.event"]
   externalMessenger:
     secret:           # populate me
