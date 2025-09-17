@@ -20,7 +20,11 @@ Add a dependency to your `build.gradle` file:
 [source,gradle]
 ----
 dependencies {
-    implementation 'com.unblu.middleware:unblu-middleware-lib:${unbluMiddlewareLibVersion}'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'com.unblu.middleware:unblu-middleware-lib:1.5.5'
+    implementation 'com.unblu.openapi:jersey3-client-v4:8.24.0'
+    implementation 'org.projectlombok:lombok:1.18.34'
+    annotationProcessor 'org.projectlombok:lombok:1.18.34'
 }
 ----
 
@@ -36,7 +40,6 @@ unblu:
     url: https://where.my.middleware.is.running
     name: Test middleware
     description: Does stuff
-    autoSubscribe: true
   webhook:
     secret: hello-im-secure
 ----
@@ -71,7 +74,11 @@ Add a dependency to your `build.gradle` file:
 [source,gradle]
 ----
 dependencies {
-    implementation 'com.unblu.middleware:unblu-middleware-lib:${unbluMiddlewareLibVersion}'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'com.unblu.middleware:unblu-middleware-lib:1.5.5'
+    implementation 'com.unblu.openapi:jersey3-client-v4:8.24.0'
+    implementation 'org.projectlombok:lombok:1.18.34'
+    annotationProcessor 'org.projectlombok:lombok:1.18.34'
 }
 ----
 
@@ -86,7 +93,6 @@ unblu:
   middleware:
     url: https://where.my.middleware.is.running
     name: Test middleware
-    autoSubscribe: true
   bot:
     secret: hello-im-secure
     onboardingFilter: VISITORS
@@ -200,7 +206,7 @@ Note that you must subscribe to the fluxes in `webhookHandlerService` and `dialo
 
 You can do this by one of the following:
 
-* Setting `unblu.middleware.autoSubscribe=true`. Library then subscribes on `ApplicationReadyEvent`, so you must register your handlers before, e.g. in `@PostConstruct` or `@Bean` methods or in `ApplicationRunner.run()` method.
+* Setting `unblu.middleware.autoSubscribe=true` (default). Library then subscribes on `ApplicationReadyEvent`, so you must register your handlers before, e.g. in `@PostConstruct` or `@Bean` methods or in `ApplicationRunner.run()` method.
 * Calling `.subscribe()` methods on the beans, e.g. `webhookHandlerService.subscribe()` and `dialogBotService.subscribe()` after registering your handlers.
 * Retrieving the fluxes (`.getFlux()`) and ensuring they are subscribed after registering your handlers.
 
