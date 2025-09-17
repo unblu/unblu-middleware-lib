@@ -88,11 +88,12 @@ Configure the Unblu connection in your `application.yml` file.
 ----
 unblu:
   host: https://some-installation.unblu.com
-  user: superadmin
-  password: hello-im-superadmin-password
+  user: some-unblu-admin-user
+  password: hello-im-some-unblu-admin-user-password
   middleware:
     url: https://where.my.middleware.is.running
     name: Test middleware
+    description: Does stuff
   bot:
     secret: hello-im-secure
     onboardingFilter: VISITORS
