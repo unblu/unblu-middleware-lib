@@ -2,7 +2,7 @@ package com.unblu.middleware.webhooks.bootstrap;
 
 import com.unblu.middleware.common.request.RequestHandler;
 import com.unblu.middleware.common.request.RequestHandlerConfiguration;
-import com.unblu.middleware.webhooks.config.WebhookRegistrationConfiguration;
+import com.unblu.middleware.webhooks.config.WebhookConfiguration;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -15,7 +15,7 @@ public class WebhooksBootstrap {
 
     @Bean
     @Qualifier("webhooksRequestHandler")
-    public RequestHandler webhooksRequestHandler(DataBufferFactory dataBufferFactory, WebhookRegistrationConfiguration webhookRegistrationConfiguration) {
-        return new RequestHandler(dataBufferFactory, new RequestHandlerConfiguration(webhookRegistrationConfiguration.getSecret()));
+    public RequestHandler webhooksRequestHandler(DataBufferFactory dataBufferFactory, WebhookConfiguration webhookConfiguration) {
+        return new RequestHandler(dataBufferFactory, new RequestHandlerConfiguration(webhookConfiguration.getSecret()));
     }
 }
