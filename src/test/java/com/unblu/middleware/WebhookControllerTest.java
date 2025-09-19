@@ -1,6 +1,6 @@
 package com.unblu.middleware;
 
-import com.unblu.middleware.webhooks.config.WebhookRegistrationConfiguration;
+import com.unblu.middleware.webhooks.config.WebhookConfiguration;
 import com.unblu.middleware.webhooks.service.WebhookHandlerService;
 import com.unblu.middleware.webhooks.service.WebhookRegistrationService;
 import jakarta.annotation.PostConstruct;
@@ -29,7 +29,7 @@ class WebhookControllerTest {
     WebTestClient webTestClient;
 
     @Autowired
-    WebhookRegistrationConfiguration webhookRegistrationConfiguration;
+    WebhookConfiguration webhookConfiguration;
 
     @Autowired
     WebhookHandlerService webhookHandlerService;
@@ -137,6 +137,6 @@ class WebhookControllerTest {
     }
 
     private String calculateSignature(Object body) {
-        return new HmacUtils(HmacAlgorithms.HMAC_SHA_1, webhookRegistrationConfiguration.getSecret()).hmacHex(body.toString().getBytes());
+        return new HmacUtils(HmacAlgorithms.HMAC_SHA_1, webhookConfiguration.getSecret()).hmacHex(body.toString().getBytes());
     }
 }

@@ -5,7 +5,7 @@ import com.unblu.middleware.common.config.MiddlewareConfiguration;
 import com.unblu.middleware.common.error.RegistrationException;
 import com.unblu.middleware.common.registration.RegistrationConfiguration;
 import com.unblu.middleware.common.registration.RegistrationService;
-import com.unblu.middleware.webhooks.config.WebhookRegistrationConfiguration;
+import com.unblu.middleware.webhooks.config.WebhookConfiguration;
 import com.unblu.middleware.webhooks.entity.EventName;
 import com.unblu.webapi.jersey.v4.api.WebhookRegistrationsApi;
 import com.unblu.webapi.jersey.v4.invoker.ApiException;
@@ -26,20 +26,20 @@ import java.util.concurrent.CopyOnWriteArraySet;
 public class WebhookRegistrationServiceImpl extends RegistrationService<WebhookRegistration> implements WebhookRegistrationService {
 
     private final WebhookRegistrationsApi webhookRegistrationsApi;
-    private final WebhookRegistrationConfiguration webhookRegistrationConfiguration;
+    private final WebhookConfiguration webhookConfiguration;
     private final MiddlewareConfiguration middlewareConfiguration;
     private final Set<EventName> registeredEventNames = new CopyOnWriteArraySet<>();
 
-    public WebhookRegistrationServiceImpl(WebhookRegistrationsApi webhookRegistrationsApi, WebhookRegistrationConfiguration webhookRegistrationConfiguration, MiddlewareConfiguration middlewareConfiguration) {
+    public WebhookRegistrationServiceImpl(WebhookRegistrationsApi webhookRegistrationsApi, WebhookConfiguration webhookConfiguration, MiddlewareConfiguration middlewareConfiguration) {
         super(new RegistrationConfiguration(
                 middlewareConfiguration.getName() + " webhook",
-                webhookRegistrationConfiguration.isCleanPrevious(),
-                webhookRegistrationConfiguration.getSecret()
+                webhookConfiguration.isCleanPrevious(),
+                webhookConfiguration.getSecret()
         ));
         this.webhookRegistrationsApi = webhookRegistrationsApi;
-        this.webhookRegistrationConfiguration = webhookRegistrationConfiguration;
+        this.webhookConfiguration = webhookConfiguration;
         this.middlewareConfiguration = middlewareConfiguration;
-        Optional.ofNullable(webhookRegistrationConfiguration.getEventNames())
+        Optional.ofNullable(webhookConfiguration.getEventNames())
                 .ifPresent(registeredEventNames::addAll);
     }
 
@@ -115,7 +115,7 @@ public class WebhookRegistrationServiceImpl extends RegistrationService<WebhookR
                 .events(registeredEventNames.stream().map(EventName::name).toList())
                 .apiVersion(EWebApiVersion.V4)
                 .endpoint(getWebhookUrl())
-                .secret(webhookRegistrationConfiguration.getSecret()));
+                .secret(webhookConfiguration.getSecret()));
     }
 
     private String getWebhookUrl() {

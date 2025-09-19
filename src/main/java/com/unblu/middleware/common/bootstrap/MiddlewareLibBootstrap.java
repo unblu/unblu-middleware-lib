@@ -1,5 +1,6 @@
 package com.unblu.middleware.common.bootstrap;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.context.ContextRegistry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -19,5 +20,10 @@ public class MiddlewareLibBootstrap {
     @Bean
     public DataBufferFactory dataBufferFactory() {
         return new DefaultDataBufferFactory();
+    }
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
     }
 }

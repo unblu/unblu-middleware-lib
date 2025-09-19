@@ -8,13 +8,16 @@ unblu:
     name: middleware
     autoRegister: false # only changed for testing purposes, never change in production
     autoSubscribe: false
-  bot:
+  outboundRequests:
+    apiPath: /outbound
     secret: hello-im-also-secure
+  bot:
     person:
       firstName: Test
       lastName: Bot
       sourceId: Test middleware
   webhook:
+    apiPath: /webhook
     secret: hello-im-also-secure
     eventNames: []
   externalMessenger:

@@ -2,7 +2,7 @@ package com.unblu.middleware;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unblu.middleware.bots.service.DialogBotService;
-import com.unblu.middleware.bots.config.BotConfiguration;
+import com.unblu.middleware.outboundrequests.config.OutboundRequestsConfiguration;
 import com.unblu.webapi.model.v4.*;
 import jakarta.annotation.PostConstruct;
 import lombok.SneakyThrows;
@@ -26,7 +26,7 @@ class DialogBotServiceOfferTest {
     WebTestClient webTestClient;
 
     @Autowired
-    BotConfiguration botConfiguration;
+    OutboundRequestsConfiguration outboundRequestsConfiguration;
 
     @Autowired
     DialogBotService dialogBotService;
@@ -124,7 +124,7 @@ class DialogBotServiceOfferTest {
         var bodySerialized = objectMapper.writeValueAsString(body);
         var signature = calculateSignature(bodySerialized);
         return webTestClient.post()
-                .uri("/bot")
+                .uri("/outbound")
                 .header("User-Agent", "Unblu-Hookshot")
                 .header("x-unblu-service-name", requestType)
                 .header("X-Unblu-Signature", signature)
@@ -133,6 +133,6 @@ class DialogBotServiceOfferTest {
     }
 
     private String calculateSignature(Object body) {
-        return new HmacUtils(HmacAlgorithms.HMAC_SHA_1, botConfiguration.getSecret()).hmacHex(body.toString().getBytes());
+        return new HmacUtils(HmacAlgorithms.HMAC_SHA_1, outboundRequestsConfiguration.getSecret()).hmacHex(body.toString().getBytes());
     }
 }

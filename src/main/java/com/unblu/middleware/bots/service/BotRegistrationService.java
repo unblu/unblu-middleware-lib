@@ -5,6 +5,7 @@ import com.unblu.middleware.common.config.MiddlewareConfiguration;
 import com.unblu.middleware.common.error.RegistrationException;
 import com.unblu.middleware.common.registration.RegistrationConfiguration;
 import com.unblu.middleware.common.registration.RegistrationService;
+import com.unblu.middleware.outboundrequests.config.OutboundRequestsConfiguration;
 import com.unblu.webapi.jersey.v4.api.BotsApi;
 import com.unblu.webapi.jersey.v4.api.PersonsApi;
 import com.unblu.webapi.jersey.v4.invoker.ApiException;
@@ -24,17 +25,19 @@ public class BotRegistrationService extends RegistrationService<CustomDialogBotD
     private final PersonsApi personsApi;
     private final BotConfiguration botConfiguration;
     private final MiddlewareConfiguration middlewareConfiguration;
+    private final OutboundRequestsConfiguration outboundRequestsConfiguration;
 
-    public BotRegistrationService(BotsApi botsApi, PersonsApi personsApi, BotConfiguration botConfiguration, MiddlewareConfiguration middlewareConfiguration) {
+    public BotRegistrationService(BotsApi botsApi, PersonsApi personsApi, BotConfiguration botConfiguration, MiddlewareConfiguration middlewareConfiguration, OutboundRequestsConfiguration outboundRequestsConfiguration) {
         super(new RegistrationConfiguration(
                 middlewareConfiguration.getName() + " bot",
                 botConfiguration.isCleanPrevious(),
-                botConfiguration.getSecret()
+                outboundRequestsConfiguration.getSecret()
         ));
         this.botsApi = botsApi;
         this.personsApi = personsApi;
         this.botConfiguration = botConfiguration;
         this.middlewareConfiguration = middlewareConfiguration;
+        this.outboundRequestsConfiguration = outboundRequestsConfiguration;
     }
 
     @Override
@@ -107,7 +110,7 @@ public class BotRegistrationService extends RegistrationService<CustomDialogBotD
                 .description(Strings.isBlank(middlewareConfiguration.getDescription()) ? "Registered from Middleware: " + middlewareConfiguration.getName() : middlewareConfiguration.getDescription())
                 .webhookStatus(ERegistrationStatus.ACTIVE)
                 .webhookEndpoint(getBotUrl())
-                .webhookSecret(botConfiguration.getSecret())
+                .webhookSecret(outboundRequestsConfiguration.getSecret())
                 .outboundTimeoutMillis(botConfiguration.getTimeoutInMilliSeconds())
                 .onboardingOrder(botConfiguration.getOnboardingOrder())
                 .reboardingOrder(botConfiguration.getReboardingOrder())
@@ -121,6 +124,6 @@ public class BotRegistrationService extends RegistrationService<CustomDialogBotD
     }
 
     private String getBotUrl() {
-        return middlewareConfiguration.getUrl() + "/bot";
+        return middlewareConfiguration.getUrl() + outboundRequestsConfiguration.getApiPath();
     }
 }

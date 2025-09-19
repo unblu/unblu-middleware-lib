@@ -16,8 +16,6 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties(prefix = "unblu.bot")
 @RequiredArgsConstructor
 public class BotConfiguration {
-    @NotBlank
-    private String secret;
     private long timeoutInMilliSeconds = 1000;
     private boolean cleanPrevious = false;
     @Valid

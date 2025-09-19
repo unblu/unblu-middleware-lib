@@ -1,6 +1,6 @@
 package com.unblu.middleware;
 
-import com.unblu.middleware.bots.config.BotConfiguration;
+import com.unblu.middleware.outboundrequests.config.OutboundRequestsConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.HmacAlgorithms;
 import org.apache.commons.codec.digest.HmacUtils;
@@ -20,14 +20,14 @@ class BotsControllerTest {
     WebTestClient webTestClient;
 
     @Autowired
-    BotConfiguration botConfiguration;
+    OutboundRequestsConfiguration outboundRequestsConfiguration;
 
     @Test
     void onMissingUserAgent_resultIsBadRequest() {
         var body = "{\"type\":\"outbound.request\"}";
         var signature = calculateSignature(body);
         webTestClient.post()
-                .uri("/bot")
+                .uri("/outbound")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(body)
                 .header("X-Unblu-Signature", signature)
@@ -40,7 +40,7 @@ class BotsControllerTest {
         var body = "{}";
         var signature = calculateSignature(body);
         webTestClient.post()
-                .uri("/bot")
+                .uri("/outbound")
                 .header("User-Agent", "Unblu-Hookshot")
                 .header("x-unblu-service-name", "outbound.ping")
                 .header("X-Unblu-Signature", signature)
@@ -53,10 +53,10 @@ class BotsControllerTest {
 
     @Test
     void onCorrectDialogOpened_resultIsOk() {
-        var body = "{\"type\":\"outbound.request\"}";
+        var body = "{\"$_type\":\"outbound.bot.dialog.opened\"}";
         var signature = calculateSignature(body);
         webTestClient.post()
-                .uri("/bot")
+                .uri("/outbound")
                 .header("User-Agent", "Unblu-Hookshot")
                 .header("x-unblu-service-name", "outbound.bot.dialog.opened")
                 .header("X-Unblu-Signature", signature)
@@ -69,7 +69,7 @@ class BotsControllerTest {
     @Test
     void onWrongSignature_resultIsBadRequest() {
         webTestClient.post()
-                .uri("/bot")
+                .uri("/outbound")
                 .header("User-Agent", "Unblu-Hookshot")
                 .header("x-unblu-service-name", "test")
                 .header("X-Unblu-Signature", "muhaha")
@@ -82,7 +82,7 @@ class BotsControllerTest {
     @Test
     void onMissingSignature_resultIsBadRequest() {
         webTestClient.post()
-                .uri("/bot")
+                .uri("/outbound")
                 .header("User-Agent", "Unblu-Hookshot")
                 .header("x-unblu-service-name", "test")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -94,7 +94,7 @@ class BotsControllerTest {
     @Test
     void onMissingServiceName_resultIsBadRequest() {
         webTestClient.post()
-                .uri("/bot")
+                .uri("/outbound")
                 .header("User-Agent", "Unblu-Hookshot")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue("{\"type\":\"outbound.request\"}")
@@ -105,7 +105,7 @@ class BotsControllerTest {
     @Test
     void onEmptyServiceName_resultIsBadRequest() {
         webTestClient.post()
-                .uri("/bot")
+                .uri("/outbound")
                 .header("User-Agent", "Unblu-Hookshot")
                 .header("x-unblu-service-name", "")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -115,6 +115,6 @@ class BotsControllerTest {
     }
 
     private String calculateSignature(Object body) {
-        return new HmacUtils(HmacAlgorithms.HMAC_SHA_1, botConfiguration.getSecret()).hmacHex(body.toString().getBytes());
+        return new HmacUtils(HmacAlgorithms.HMAC_SHA_1, outboundRequestsConfiguration.getSecret()).hmacHex(body.toString().getBytes());
     }
 }

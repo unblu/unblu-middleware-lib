@@ -12,6 +12,6 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @PropertySource(value = "classpath:middleware-application.yml", factory = YamlPropertySourceFactory.class)
-@ComponentScan(basePackages = {"com.unblu.middleware.common", "com.unblu.middleware.bots"})
+@ComponentScan(basePackages = {"com.unblu.middleware.common", "com.unblu.middleware.outboundrequests", "com.unblu.middleware.bots"})
 public @interface WithUnbluBots {
 }

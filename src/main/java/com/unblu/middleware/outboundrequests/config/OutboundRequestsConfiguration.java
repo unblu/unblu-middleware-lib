@@ -1,6 +1,5 @@
-package com.unblu.middleware.webhooks.config;
+package com.unblu.middleware.outboundrequests.config;
 
-import com.unblu.middleware.webhooks.entity.EventName;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -8,16 +7,14 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
 
-import java.util.Set;
-
 @Validated
 @Data
 @Configuration
-@ConfigurationProperties(prefix = "unblu.webhook")
+@ConfigurationProperties(prefix = "unblu.outbound-requests")
 @RequiredArgsConstructor
-public class WebhookRegistrationConfiguration {
+public class OutboundRequestsConfiguration {
     @NotBlank
     private String secret;
-    private boolean cleanPrevious = false;
-    private Set<EventName> eventNames;
+    @NotBlank
+    private String apiPath = "/outbound";
 }

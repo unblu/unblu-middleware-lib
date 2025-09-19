@@ -15,7 +15,7 @@ import static com.unblu.middleware.webhooks.entity.EventName.eventName;
 import static org.springframework.http.ResponseEntity.*;
 
 @RestController
-@RequestMapping(value = "/webhook", method = RequestMethod.POST)
+@RequestMapping(value = "${unblu.webhook.api-path}", method = RequestMethod.POST)
 @RequiredArgsConstructor
 @Slf4j
 public class WebhookController {

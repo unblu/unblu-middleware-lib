@@ -1,7 +1,7 @@
 package com.unblu.middleware;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.unblu.middleware.webhooks.config.WebhookRegistrationConfiguration;
+import com.unblu.middleware.webhooks.config.WebhookConfiguration;
 import com.unblu.middleware.webhooks.service.WebhookHandlerService;
 import com.unblu.webapi.model.v4.ConversationNewMessageEvent;
 import com.unblu.webapi.model.v4.TextMessageData;
@@ -42,7 +42,7 @@ class WebhookRequestHandlerServiceTest {
     WebhookHandlerService webhookHandlerService;
 
     @Autowired
-    WebhookRegistrationConfiguration webhookRegistrationConfiguration;
+    WebhookConfiguration webhookConfiguration;
 
     @Autowired
     WebTestClient webTestClient;
@@ -173,6 +173,6 @@ class WebhookRequestHandlerServiceTest {
     }
 
     private String calculateSignature(Object body) {
-        return new HmacUtils(HmacAlgorithms.HMAC_SHA_1, webhookRegistrationConfiguration.getSecret()).hmacHex(body.toString().getBytes());
+        return new HmacUtils(HmacAlgorithms.HMAC_SHA_1, webhookConfiguration.getSecret()).hmacHex(body.toString().getBytes());
     }
 }
