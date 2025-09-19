@@ -129,19 +129,4 @@ public class DialogBotServiceImpl implements DialogBotService {
                 mustPreserveOrderForThoseWithTheSame(it -> it.body().getDialogToken()),
                 contextEntries);
     }
-
-    @Override
-    public Flux<Void> getFlux() {
-        return outboundRequestHandler.getFlux();
-    }
-
-    @Override
-    public void shutdown() {
-        outboundRequestHandler.shutdown();
-    }
-
-    @Override
-    public void subscribe() {
-        outboundRequestHandler.subscribe();
-    }
 }

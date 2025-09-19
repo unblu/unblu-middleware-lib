@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unblu.middleware.bots.service.DialogBotService;
 import com.unblu.middleware.common.utils.ThrowingRunnable;
 import com.unblu.middleware.outboundrequests.config.OutboundRequestsConfiguration;
+import com.unblu.middleware.outboundrequests.handler.OutboundRequestHandler;
 import com.unblu.webapi.model.v4.*;
 import jakarta.annotation.PostConstruct;
 import lombok.SneakyThrows;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
@@ -39,6 +41,9 @@ class DialogBotServiceOnEventTest {
 
     @Autowired
     DialogBotService dialogBotService;
+
+    @Autowired
+    OutboundRequestHandler outboundRequestHandler;
 
     @Autowired
     ObjectMapper objectMapper;
@@ -68,12 +73,15 @@ class DialogBotServiceOnEventTest {
             testQueue.add(dialogOpen.getAccountId());
         }).publishOn(Schedulers.parallel()).then());
 
-        dialogBotService.subscribe();
+        outboundRequestHandler.subscribe();
     }
 
     @Test
+    @DirtiesContext
     void givenSubscriptionsWithProcessingDelay_onRequests_processingOrderIsPreserved() {
         testQueue.clear();
+
+        testQueue.add("Zero");
 
         outBoundRequest("outbound.bot.dialog.opened",
                 new BotDialogOpenRequest()
@@ -109,8 +117,6 @@ class DialogBotServiceOnEventTest {
         )
                 .exchange()
                 .expectStatus().isOk();
-
-        testQueue.add("Zero");
 
         await().atMost(5, SECONDS)
                 .until(() -> testQueue.size() >= 6);

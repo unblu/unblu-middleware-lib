@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unblu.middleware.bots.service.DialogBotService;
 import com.unblu.middleware.common.utils.ThrowingRunnable;
 import com.unblu.middleware.outboundrequests.config.OutboundRequestsConfiguration;
+import com.unblu.middleware.outboundrequests.handler.OutboundRequestHandler;
 import com.unblu.webapi.model.v4.BotDialogMessageRequest;
 import com.unblu.webapi.model.v4.TextMessageData;
 import jakarta.annotation.PostConstruct;
@@ -41,6 +42,9 @@ class DialogBotServiceDifferentDialogsTest {
     DialogBotService dialogBotService;
 
     @Autowired
+    OutboundRequestHandler outboundRequestHandler;
+
+    @Autowired
     ObjectMapper objectMapper;
 
     private final Queue<String> testQueue = new ConcurrentLinkedQueue<>();
@@ -53,7 +57,7 @@ class DialogBotServiceDifferentDialogsTest {
             testQueue.add(dialogMessage.getConversationMessage().getFallbackText());
         }));
 
-        dialogBotService.subscribe();
+        outboundRequestHandler.subscribe();
     }
 
     @Test
