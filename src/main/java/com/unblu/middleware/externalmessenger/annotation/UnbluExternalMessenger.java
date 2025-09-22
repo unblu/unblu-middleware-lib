@@ -7,6 +7,6 @@ import org.springframework.context.annotation.PropertySource;
 
 @Configuration
 @PropertySource(value = "classpath:middleware-application.yml", factory = YamlPropertySourceFactory.class)
-@ComponentScan(basePackages = {"com.unblu.middleware.common", "com.unblu.middleware.externalmessenger"})
+@ComponentScan(basePackages = {"com.unblu.middleware.common", "com.unblu.middleware.outboundrequests", "com.unblu.middleware.externalmessenger"})
 public class UnbluExternalMessenger {
 }

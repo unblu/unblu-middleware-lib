@@ -2,7 +2,6 @@ package com.unblu.middleware.bots.service;
 
 import com.unblu.middleware.common.entity.ContextEntrySpec;
 import com.unblu.middleware.common.entity.Request;
-import com.unblu.middleware.common.registry.RequestQueueService;
 import com.unblu.webapi.model.v4.*;
 import reactor.core.publisher.Mono;
 
@@ -65,4 +64,6 @@ public interface DialogBotService {
     void onWrappedDialogMessageState(Function<Request<BotDialogMessageStateRequest>, Mono<Void>> action, Collection<ContextEntrySpec<Request<BotDialogMessageStateRequest>>> contextEntries);
     void onWrappedDialogCounterpartChanged(Function<Request<BotDialogCounterpartChangedRequest>, Mono<Void>> action, Collection<ContextEntrySpec<Request<BotDialogCounterpartChangedRequest>>> contextEntries);
     void onWrappedDialogClosed(Function<Request<BotDialogClosedRequest>, Mono<Void>> action, Collection<ContextEntrySpec<Request<BotDialogClosedRequest>>> contextEntries);
+
+    void assertSubscribed();
 }

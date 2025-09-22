@@ -6,7 +6,6 @@ import com.unblu.middleware.outboundrequests.handler.OutboundRequestHandler;
 import com.unblu.webapi.model.v4.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Collection;
@@ -128,5 +127,10 @@ public class DialogBotServiceImpl implements DialogBotService {
                 action,
                 mustPreserveOrderForThoseWithTheSame(it -> it.body().getDialogToken()),
                 contextEntries);
+    }
+
+    @Override
+    public void assertSubscribed() {
+        outboundRequestHandler.assertSubscribed();
     }
 }
