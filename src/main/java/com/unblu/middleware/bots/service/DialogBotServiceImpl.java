@@ -39,7 +39,9 @@ public class DialogBotServiceImpl implements DialogBotService {
                 outboundRequestType("outbound.bot.onboarding_offer"),
                 BotOnboardingOfferRequest.class,
                 BotBoardingOfferResponse.class,
-                request -> condition.apply(request).map(shouldAccept -> new BotBoardingOfferResponse().offerAccepted(shouldAccept)),
+                request -> condition.apply(request)
+                        .doOnNext(shouldAccept -> log.debug(shouldAccept ? "Accepting onboarding dialog offer" : "Rejecting onboarding dialog offer"))
+                        .map(shouldAccept -> new BotBoardingOfferResponse().offerAccepted(shouldAccept)),
                 null,
                 null,
                 List.of());
@@ -51,7 +53,9 @@ public class DialogBotServiceImpl implements DialogBotService {
                 outboundRequestType("outbound.bot.reboarding_offer"),
                 BotReboardingOfferRequest.class,
                 BotBoardingOfferResponse.class,
-                request -> condition.apply(request).map(shouldAccept -> new BotBoardingOfferResponse().offerAccepted(shouldAccept)),
+                request -> condition.apply(request)
+                        .doOnNext(shouldAccept -> log.debug(shouldAccept ? "Accepting reboarding dialog offer" : "Rejecting reboarding dialog offer"))
+                        .map(shouldAccept -> new BotBoardingOfferResponse().offerAccepted(shouldAccept)),
                 null,
                 null,
                 List.of());
@@ -63,7 +67,9 @@ public class DialogBotServiceImpl implements DialogBotService {
                 outboundRequestType("outbound.bot.offboarding_offer"),
                 BotOffboardingOfferRequest.class,
                 BotBoardingOfferResponse.class,
-                request -> condition.apply(request).map(shouldAccept -> new BotBoardingOfferResponse().offerAccepted(shouldAccept)),
+                request -> condition.apply(request)
+                        .doOnNext(shouldAccept -> log.debug(shouldAccept ? "Accepting offboarding dialog offer" : "Rejecting offboarding dialog offer"))
+                        .map(shouldAccept -> new BotBoardingOfferResponse().offerAccepted(shouldAccept)),
                 null,
                 null,
                 List.of());
@@ -75,7 +81,8 @@ public class DialogBotServiceImpl implements DialogBotService {
                 outboundRequestType("outbound.bot.dialog.opened"),
                 BotDialogOpenRequest.class,
                 BotDialogOpenResponse.class,
-                _request -> Mono.just(new BotDialogOpenResponse()),
+                _request -> Mono.just(new BotDialogOpenResponse())
+                        .doOnNext(_response -> log.debug("Responding to bot dialog open")),
                 action,
                 mustPreserveOrderForThoseWithTheSame(it -> it.body().getDialogToken()),
                 contextEntries);
@@ -87,7 +94,8 @@ public class DialogBotServiceImpl implements DialogBotService {
                 outboundRequestType("outbound.bot.dialog.message"),
                 BotDialogMessageRequest.class,
                 BotDialogMessageResponse.class,
-                _request -> Mono.just(new BotDialogMessageResponse()),
+                _request -> Mono.just(new BotDialogMessageResponse())
+                        .doOnNext(_response -> log.debug("Responding to bot dialog message")),
                 action,
                 mustPreserveOrderForThoseWithTheSame(it -> it.body().getDialogToken()),
                 contextEntries);
@@ -99,7 +107,8 @@ public class DialogBotServiceImpl implements DialogBotService {
                 outboundRequestType("outbound.bot.dialog.message_state"),
                 BotDialogMessageStateRequest.class,
                 BotDialogMessageStateResponse.class,
-                _request -> Mono.just(new BotDialogMessageStateResponse()),
+                _request -> Mono.just(new BotDialogMessageStateResponse())
+                        .doOnNext(_response -> log.debug("Responding to bot dialog message state")),
                 action,
                 mustPreserveOrderForThoseWithTheSame(it -> it.body().getDialogToken()),
                 contextEntries);
@@ -111,7 +120,8 @@ public class DialogBotServiceImpl implements DialogBotService {
                 outboundRequestType("outbound.bot.dialog.counterpart_changed"),
                 BotDialogCounterpartChangedRequest.class,
                 BotDialogCounterpartChangedResponse.class,
-                _request -> Mono.just(new BotDialogCounterpartChangedResponse()),
+                _request -> Mono.just(new BotDialogCounterpartChangedResponse())
+                        .doOnNext(_response -> log.debug("Responding to bot dialog counterpart changed")),
                 action,
                 mustPreserveOrderForThoseWithTheSame(it -> it.body().getDialogToken()),
                 contextEntries);
@@ -123,7 +133,8 @@ public class DialogBotServiceImpl implements DialogBotService {
                 outboundRequestType("outbound.bot.dialog.closed"),
                 BotDialogClosedRequest.class,
                 BotDialogClosedResponse.class,
-                _request -> Mono.just(new BotDialogClosedResponse()),
+                _request -> Mono.just(new BotDialogClosedResponse())
+                        .doOnNext(_response -> log.debug("Responding to bot dialog closed")),
                 action,
                 mustPreserveOrderForThoseWithTheSame(it -> it.body().getDialogToken()),
                 contextEntries);
