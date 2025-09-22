@@ -3,18 +3,21 @@ package com.unblu.middleware.outboundrequests.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unblu.middleware.common.entity.ContextEntrySpec;
 import com.unblu.middleware.common.entity.Request;
+import com.unblu.middleware.common.error.InvalidRequestException;
+import com.unblu.middleware.common.error.NoHandlerException;
 import com.unblu.middleware.common.registry.RequestOrderSpec;
 import com.unblu.middleware.common.registry.RequestQueue;
 import com.unblu.middleware.common.registry.RequestQueueServiceImpl;
 import com.unblu.middleware.outboundrequests.entity.OutboundRequestType;
 import org.springframework.stereotype.Service;
 import lombok.NonNull;
-import lombok.SneakyThrows;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import reactor.core.publisher.Mono;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
@@ -47,15 +50,20 @@ public class OutboundRequestHandler extends RequestQueueServiceImpl {
     }
 
     @SuppressWarnings("unchecked")
-    public <T, R> Mono<R> handle(Request<T> request) {
+    public <T, R> Mono<R> handle(OutboundRequestType requestType, Request<T> request) {
         requestQueue.queueRequest(request);
         var function = responseByRequestType.get(request.body().getClass());
-        return (Mono<R>) function.apply(request);
+        return Optional.ofNullable(function)
+                .map(it -> (Mono<R>) it.apply(request))
+                .orElseThrow(() -> new NoHandlerException("No handler registered for outbound request type: " + requestType));
     }
 
-    @SneakyThrows
     public Mono<Object> handle(OutboundRequestType requestType, byte[] body, ServerHttpRequest request) {
-        var parsedRequest = objectMapper.readValue(body, requestClassByRequestType.get(requestType));
-        return handle(new Request<>(parsedRequest, request.getHeaders()));
+        try {
+            var parsedRequest = objectMapper.readValue(body, requestClassByRequestType.get(requestType));
+            return handle(requestType, new Request<>(parsedRequest, request.getHeaders()));
+        } catch (IOException e) {
+            throw new InvalidRequestException("Request of type %s could not be parsed".formatted(requestType), e);
+        }
     }
 }

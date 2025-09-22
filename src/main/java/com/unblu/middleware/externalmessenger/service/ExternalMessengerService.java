@@ -11,6 +11,8 @@ import java.util.function.Function;
 
 import static com.unblu.middleware.common.utils.RequestWrapperUtils.wrapped;
 
+// Currently, only on new message is supported. If not called, outbound.external_messenger.new_message cannot not be handled
+// And the library will return a failure
 public interface ExternalMessengerService {
 
     default void onNewMessage(Function<ExternalMessengerNewMessageRequest, Mono<Void>> action) {
