@@ -39,7 +39,7 @@ public class OutboundRequestsController {
     }
 
     @PostMapping
-    public Mono<ResponseEntity<Object>> bots(@RequestHeader("x-unblu-service-name") String requestType, ServerHttpRequest request) {
+    public Mono<ResponseEntity<Object>> outbound(@RequestHeader("x-unblu-service-name") String requestType, ServerHttpRequest request) {
 
         if ("outbound.ping".equals(requestType)) {
             return Mono.just(ok("Pong!"));
