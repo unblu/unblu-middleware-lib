@@ -25,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 import static com.unblu.middleware.common.registry.ContextRegistryWrapper.requestContext;
+import static com.unblu.middleware.common.utils.RequestWrapperUtils.wrapped;
 
 @Service
 @Slf4j
@@ -40,6 +41,28 @@ public class OutboundRequestHandler extends RequestQueueServiceImpl {
         super(requestQueue);
         this.objectMapper = objectMapper;
         this.contextRegistryWrapper = contextRegistryWrapper;
+    }
+
+    public <T, R> void on(
+            @NonNull OutboundRequestType requestType,
+            @NonNull Class<T> requestClass,
+            @NonNull Class<R> responseClass,
+            @NonNull Function<T, Mono<R>> responseFunction,
+            Function<T, Mono<Void>> asyncHandler,
+            RequestOrderSpec<T> requestOrderSpec,
+            @NonNull Collection<ContextEntrySpec<T>> contextEntries) {
+        onWrapped(requestType, requestClass, responseClass, wrapped(responseFunction), wrapped(asyncHandler), wrapped(requestOrderSpec), wrapped(contextEntries));
+    }
+
+    public <T, R> void onWrapped(
+            @NonNull OutboundRequestType requestType,
+            @NonNull Class<T> requestClass,
+            @NonNull Class<R> responseClass,
+            @NonNull Function<Request<T>, Mono<R>> responseFunction,
+            Function<Request<T>, Mono<Void>> asyncHandler,
+            RequestOrderSpec<Request<T>> requestOrderSpec,
+            @NonNull Collection<ContextEntrySpec<Request<T>>> contextEntries) {
+        registerHandler(requestType, requestClass, responseClass, responseFunction, asyncHandler, requestOrderSpec, contextEntries);
     }
 
     // Combination of requestType, requestClass and responseClass is given and is 1:1:1, just unknown to the lib :(

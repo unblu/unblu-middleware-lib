@@ -301,18 +301,25 @@ Example usage - this is how the dialog bot service implements `onDialogOpen()`:
 
 [source,java]
 ----
-outboundRequestHandler.registerHandler(
+outboundRequestHandler.on(
         outboundRequestType("outbound.bot.dialog.opened"),
         BotDialogOpenRequest.class,
         BotDialogOpenResponse.class,
         _request -> Mono.just(new BotDialogOpenResponse())
                 .doOnNext(_response -> log.debug("Responding to bot dialog open")),
-        request -> Mono.fromRunnable(() -> sendMessage(request.body().getDialogToken(), "Hello, I am a bot!")));,
-        mustPreserveOrderForThoseWithTheSame(request -> request.body().getDialogToken()),
-        contextEntries);
+        request -> Mono.fromRunnable(() -> sendMessage(request.getDialogToken(), "Hello, I am a bot!")));,
+        mustPreserveOrderForThoseWithTheSame(request -> request.getDialogToken()),
+        List.of(
+                contextOf("dialogToken", request -> request.getDialogToken())
+        ));
 ----
 
 `sendMessage()` here is an expensive asynchronous operation, so it is performed in the asynchronous handler lambda, while the synchronous lambda just returns an empty `BotDialogOpenResponse` as quickly as possible.
+
+=== Method flavors
+Like the webhook handler, the outbound request handler also provides a `.onWrapped...()` method family, which allows you to access the headers of the request in your lambdas, in addition to the event object.
+
+Also like the webhook handler, the dialog bot handler allows you to pass a list of context entry specs, which allows you to populate the logback context with event-related information. The usage is the same as for the webhook handler.
 
 == Troubleshooting
 
