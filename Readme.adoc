@@ -7,7 +7,7 @@ Usage example: https://github.com/unblu/example-middleware[example-middleware]
 
 Main features:
 
-* Provides beans for Unblu API clients - you can simply just inject conversationApi, webhooksApi, botsApi, etc. where needed
+* Provides beans for Unblu API clients - you can simply just inject conversationApi, webhooksApi, botsApi, etc. where needed. These are conditionally created only if bean with the same name doesn't already exist, so you can override them if needed.
 * Automatically creates, manages and heals bot and/or webhook registrations
 * Correctly handles all registered webhooks, bot outbound requests and pings
 * Uses reactor to handle backpressure, supports options for asynchronous processing, as well as order guarantees where needed
@@ -67,7 +67,7 @@ public class MyAwesomeMiddlewareService implements ApplicationRunner {
 }
 ----
 
-== Quick start - bots
+== Quick start -  dialog bots
 
 Add a dependency to your `build.gradle` file:
 
@@ -94,8 +94,9 @@ unblu:
     url: https://where.my.middleware.is.running
     name: Test middleware
     description: Does stuff
-  bot:
+  outboundRequests:
     secret: hello-im-secure
+  bot:
     onboardingFilter: VISITORS
     person:
       firstName: Test
@@ -175,8 +176,11 @@ unblu:
       - conversation.onboarding
       - conversation.new_message
 
+  outboundRequests:
+    secret: a-secure-secret  # mandatory if services requiring outbound requests (e.g. dialog bots) are used
+    apiPath: /outbound   # api path used by the middleware outbound controller, e.g. https://where.my.middleware.is.running/webhook. /outbound this is the default
+
   bot:
-    secret: a-secure-secret     # mandatory if bots are used
     person:
       firstName: Test                      # mandatory if bots are used
       lastName: Bot                        # mandatory if bots are used
@@ -203,12 +207,12 @@ This is useful when after a middleware restart, you don't want to receive webhoo
 `selfHealingEnabled: true` means that every `selfHealingCheckIntervalInSeconds` seconds, the middleware will check and perform repare actions if the webhook and bot registrations are still valid and correctly configured, in particular if they haven't been auto-disabled by Unblu.
 
 == Subscribe
-Note that you must subscribe to the fluxes in `webhookHandlerService` and `dialogBotService`.
+Note that you must subscribe to the fluxes in `webhookHandlerService` and `outboundRequestHandler` (used by `dialogBotService`).
 
 You can do this by one of the following:
 
 * Setting `unblu.middleware.autoSubscribe=true` (default). Library then subscribes on `ApplicationReadyEvent`, so you must register your handlers before, e.g. in `@PostConstruct` or `@Bean` methods or in `ApplicationRunner.run()` method.
-* Calling `.subscribe()` methods on the beans, e.g. `webhookHandlerService.subscribe()` and `dialogBotService.subscribe()` after registering your handlers.
+* Calling `.assertSubscribed()` methods on the beans, e.g. `webhookHandlerService.assertSubscribed()` and `dialogBotService.assertSubscribed()` after registering your handlers. `.assertSubscribed()` guarantees you're subscribed exactly once. You can also use explicit `.subscribe()`, then however you need to take care of double subscriptions.
 * Retrieving the fluxes (`.getFlux()`) and ensuring they are subscribed after registering your handlers.
 
 == Webhook handling
@@ -261,8 +265,8 @@ logback.xml:
 </configuration>
 ----
 
-== Bots
-Bots are a special type of middleware that can interact with Unblu dialogs and conversations. They can be used to automate tasks, provide information, or interact with users in a conversational manner. More details about bots can be found in the https://www.unblu.com/en/docs/latest/knowledge-base/integration/third-party-software/bots.html[Unblu documentation - Bot integration].
+== Dialog bots
+Bots are a special type of middleware that can interact with Unblu dialogs and conversations. They can be used to automate tasks, provide information, or interact with users in a conversational manner. More details about bots can be found in the https://www.unblu.com/en/docs/latest/knowledge-base/integration/third-party-software/bots.html[Unblu documentation - Bot integration]. Currently, the middleware provides seemless support for dialog bots. Library provides means to implement conversation-observing bots through webhooks.
 
 === Accepting boarding offers
 DialogBotService allows you to define which onboarding, offboarding, and reboarding offers the bot should accept. You can use the `acceptOnboardingOfferIf()`, `acceptOffboardingOfferIf()` and `acceptReboardingOfferIf()` methods to define conditions for accepting boarding offers. The methods take a function that returns a `Mono<Boolean>`, which determines whether the offer should be accepted or not. By default, no offers are accepted.
@@ -286,14 +290,41 @@ Like the webhook handler, the dialog bot handler also provides a `.onWrapped...(
 
 Also like the webhook handler, the dialog bot handler allows you to pass a list of context entry specs, which allows you to populate the logback context with event-related information. The usage is the same as for the webhook handler.
 
+== Outbound request handler API
+The library also exposes a lower-level api `OutboundRequestHandler`, primarily intended for cases which aren't yet explicitly covered by the library.
+
+Outbound requests are implicitly imported with `@Import(UnbluBots.class)` but if you don't use that annotation, you can import them explicitly with `@Import(UnbluOutboundRequests.class)`. This exposes the `outboundRequestHandler` bean.
+
+Outbound requests are handled similarly to webhooks, however require a proper response in the form of a class `<Xxx>Response` for each `<Xxx>Request`. Like with webhooks, the general practice is to respond as quickly as possible, and perform longer processing asynchronously. For outbound requests however, this may not always be possible, because an actual response with results of the handler operation is sometimes needed. For that reason, the `outboundRequestHandler.registerHandler()` provides a way to pass a synchronous lambda used to retrieve a `Mono<XxxResponse>`, and an asynchronous handler lambda which returns a `Mono<Void>`.
+
+Example usage - this is how the dialog bot service implements `onDialogOpen()`:
+
+[source,java]
+----
+outboundRequestHandler.on(
+        outboundRequestType("outbound.bot.dialog.opened"),
+        BotDialogOpenRequest.class,
+        BotDialogOpenResponse.class,
+        _request -> Mono.just(new BotDialogOpenResponse())
+                .doOnNext(_response -> log.debug("Responding to bot dialog open")),
+        request -> Mono.fromRunnable(() -> sendMessage(request.getDialogToken(), "Hello, I am a bot!")));,
+        mustPreserveOrderForThoseWithTheSame(request -> request.getDialogToken()),
+        List.of(
+                contextOf("dialogToken", request -> request.getDialogToken())
+        ));
+----
+
+`sendMessage()` here is an expensive asynchronous operation, so it is performed in the asynchronous handler lambda, while the synchronous lambda just returns an empty `BotDialogOpenResponse` as quickly as possible.
+
+=== Method flavors
+Like the webhook handler, the outbound request handler also provides a `.onWrapped...()` method family, which allows you to access the headers of the request in your lambdas, in addition to the event object.
+
+Also like the webhook handler, the dialog bot handler allows you to pass a list of context entry specs, which allows you to populate the logback context with event-related information. The usage is the same as for the webhook handler.
 
 == Troubleshooting
 
 === Configuration issues
 Property must not be blank - you must populate required properties in your `application.yml` file, such as `unblu.host`, `unblu.user`, `unblu.password`, `unblu.middleware.url`, `unblu.middleware.name`, and either `unblu.webhook.secret` or `unblu.bot.secret`.
-
-=== Bean collisions
-The bean 'xxxxApi', defined in ..., could not be registered. A bean with that name has already been defined - library already defines all the unblu api client beans in the application context. If you need your own unblu api bean definitions for some reason, you can either rename them or use `@Primary` annotation to indicate which bean should be used as the primary one.
 
 === Errors during registration management
 Errors during webhook registration management (typically 403 forbidden) are usually caused either by wrong Unblu credentials, or by using a non-admin Unblu user.

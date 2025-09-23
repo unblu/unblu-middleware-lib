@@ -12,10 +12,10 @@ import reactor.core.publisher.Mono;
 
 import static com.unblu.middleware.common.request.RequestHandler.withRequestContext;
 import static com.unblu.middleware.webhooks.entity.EventName.eventName;
-import static org.springframework.http.ResponseEntity.*;
+import static org.springframework.http.ResponseEntity.ok;
 
 @RestController
-@RequestMapping(value = "/webhook", method = RequestMethod.POST)
+@RequestMapping(value = "${unblu.webhook.api-path}", method = RequestMethod.POST)
 @RequiredArgsConstructor
 @Slf4j
 public class WebhookController {
@@ -33,7 +33,7 @@ public class WebhookController {
 
         return requestHandler.handle(request,
                 body -> {
-                    log.debug(withRequestContext("Start Processed webhook event: {}", request), eventType);
+                    log.debug(withRequestContext("Start processing webhook event: {}", request), eventType);
                     webhookRequestHandler.handle(eventName(eventType), body, request.getHeaders());
                     log.debug(withRequestContext("Processed webhook event: {}", request), eventType);
                     return Mono.just(ok(withRequestContext("Webhook processed", request)));

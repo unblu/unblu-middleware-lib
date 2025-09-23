@@ -2,44 +2,42 @@ package com.unblu.middleware.externalmessenger.service;
 
 import com.unblu.middleware.common.entity.ContextEntrySpec;
 import com.unblu.middleware.common.entity.Request;
-import com.unblu.middleware.common.registry.RequestQueue;
-import com.unblu.middleware.common.registry.RequestQueueServiceImpl;
+import com.unblu.middleware.outboundrequests.handler.OutboundRequestHandler;
 import com.unblu.webapi.model.v4.ExternalMessengerNewMessageRequest;
+import com.unblu.webapi.model.v4.ExternalMessengerNewMessageResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Collection;
 import java.util.function.Function;
 
 import static com.unblu.middleware.common.registry.RequestOrderSpec.mustPreserveOrderForThoseWithTheSame;
+import static com.unblu.middleware.outboundrequests.entity.OutboundRequestType.outboundRequestType;
 
 @Service
 @Slf4j
-public class ExternalMessengerServiceImpl extends RequestQueueServiceImpl implements ExternalMessengerService, ExternalMessengerOutboundRequestHandler {
+@RequiredArgsConstructor
+public class ExternalMessengerServiceImpl implements ExternalMessengerService {
 
-    public ExternalMessengerServiceImpl(RequestQueue requestQueue) {
-        super(requestQueue);
-    }
-
-    @Override
-    public <T> void handle(Request<T> request) {
-        requestQueue.queueRequest(request);
-    }
+    private final OutboundRequestHandler outboundRequestHandler;
 
     @Override
     public void onWrappedNewMessage(Function<Request<ExternalMessengerNewMessageRequest>, Mono<Void>> action, Collection<ContextEntrySpec<Request<ExternalMessengerNewMessageRequest>>> contextEntries) {
-        requestQueue.onWrapped(ExternalMessengerNewMessageRequest.class, action, mustPreserveOrderForThoseWithTheSame(it -> it.body().getConversationMessage().getId()), contextEntries);
+        outboundRequestHandler.registerHandler(
+                outboundRequestType("outbound.external_messenger.new_message"),
+                ExternalMessengerNewMessageRequest.class,
+                ExternalMessengerNewMessageResponse.class,
+                _request -> Mono.just(new ExternalMessengerNewMessageResponse()),
+                action,
+                mustPreserveOrderForThoseWithTheSame(it -> it.body().getConversationMessage().getId()),
+                contextEntries
+        );
     }
 
     @Override
-    public void subscribe() {
-        getFlux().subscribe();
-    }
-
-    @Override
-    public Flux<Void> getFlux() {
-        return requestQueue.getFlux();
+    public void assertSubscribed() {
+        outboundRequestHandler.assertSubscribed();
     }
 }

@@ -11,8 +11,12 @@ unblu:
     autoRegister: true # should always be true, only exists for testing purposes
     selfHealingEnabled: true # set to true to enable self-healing, false to disable
     selfHealingCheckIntervalInSeconds: 60 # interval in seconds to check for self-healing, default is 60 seconds
+  outboundRequests:
+    apiPath: /outbound
+    secret:
   webhook:
-    secret:           # populate me
+    apiPath: /webhook
+    secret:          # populate me
     eventNames: []   # populate with event names you want to register, e.g. ["something.happened", "another.event"]
   externalMessenger:
     secret:           # populate me

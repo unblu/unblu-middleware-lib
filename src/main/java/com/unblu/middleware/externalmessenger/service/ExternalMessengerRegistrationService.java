@@ -5,6 +5,7 @@ import com.unblu.middleware.common.error.RegistrationException;
 import com.unblu.middleware.common.registration.RegistrationConfiguration;
 import com.unblu.middleware.common.registration.RegistrationService;
 import com.unblu.middleware.externalmessenger.config.ExternalMessengerConfiguration;
+import com.unblu.middleware.outboundrequests.config.OutboundRequestsConfiguration;
 import com.unblu.webapi.jersey.v4.api.ExternalMessengersApi;
 import com.unblu.webapi.jersey.v4.invoker.ApiException;
 import com.unblu.webapi.model.v4.CustomExternalMessengerChannel;
@@ -24,16 +25,18 @@ public class ExternalMessengerRegistrationService extends RegistrationService<Cu
 
     private final ExternalMessengersApi externalMessengersApi;
     private final ExternalMessengerConfiguration externalMessengerConfiguration;
+    private final OutboundRequestsConfiguration outboundRequestsConfiguration;
     private final MiddlewareConfiguration middlewareConfiguration;
 
-    public ExternalMessengerRegistrationService(ExternalMessengersApi externalMessengersApi, ExternalMessengerConfiguration externalMessengerConfiguration, MiddlewareConfiguration middlewareConfiguration) {
+    public ExternalMessengerRegistrationService(ExternalMessengersApi externalMessengersApi, ExternalMessengerConfiguration externalMessengerConfiguration, OutboundRequestsConfiguration outboundRequestsConfiguration, MiddlewareConfiguration middlewareConfiguration) {
         super(new RegistrationConfiguration(
                 middlewareConfiguration.getName() + " external messenger",
                 externalMessengerConfiguration.isCleanPrevious(),
-                externalMessengerConfiguration.getSecret()
+                outboundRequestsConfiguration.getSecret()
         ));
         this.externalMessengersApi = externalMessengersApi;
         this.externalMessengerConfiguration = externalMessengerConfiguration;
+        this.outboundRequestsConfiguration = outboundRequestsConfiguration;
         this.middlewareConfiguration = middlewareConfiguration;
     }
 
@@ -76,7 +79,7 @@ public class ExternalMessengerRegistrationService extends RegistrationService<Cu
                         .outboundSupported(true)
                         .webhookStatus(ERegistrationStatus.ACTIVE)
                         .webhookEndpoint(getExternalMessengerUrl())
-                        .webhookSecret(externalMessengerConfiguration.getSecret())
+                        .webhookSecret(outboundRequestsConfiguration.getSecret())
 
                         // TODO following should be configurable
                         .outboundTimeoutMillis(10000L)
@@ -90,6 +93,6 @@ public class ExternalMessengerRegistrationService extends RegistrationService<Cu
     }
 
     private String getExternalMessengerUrl() {
-        return middlewareConfiguration.getUrl() + "/external-messenger";
+        return middlewareConfiguration.getUrl() + outboundRequestsConfiguration.getApiPath();
     }
 }

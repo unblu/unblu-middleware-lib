@@ -2,8 +2,9 @@ package com.unblu.middleware;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unblu.middleware.bots.service.DialogBotService;
-import com.unblu.middleware.bots.config.BotConfiguration;
 import com.unblu.middleware.common.utils.ThrowingRunnable;
+import com.unblu.middleware.outboundrequests.config.OutboundRequestsConfiguration;
+import com.unblu.middleware.outboundrequests.handler.OutboundRequestHandler;
 import com.unblu.webapi.model.v4.*;
 import jakarta.annotation.PostConstruct;
 import lombok.SneakyThrows;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
@@ -35,10 +37,13 @@ class DialogBotServiceOnEventTest {
     WebTestClient webTestClient;
 
     @Autowired
-    BotConfiguration botConfiguration;
+    OutboundRequestsConfiguration outboundRequestsConfiguration;
 
     @Autowired
     DialogBotService dialogBotService;
+
+    @Autowired
+    OutboundRequestHandler outboundRequestHandler;
 
     @Autowired
     ObjectMapper objectMapper;
@@ -68,12 +73,15 @@ class DialogBotServiceOnEventTest {
             testQueue.add(dialogOpen.getAccountId());
         }).publishOn(Schedulers.parallel()).then());
 
-        dialogBotService.subscribe();
+        outboundRequestHandler.subscribe();
     }
 
     @Test
+    @DirtiesContext
     void givenSubscriptionsWithProcessingDelay_onRequests_processingOrderIsPreserved() {
         testQueue.clear();
+
+        testQueue.add("Zero");
 
         outBoundRequest("outbound.bot.dialog.opened",
                 new BotDialogOpenRequest()
@@ -110,8 +118,6 @@ class DialogBotServiceOnEventTest {
                 .exchange()
                 .expectStatus().isOk();
 
-        testQueue.add("Zero");
-
         await().atMost(5, SECONDS)
                 .until(() -> testQueue.size() >= 6);
 
@@ -123,7 +129,7 @@ class DialogBotServiceOnEventTest {
         var bodySerialized = objectMapper.writeValueAsString(body);
         var signature = calculateSignature(bodySerialized);
         return webTestClient.post()
-                .uri("/bot")
+                .uri("/outbound")
                 .header("User-Agent", "Unblu-Hookshot")
                 .header("x-unblu-service-name", requestType)
                 .header("X-Unblu-Signature", signature)
@@ -132,6 +138,6 @@ class DialogBotServiceOnEventTest {
     }
 
     private String calculateSignature(Object body) {
-        return new HmacUtils(HmacAlgorithms.HMAC_SHA_1, botConfiguration.getSecret()).hmacHex(body.toString().getBytes());
+        return new HmacUtils(HmacAlgorithms.HMAC_SHA_1, outboundRequestsConfiguration.getSecret()).hmacHex(body.toString().getBytes());
     }
 }

@@ -52,9 +52,9 @@ public class WebhookRequestHandlerImpl extends RequestQueueServiceImpl implement
         if (middlewareConfiguration.isAutoRegister()) {
             webhookRegistrationService.assertRegistered(eventName);
         } else if (!webhookRegistrationService.isRegisteredFor(eventName)) {
-            throw new RuntimeException("Cannot register handler for event " + eventName +
-                    " because no webhook is registered for it. Either enable auto-registration in the middleware configuration; " +
-                    "or register a webhook for this event prior to this call by calling webhookRegistrationService.assertRegistered(eventName).");
+            log.info("While registering a handler for webhook event {}, we detected that the event was not registered " +
+                    "in an Unblu webhook registration managed by the webhookRegistrationService and the library is " +
+                    "not configured to auto-register webhooks. Make sure you registered it manually.", eventName);
         }
     }
 

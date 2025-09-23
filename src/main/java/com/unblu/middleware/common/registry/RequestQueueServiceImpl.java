@@ -1,11 +1,15 @@
 package com.unblu.middleware.common.registry;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
 
 @RequiredArgsConstructor
 public class RequestQueueServiceImpl implements RequestQueueService {
     protected final RequestQueue requestQueue;
+
+    @Getter
+    private boolean subscribed = false;
 
     @Override
     public Flux<Void> getFlux() {
@@ -15,6 +19,7 @@ public class RequestQueueServiceImpl implements RequestQueueService {
     @Override
     public void subscribe() {
         getFlux().subscribe();
+        subscribed = true;
     }
 
     @Override
