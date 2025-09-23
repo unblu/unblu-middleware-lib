@@ -1,18 +1,24 @@
 package com.unblu.middleware.common.utils;
 
-import com.unblu.middleware.common.entity.ContextEntrySpec;
+import com.unblu.middleware.common.entity.ContextSpec;
 import com.unblu.middleware.common.entity.Request;
 import com.unblu.middleware.common.registry.RequestOrderSpec;
 import lombok.experimental.UtilityClass;
 
-import java.util.Collection;
-import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @UtilityClass
 public class RequestWrapperUtils {
-    public static <T> List<ContextEntrySpec<Request<T>>> wrapped(Collection<ContextEntrySpec<T>> contextEntries) {
-        return contextEntries.stream().map(it -> new ContextEntrySpec<Request<T>>(it.key(), request -> it.valueExtractor().apply(request.body()))).toList();
+    public static <T> ContextSpec<Request<T>> wrapped(ContextSpec<T> contextSpec) {
+        return ContextSpec.of(contextSpec.contextEntries()
+                .entrySet()
+                .stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                    e -> (Function<Request<T>, String>) (request -> e.getValue().apply(request.body()))
+                )));
     }
 
     public static <T,R> Function<Request<T>, R> wrapped(Function<T, R> action) {

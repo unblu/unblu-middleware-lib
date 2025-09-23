@@ -1,6 +1,6 @@
 package com.unblu.middleware.bots.service;
 
-import com.unblu.middleware.common.entity.ContextEntrySpec;
+import com.unblu.middleware.common.entity.ContextSpec;
 import com.unblu.middleware.common.entity.Request;
 import com.unblu.middleware.outboundrequests.handler.OutboundRequestHandler;
 import com.unblu.webapi.model.v4.*;
@@ -8,8 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.util.Collection;
-import java.util.List;
 import java.util.function.Function;
 
 import static com.unblu.middleware.common.registry.RequestOrderSpec.mustPreserveOrderForThoseWithTheSame;
@@ -26,15 +24,15 @@ public class DialogBotServiceImpl implements DialogBotService {
         acceptWrappedOnboardingOfferIf(_request -> Mono.just(false));
         acceptWrappedOffboardingOfferIf(_request -> Mono.just(false));
         acceptWrappedReboardingOfferIf(_request -> Mono.just(false));
-        onWrappedDialogOpen(null, List.of());
-        onWrappedDialogMessage(null, List.of());
-        onWrappedDialogMessageState(null, List.of());
-        onWrappedDialogCounterpartChanged(null, List.of());
-        onWrappedDialogClosed(null, List.of());
+        onWrappedDialogOpen(null, ContextSpec.empty());
+        onWrappedDialogMessage(null, ContextSpec.empty());
+        onWrappedDialogMessageState(null, ContextSpec.empty());
+        onWrappedDialogCounterpartChanged(null, ContextSpec.empty());
+        onWrappedDialogClosed(null, ContextSpec.empty());
     }
 
     @Override
-    public void acceptWrappedOnboardingOfferIf(Function<Request<BotOnboardingOfferRequest>, Mono<Boolean>> condition) {
+    public void acceptWrappedOnboardingOfferIf(Function<Request<BotOnboardingOfferRequest>, Mono<Boolean>> condition, ContextSpec<Request<BotOnboardingOfferRequest>> contextSpec) {
         outboundRequestHandler.registerHandler(
                 outboundRequestType("outbound.bot.onboarding_offer"),
                 BotOnboardingOfferRequest.class,
@@ -44,11 +42,11 @@ public class DialogBotServiceImpl implements DialogBotService {
                         .map(shouldAccept -> new BotBoardingOfferResponse().offerAccepted(shouldAccept)),
                 null,
                 null,
-                List.of());
+                contextSpec);
     }
 
     @Override
-    public void acceptWrappedReboardingOfferIf(Function<Request<BotReboardingOfferRequest>, Mono<Boolean>> condition) {
+    public void acceptWrappedReboardingOfferIf(Function<Request<BotReboardingOfferRequest>, Mono<Boolean>> condition, ContextSpec<Request<BotReboardingOfferRequest>> contextSpec) {
         outboundRequestHandler.registerHandler(
                 outboundRequestType("outbound.bot.reboarding_offer"),
                 BotReboardingOfferRequest.class,
@@ -58,11 +56,11 @@ public class DialogBotServiceImpl implements DialogBotService {
                         .map(shouldAccept -> new BotBoardingOfferResponse().offerAccepted(shouldAccept)),
                 null,
                 null,
-                List.of());
+                contextSpec);
     }
 
     @Override
-    public void acceptWrappedOffboardingOfferIf(Function<Request<BotOffboardingOfferRequest>, Mono<Boolean>> condition) {
+    public void acceptWrappedOffboardingOfferIf(Function<Request<BotOffboardingOfferRequest>, Mono<Boolean>> condition, ContextSpec<Request<BotOffboardingOfferRequest>> contextSpec) {
         outboundRequestHandler.registerHandler(
                 outboundRequestType("outbound.bot.offboarding_offer"),
                 BotOffboardingOfferRequest.class,
@@ -72,11 +70,11 @@ public class DialogBotServiceImpl implements DialogBotService {
                         .map(shouldAccept -> new BotBoardingOfferResponse().offerAccepted(shouldAccept)),
                 null,
                 null,
-                List.of());
+                contextSpec);
     }
 
     @Override
-    public void onWrappedDialogOpen(Function<Request<BotDialogOpenRequest>, Mono<Void>> action, Collection<ContextEntrySpec<Request<BotDialogOpenRequest>>> contextEntries) {
+    public void onWrappedDialogOpen(Function<Request<BotDialogOpenRequest>, Mono<Void>> action, ContextSpec<Request<BotDialogOpenRequest>> contextSpec) {
         outboundRequestHandler.registerHandler(
                 outboundRequestType("outbound.bot.dialog.opened"),
                 BotDialogOpenRequest.class,
@@ -85,11 +83,11 @@ public class DialogBotServiceImpl implements DialogBotService {
                         .doOnNext(_response -> log.debug("Responding to bot dialog open")),
                 action,
                 mustPreserveOrderForThoseWithTheSame(it -> it.body().getDialogToken()),
-                contextEntries);
+                contextSpec);
     }
 
     @Override
-    public void onWrappedDialogMessage(Function<Request<BotDialogMessageRequest>, Mono<Void>> action, Collection<ContextEntrySpec<Request<BotDialogMessageRequest>>> contextEntries) {
+    public void onWrappedDialogMessage(Function<Request<BotDialogMessageRequest>, Mono<Void>> action, ContextSpec<Request<BotDialogMessageRequest>> contextSpec) {
         outboundRequestHandler.registerHandler(
                 outboundRequestType("outbound.bot.dialog.message"),
                 BotDialogMessageRequest.class,
@@ -98,11 +96,11 @@ public class DialogBotServiceImpl implements DialogBotService {
                         .doOnNext(_response -> log.debug("Responding to bot dialog message")),
                 action,
                 mustPreserveOrderForThoseWithTheSame(it -> it.body().getDialogToken()),
-                contextEntries);
+                contextSpec);
     }
 
     @Override
-    public void onWrappedDialogMessageState(Function<Request<BotDialogMessageStateRequest>, Mono<Void>> action, Collection<ContextEntrySpec<Request<BotDialogMessageStateRequest>>> contextEntries) {
+    public void onWrappedDialogMessageState(Function<Request<BotDialogMessageStateRequest>, Mono<Void>> action, ContextSpec<Request<BotDialogMessageStateRequest>> contextSpec) {
         outboundRequestHandler.registerHandler(
                 outboundRequestType("outbound.bot.dialog.message_state"),
                 BotDialogMessageStateRequest.class,
@@ -111,11 +109,11 @@ public class DialogBotServiceImpl implements DialogBotService {
                         .doOnNext(_response -> log.debug("Responding to bot dialog message state")),
                 action,
                 mustPreserveOrderForThoseWithTheSame(it -> it.body().getDialogToken()),
-                contextEntries);
+                contextSpec);
     }
 
     @Override
-    public void onWrappedDialogCounterpartChanged(Function<Request<BotDialogCounterpartChangedRequest>, Mono<Void>> action, Collection<ContextEntrySpec<Request<BotDialogCounterpartChangedRequest>>> contextEntries) {
+    public void onWrappedDialogCounterpartChanged(Function<Request<BotDialogCounterpartChangedRequest>, Mono<Void>> action, ContextSpec<Request<BotDialogCounterpartChangedRequest>> contextSpec) {
         outboundRequestHandler.registerHandler(
                 outboundRequestType("outbound.bot.dialog.counterpart_changed"),
                 BotDialogCounterpartChangedRequest.class,
@@ -124,11 +122,11 @@ public class DialogBotServiceImpl implements DialogBotService {
                         .doOnNext(_response -> log.debug("Responding to bot dialog counterpart changed")),
                 action,
                 mustPreserveOrderForThoseWithTheSame(it -> it.body().getDialogToken()),
-                contextEntries);
+                contextSpec);
     }
 
     @Override
-    public void onWrappedDialogClosed(Function<Request<BotDialogClosedRequest>, Mono<Void>> action, Collection<ContextEntrySpec<Request<BotDialogClosedRequest>>> contextEntries) {
+    public void onWrappedDialogClosed(Function<Request<BotDialogClosedRequest>, Mono<Void>> action, ContextSpec<Request<BotDialogClosedRequest>> contextSpec) {
         outboundRequestHandler.registerHandler(
                 outboundRequestType("outbound.bot.dialog.closed"),
                 BotDialogClosedRequest.class,
@@ -137,7 +135,7 @@ public class DialogBotServiceImpl implements DialogBotService {
                         .doOnNext(_response -> log.debug("Responding to bot dialog closed")),
                 action,
                 mustPreserveOrderForThoseWithTheSame(it -> it.body().getDialogToken()),
-                contextEntries);
+                contextSpec);
     }
 
     @Override
