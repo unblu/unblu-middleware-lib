@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.util.Optional;
 import java.util.function.Function;
 
 import static com.unblu.middleware.common.registry.RequestOrderSpec.mustPreserveOrderForThoseWithTheSame;
@@ -42,7 +43,10 @@ public class DialogBotServiceImpl implements DialogBotService {
                         .map(shouldAccept -> new BotBoardingOfferResponse().offerAccepted(shouldAccept)),
                 null,
                 null,
-                contextSpec);
+                contextSpec.with(ContextSpec.of(
+                        "dialogToken", it -> it.body().getDialogToken(),
+                        "conversationId", it -> Optional.ofNullable(it.body().getConversation()).map(ConversationData::getId).orElse(null)
+                )));
     }
 
     @Override
@@ -56,7 +60,10 @@ public class DialogBotServiceImpl implements DialogBotService {
                         .map(shouldAccept -> new BotBoardingOfferResponse().offerAccepted(shouldAccept)),
                 null,
                 null,
-                contextSpec);
+                contextSpec.with(ContextSpec.of(
+                        "dialogToken", it -> it.body().getDialogToken(),
+                        "conversationId", it -> Optional.ofNullable(it.body().getConversation()).map(ConversationData::getId).orElse(null)
+                )));
     }
 
     @Override
@@ -70,7 +77,10 @@ public class DialogBotServiceImpl implements DialogBotService {
                         .map(shouldAccept -> new BotBoardingOfferResponse().offerAccepted(shouldAccept)),
                 null,
                 null,
-                contextSpec);
+                contextSpec.with(ContextSpec.of(
+                        "dialogToken", it -> it.body().getDialogToken(),
+                        "conversationId", it -> Optional.ofNullable(it.body().getConversation()).map(ConversationData::getId).orElse(null)
+                )));
     }
 
     @Override
@@ -83,7 +93,10 @@ public class DialogBotServiceImpl implements DialogBotService {
                         .doOnNext(_response -> log.debug("Responding to bot dialog open")),
                 action,
                 mustPreserveOrderForThoseWithTheSame(it -> it.body().getDialogToken()),
-                contextSpec);
+                contextSpec.with(ContextSpec.of(
+                        "dialogToken", it -> it.body().getDialogToken(),
+                        "conversationId", it -> Optional.ofNullable(it.body().getConversation()).map(ConversationData::getId).orElse(null)
+                )));
     }
 
     @Override
@@ -96,7 +109,10 @@ public class DialogBotServiceImpl implements DialogBotService {
                         .doOnNext(_response -> log.debug("Responding to bot dialog message")),
                 action,
                 mustPreserveOrderForThoseWithTheSame(it -> it.body().getDialogToken()),
-                contextSpec);
+                contextSpec.with(ContextSpec.of(
+                        "dialogToken", it -> it.body().getDialogToken(),
+                        "conversationId", it -> it.body().getConversationId()
+                )));
     }
 
     @Override
@@ -109,7 +125,10 @@ public class DialogBotServiceImpl implements DialogBotService {
                         .doOnNext(_response -> log.debug("Responding to bot dialog message state")),
                 action,
                 mustPreserveOrderForThoseWithTheSame(it -> it.body().getDialogToken()),
-                contextSpec);
+                contextSpec.with(ContextSpec.of(
+                        "dialogToken", it -> it.body().getDialogToken(),
+                        "conversationId", it -> it.body().getConversationId()
+                )));
     }
 
     @Override
@@ -122,7 +141,10 @@ public class DialogBotServiceImpl implements DialogBotService {
                         .doOnNext(_response -> log.debug("Responding to bot dialog counterpart changed")),
                 action,
                 mustPreserveOrderForThoseWithTheSame(it -> it.body().getDialogToken()),
-                contextSpec);
+                contextSpec.with(ContextSpec.of(
+                        "dialogToken", it -> it.body().getDialogToken(),
+                        "conversationId", it -> it.body().getConversationId()
+                )));
     }
 
     @Override
@@ -135,7 +157,10 @@ public class DialogBotServiceImpl implements DialogBotService {
                         .doOnNext(_response -> log.debug("Responding to bot dialog closed")),
                 action,
                 mustPreserveOrderForThoseWithTheSame(it -> it.body().getDialogToken()),
-                contextSpec);
+                contextSpec.with(ContextSpec.of(
+                        "dialogToken", it -> it.body().getDialogToken(),
+                        "conversationId", it -> it.body().getConversationId()
+                )));
     }
 
     @Override
