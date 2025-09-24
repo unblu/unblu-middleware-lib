@@ -2,7 +2,7 @@ package com.unblu.middleware.webhooks.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unblu.middleware.common.config.MiddlewareConfiguration;
-import com.unblu.middleware.common.entity.ContextEntrySpec;
+import com.unblu.middleware.common.entity.ContextSpec;
 import com.unblu.middleware.common.entity.Request;
 import com.unblu.middleware.common.error.InvalidRequestException;
 import com.unblu.middleware.common.error.NoHandlerException;
@@ -18,12 +18,13 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 import static com.unblu.middleware.common.request.RequestHandler.withRequestContext;
+import static com.unblu.middleware.common.utils.RequestWrapperUtils.wrappedHeaderSpec;
+import static com.unblu.middleware.webhooks.util.WebhookContextSpecUtil.webhookHeadersContextSpec;
 
 @Service
 @Slf4j
@@ -42,10 +43,10 @@ public class WebhookRequestHandlerImpl extends RequestQueueServiceImpl implement
     }
 
     @Override
-    public <T> void onWrappedWebhook(@NonNull EventName eventName, @NonNull Class<T> expectedType, @NonNull Function<Request<T>, Mono<Void>> processAction, @NonNull RequestOrderSpec<Request<T>> requestOrderSpec, @NonNull Collection<ContextEntrySpec<Request<T>>> contextEntries) {
+    public <T> void onWrappedWebhook(@NonNull EventName eventName, @NonNull Class<T> expectedType, @NonNull Function<Request<T>, Mono<Void>> processAction, @NonNull RequestOrderSpec<Request<T>> requestOrderSpec, @NonNull ContextSpec<Request<T>> contextSpec) {
         checkThatIsRegisteredFor(eventName);
         eventTypeMap.put(eventName, expectedType);
-        requestQueue.onWrapped(expectedType, processAction, requestOrderSpec, contextEntries);
+        requestQueue.onWrapped(expectedType, processAction, requestOrderSpec, contextSpec.with(wrappedHeaderSpec(webhookHeadersContextSpec())));
     }
 
     private void checkThatIsRegisteredFor(EventName eventName) {

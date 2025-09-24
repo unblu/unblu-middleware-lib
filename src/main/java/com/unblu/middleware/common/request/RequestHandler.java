@@ -1,7 +1,9 @@
 package com.unblu.middleware.common.request;
 
+import com.unblu.middleware.common.entity.ContextSpec;
 import com.unblu.middleware.common.error.InvalidRequestException;
 import com.unblu.middleware.common.error.NoHandlerException;
+import com.unblu.middleware.common.registry.ContextRegistryWrapper;
 import com.unblu.middleware.common.utils.ThrowingFunction;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -30,16 +32,20 @@ public class RequestHandler {
     private final DataBufferFactory dataBufferFactory;
     private final HmacUtils hmacSha1;
     private final HmacUtils hmacSha256;
+    private final ContextSpec<HttpHeaders> contextSpec;
 
-    public RequestHandler(DataBufferFactory dataBufferFactory, RequestHandlerConfiguration requestHandlerConfiguration) {
+    public RequestHandler(DataBufferFactory dataBufferFactory, RequestHandlerConfiguration requestHandlerConfiguration, ContextRegistryWrapper contextRegistryWrapper, ContextSpec<HttpHeaders> contextSpec) {
         this.dataBufferFactory = dataBufferFactory;
+        this.contextSpec = contextSpec;
+        contextRegistryWrapper.registerContextSpec(contextSpec);
         this.hmacSha1 = new HmacUtils(HmacAlgorithms.HMAC_SHA_1, requestHandlerConfiguration.secretKey());
         this.hmacSha256 = new HmacUtils(HmacAlgorithms.HMAC_SHA_256, requestHandlerConfiguration.secretKey());
     }
 
 
     public Mono<ResponseEntity<Object>> handle(@NonNull ServerHttpRequest request,
-                                               @NonNull ThrowingFunction<byte[], Mono<ResponseEntity<Object>>> processAction) {
+                                               @NonNull ThrowingFunction<byte[], Mono<ResponseEntity<Object>>> processAction
+    ) {
 
         long contentLength = request.getHeaders().getContentLength();
         return DataBufferUtils
@@ -67,7 +73,8 @@ public class RequestHandler {
                 .onErrorResume(e -> {
                     log.error(withRequestContext("Error while processing request: {}", request.getHeaders()), e.getMessage(), e);
                     return Mono.just(internalServerError().body("Error while processing request: " + e.getMessage()));
-                });
+                })
+                .contextWrite(contextSpec.applyTo(request.getHeaders()));
     }
 
     private DataBuffer emptyBuffer(long contentLength) {

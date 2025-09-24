@@ -5,7 +5,10 @@ import com.unblu.middleware.bots.service.DialogBotService;
 import com.unblu.middleware.common.utils.ThrowingRunnable;
 import com.unblu.middleware.outboundrequests.config.OutboundRequestsConfiguration;
 import com.unblu.middleware.outboundrequests.handler.OutboundRequestHandler;
-import com.unblu.webapi.model.v4.*;
+import com.unblu.webapi.model.v4.BotDialogClosedRequest;
+import com.unblu.webapi.model.v4.BotDialogMessageRequest;
+import com.unblu.webapi.model.v4.BotDialogOpenRequest;
+import com.unblu.webapi.model.v4.TextMessageData;
 import jakarta.annotation.PostConstruct;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +34,7 @@ import static org.awaitility.Awaitility.await;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @Slf4j
+@DirtiesContext
 class DialogBotServiceOnEventTest {
 
     @Autowired
@@ -77,7 +81,6 @@ class DialogBotServiceOnEventTest {
     }
 
     @Test
-    @DirtiesContext
     void givenSubscriptionsWithProcessingDelay_onRequests_processingOrderIsPreserved() {
         testQueue.clear();
 

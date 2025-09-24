@@ -1,6 +1,7 @@
 package com.unblu.middleware;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.unblu.middleware.common.entity.ContextSpec;
 import com.unblu.middleware.webhooks.config.WebhookConfiguration;
 import com.unblu.middleware.webhooks.service.WebhookHandlerService;
 import com.unblu.webapi.model.v4.ConversationNewMessageEvent;
@@ -15,15 +16,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
 import reactor.util.context.ContextView;
 
-import java.util.List;
-
-import static com.unblu.middleware.common.entity.ContextEntrySpec.contextOf;
 import static com.unblu.middleware.common.registry.RequestOrderSpec.canIgnoreOrder;
 import static com.unblu.middleware.webhooks.entity.EventName.eventName;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -36,6 +35,7 @@ import static org.awaitility.Awaitility.await;
 @TestPropertySource(properties = {
         "unblu.webhook.eventNames=conversation.new_message1,conversation.new_message2,conversation.new_message3",
 })
+@DirtiesContext
 class WebhookRequestHandlerServiceTest {
 
     @Autowired
@@ -107,10 +107,10 @@ class WebhookRequestHandlerServiceTest {
                 ConversationNewMessageEvent.class,
                 e -> Mono.just(e).transformDeferredContextual((e1, ctx) -> messageHandler.withContextView(ctx)),
                 canIgnoreOrder(),
-                List.of(
-                        contextOf("eventId", e -> e.headers().getFirst("X-Unblu-Event-Id")),
-                        contextOf("accountId", e -> e.body().getAccountId()),
-                        contextOf("methodName", _e -> "myMethodName3")
+                ContextSpec.of(
+                        "eventId", e -> e.headers().getFirst("X-Unblu-Event-Id"),
+                        "accountId", e -> e.body().getAccountId(),
+                        "methodName", _e -> "myMethodName3"
                 )
         );
         webhookHandlerService.subscribe();

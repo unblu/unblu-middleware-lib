@@ -1,8 +1,7 @@
 package com.unblu.middleware.outboundrequests.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.unblu.middleware.common.entity.ContextEntries;
-import com.unblu.middleware.common.entity.ContextEntrySpec;
+import com.unblu.middleware.common.entity.ContextSpec;
 import com.unblu.middleware.common.entity.Request;
 import com.unblu.middleware.common.error.InvalidRequestException;
 import com.unblu.middleware.common.error.NoHandlerException;
@@ -18,14 +17,14 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
-import static com.unblu.middleware.common.registry.ContextRegistryWrapper.requestContext;
 import static com.unblu.middleware.common.utils.RequestWrapperUtils.wrapped;
+import static com.unblu.middleware.common.utils.RequestWrapperUtils.wrappedHeaderSpec;
+import static com.unblu.middleware.outboundrequests.util.OutboundRequestsContextSpecUtil.outboundRequestHeadersContextSpec;
 
 @Service
 @Slf4j
@@ -35,7 +34,7 @@ public class OutboundRequestHandler extends RequestQueueServiceImpl {
     private final ContextRegistryWrapper contextRegistryWrapper;
     private final Map<Class<?>, Function<Request<?>, Mono<?>>> responseByRequestType = new ConcurrentHashMap<>();
     private final Map<OutboundRequestType, Class<?>> requestClassByRequestType = new ConcurrentHashMap<>();
-    private final Map<Class<?>, ContextEntries<?>> contextEntriesByRequestType = new ConcurrentHashMap<>();
+    private final Map<Class<?>, ContextSpec<?>> contextEntriesByRequestType = new ConcurrentHashMap<>();
 
     public OutboundRequestHandler(RequestQueue requestQueue, ObjectMapper objectMapper, ContextRegistryWrapper contextRegistryWrapper) {
         super(requestQueue);
@@ -50,8 +49,8 @@ public class OutboundRequestHandler extends RequestQueueServiceImpl {
             @NonNull Function<T, Mono<R>> responseFunction,
             Function<T, Mono<Void>> asyncHandler,
             RequestOrderSpec<T> requestOrderSpec,
-            @NonNull Collection<ContextEntrySpec<T>> contextEntries) {
-        onWrapped(requestType, requestClass, responseClass, wrapped(responseFunction), wrapped(asyncHandler), wrapped(requestOrderSpec), wrapped(contextEntries));
+            @NonNull ContextSpec<T> contextSpec) {
+        onWrapped(requestType, requestClass, responseClass, wrapped(responseFunction), wrapped(asyncHandler), wrapped(requestOrderSpec), wrapped(contextSpec));
     }
 
     public <T, R> void onWrapped(
@@ -61,8 +60,8 @@ public class OutboundRequestHandler extends RequestQueueServiceImpl {
             @NonNull Function<Request<T>, Mono<R>> responseFunction,
             Function<Request<T>, Mono<Void>> asyncHandler,
             RequestOrderSpec<Request<T>> requestOrderSpec,
-            @NonNull Collection<ContextEntrySpec<Request<T>>> contextEntries) {
-        registerHandler(requestType, requestClass, responseClass, responseFunction, asyncHandler, requestOrderSpec, contextEntries);
+            @NonNull ContextSpec<Request<T>> contextSpec) {
+        registerHandler(requestType, requestClass, responseClass, responseFunction, asyncHandler, requestOrderSpec, contextSpec);
     }
 
     // Combination of requestType, requestClass and responseClass is given and is 1:1:1, just unknown to the lib :(
@@ -78,12 +77,13 @@ public class OutboundRequestHandler extends RequestQueueServiceImpl {
             @NonNull Function<Request<T>, Mono<R>> responseFunction,
             Function<Request<T>, Mono<Void>> asyncHandler,
             RequestOrderSpec<Request<T>> requestOrderSpec,
-            @NonNull Collection<ContextEntrySpec<Request<T>>> contextEntries) {
+            @NonNull ContextSpec<Request<T>> contextSpec) {
+        var updatedContextSpec = contextSpec.with(wrappedHeaderSpec(outboundRequestHeadersContextSpec()));
         if (asyncHandler != null) {
-            requestQueue.onWrapped(requestClass, asyncHandler, requestOrderSpec, contextEntries);
+            requestQueue.onWrapped(requestClass, asyncHandler, requestOrderSpec, updatedContextSpec);
         }
-        contextRegistryWrapper.registerContextEntries(contextEntries);
-        contextEntriesByRequestType.put(requestClass, ContextEntries.of(contextEntries));
+        contextRegistryWrapper.registerContextSpec(updatedContextSpec);
+        contextEntriesByRequestType.put(requestClass, updatedContextSpec);
         responseByRequestType.put(requestClass, (Function) responseFunction);
         requestClassByRequestType.put(requestType, requestClass);
     }
@@ -93,12 +93,12 @@ public class OutboundRequestHandler extends RequestQueueServiceImpl {
         requestQueue.queueRequest(request);
         var requestClass = request.body().getClass();
         var function = responseByRequestType.get(requestClass);
-        var contextEntries = (ContextEntries<Request<T>>) contextEntriesByRequestType.getOrDefault(requestClass, ContextEntries.empty());
+        var contextSpec = (ContextSpec<Request<T>>) contextEntriesByRequestType.getOrDefault(requestClass, ContextSpec.empty());
         return Optional.ofNullable(function)
                 .map(it -> (Mono<R>) it.apply(request))
                 .orElseGet(() -> Mono.error(new NoHandlerException("No handler registered for outbound request type: " + requestType)))
                 .doOnError(e -> log.error(e.getMessage()))
-                .contextWrite(requestContext(request, contextEntries));
+                .contextWrite(contextSpec.applyTo(request));
     }
 
     public Mono<Object> handle(OutboundRequestType requestType, byte[] body, ServerHttpRequest request) {

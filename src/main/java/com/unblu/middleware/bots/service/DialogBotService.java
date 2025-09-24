@@ -1,12 +1,10 @@
 package com.unblu.middleware.bots.service;
 
-import com.unblu.middleware.common.entity.ContextEntrySpec;
+import com.unblu.middleware.common.entity.ContextSpec;
 import com.unblu.middleware.common.entity.Request;
 import com.unblu.webapi.model.v4.*;
 import reactor.core.publisher.Mono;
 
-import java.util.Collection;
-import java.util.List;
 import java.util.function.Function;
 
 import static com.unblu.middleware.common.utils.RequestWrapperUtils.wrapped;
@@ -23,47 +21,67 @@ public interface DialogBotService {
         acceptWrappedOffboardingOfferIf(wrapped(condition));
     }
 
-    void acceptWrappedOnboardingOfferIf(Function<Request<BotOnboardingOfferRequest>, Mono<Boolean>> condition);
-    void acceptWrappedReboardingOfferIf(Function<Request<BotReboardingOfferRequest>, Mono<Boolean>> condition);
-    void acceptWrappedOffboardingOfferIf(Function<Request<BotOffboardingOfferRequest>, Mono<Boolean>> condition);
+    default void acceptOnboardingOfferIf(Function<BotOnboardingOfferRequest, Mono<Boolean>> condition, ContextSpec<BotOnboardingOfferRequest> contextSpec) {
+        acceptWrappedOnboardingOfferIf(wrapped(condition), wrapped(contextSpec));
+    }
+    default void acceptReboardingOfferIf(Function<BotReboardingOfferRequest, Mono<Boolean>> condition, ContextSpec<BotReboardingOfferRequest> contextSpec) {
+        acceptWrappedReboardingOfferIf(wrapped(condition), wrapped(contextSpec));
+    }
+    default void acceptOffboardingOfferIf(Function<BotOffboardingOfferRequest, Mono<Boolean>> condition, ContextSpec<BotOffboardingOfferRequest> contextSpec) {
+        acceptWrappedOffboardingOfferIf(wrapped(condition), wrapped(contextSpec));
+    }
+
+    default void acceptWrappedOnboardingOfferIf(Function<Request<BotOnboardingOfferRequest>, Mono<Boolean>> condition) {
+        acceptWrappedOnboardingOfferIf(condition, ContextSpec.empty());
+    }
+    default void acceptWrappedReboardingOfferIf(Function<Request<BotReboardingOfferRequest>, Mono<Boolean>> condition) {
+        acceptWrappedReboardingOfferIf(condition, ContextSpec.empty());
+    }
+    default void acceptWrappedOffboardingOfferIf(Function<Request<BotOffboardingOfferRequest>, Mono<Boolean>> condition) {
+        acceptWrappedOffboardingOfferIf(condition, ContextSpec.empty());
+    }
+
+    void acceptWrappedOnboardingOfferIf(Function<Request<BotOnboardingOfferRequest>, Mono<Boolean>> condition, ContextSpec<Request<BotOnboardingOfferRequest>> contextSpec);
+    void acceptWrappedReboardingOfferIf(Function<Request<BotReboardingOfferRequest>, Mono<Boolean>> condition, ContextSpec<Request<BotReboardingOfferRequest>> contextSpec);
+    void acceptWrappedOffboardingOfferIf(Function<Request<BotOffboardingOfferRequest>, Mono<Boolean>> condition, ContextSpec<Request<BotOffboardingOfferRequest>> contextSpec);
 
     default void onDialogOpen(Function<BotDialogOpenRequest, Mono<Void>> action) {
-        onDialogOpen(action, List.of());
+        onDialogOpen(action, ContextSpec.empty());
     }
     default void onDialogMessage(Function<BotDialogMessageRequest, Mono<Void>> action) {
-        onDialogMessage(action, List.of());
+        onDialogMessage(action, ContextSpec.empty());
     }
     default void onDialogMessageState(Function<BotDialogMessageStateRequest, Mono<Void>> action) {
-        onDialogMessageState(action, List.of());
+        onDialogMessageState(action, ContextSpec.empty());
     }
     default void onDialogCounterpartChanged(Function<BotDialogCounterpartChangedRequest, Mono<Void>> action) {
-        onDialogCounterpartChanged(action, List.of());
+        onDialogCounterpartChanged(action, ContextSpec.empty());
     }
     default void onDialogClosed(Function<BotDialogClosedRequest, Mono<Void>> action) {
-        onDialogClosed(action, List.of());
+        onDialogClosed(action, ContextSpec.empty());
     }
 
-    default void onDialogOpen(Function<BotDialogOpenRequest, Mono<Void>> action, Collection<ContextEntrySpec<BotDialogOpenRequest>> contextEntries) {
-        onWrappedDialogOpen(wrapped(action), wrapped(contextEntries));
+    default void onDialogOpen(Function<BotDialogOpenRequest, Mono<Void>> action, ContextSpec<BotDialogOpenRequest> contextSpec) {
+        onWrappedDialogOpen(wrapped(action), wrapped(contextSpec));
     }
-    default void onDialogMessage(Function<BotDialogMessageRequest, Mono<Void>> action, Collection<ContextEntrySpec<BotDialogMessageRequest>> contextEntries) {
-        onWrappedDialogMessage(wrapped(action), wrapped(contextEntries));
+    default void onDialogMessage(Function<BotDialogMessageRequest, Mono<Void>> action, ContextSpec<BotDialogMessageRequest> contextSpec) {
+        onWrappedDialogMessage(wrapped(action), wrapped(contextSpec));
     }
-    default void onDialogMessageState(Function<BotDialogMessageStateRequest, Mono<Void>> action, Collection<ContextEntrySpec<BotDialogMessageStateRequest>> contextEntries) {
-        onWrappedDialogMessageState(wrapped(action), wrapped(contextEntries));
+    default void onDialogMessageState(Function<BotDialogMessageStateRequest, Mono<Void>> action, ContextSpec<BotDialogMessageStateRequest> contextSpec) {
+        onWrappedDialogMessageState(wrapped(action), wrapped(contextSpec));
     }
-    default void onDialogCounterpartChanged(Function<BotDialogCounterpartChangedRequest, Mono<Void>> action, Collection<ContextEntrySpec<BotDialogCounterpartChangedRequest>> contextEntries) {
-        onWrappedDialogCounterpartChanged(wrapped(action), wrapped(contextEntries));
+    default void onDialogCounterpartChanged(Function<BotDialogCounterpartChangedRequest, Mono<Void>> action, ContextSpec<BotDialogCounterpartChangedRequest> contextSpec) {
+        onWrappedDialogCounterpartChanged(wrapped(action), wrapped(contextSpec));
     }
-    default void onDialogClosed(Function<BotDialogClosedRequest, Mono<Void>> action, Collection<ContextEntrySpec<BotDialogClosedRequest>> contextEntries) {
-        onWrappedDialogClosed(wrapped(action), wrapped(contextEntries));
+    default void onDialogClosed(Function<BotDialogClosedRequest, Mono<Void>> action, ContextSpec<BotDialogClosedRequest> contextSpec) {
+        onWrappedDialogClosed(wrapped(action), wrapped(contextSpec));
     }
 
-    void onWrappedDialogOpen(Function<Request<BotDialogOpenRequest>, Mono<Void>> action, Collection<ContextEntrySpec<Request<BotDialogOpenRequest>>> contextEntries);
-    void onWrappedDialogMessage(Function<Request<BotDialogMessageRequest>, Mono<Void>> action, Collection<ContextEntrySpec<Request<BotDialogMessageRequest>>> contextEntries);
-    void onWrappedDialogMessageState(Function<Request<BotDialogMessageStateRequest>, Mono<Void>> action, Collection<ContextEntrySpec<Request<BotDialogMessageStateRequest>>> contextEntries);
-    void onWrappedDialogCounterpartChanged(Function<Request<BotDialogCounterpartChangedRequest>, Mono<Void>> action, Collection<ContextEntrySpec<Request<BotDialogCounterpartChangedRequest>>> contextEntries);
-    void onWrappedDialogClosed(Function<Request<BotDialogClosedRequest>, Mono<Void>> action, Collection<ContextEntrySpec<Request<BotDialogClosedRequest>>> contextEntries);
+    void onWrappedDialogOpen(Function<Request<BotDialogOpenRequest>, Mono<Void>> action, ContextSpec<Request<BotDialogOpenRequest>> contextSpec);
+    void onWrappedDialogMessage(Function<Request<BotDialogMessageRequest>, Mono<Void>> action, ContextSpec<Request<BotDialogMessageRequest>> contextSpec);
+    void onWrappedDialogMessageState(Function<Request<BotDialogMessageStateRequest>, Mono<Void>> action, ContextSpec<Request<BotDialogMessageStateRequest>> contextSpec);
+    void onWrappedDialogCounterpartChanged(Function<Request<BotDialogCounterpartChangedRequest>, Mono<Void>> action, ContextSpec<Request<BotDialogCounterpartChangedRequest>> contextSpec);
+    void onWrappedDialogClosed(Function<Request<BotDialogClosedRequest>, Mono<Void>> action, ContextSpec<Request<BotDialogClosedRequest>> contextSpec);
 
     void assertSubscribed();
 }

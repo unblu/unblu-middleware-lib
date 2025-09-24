@@ -1,7 +1,6 @@
 package com.unblu.middleware.common.registry;
 
-import com.unblu.middleware.common.entity.ContextEntries;
-import com.unblu.middleware.common.entity.ContextEntrySpec;
+import com.unblu.middleware.common.entity.ContextSpec;
 import com.unblu.middleware.common.entity.Request;
 import com.unblu.middleware.common.error.FatalStartupErrorHandler;
 import jakarta.annotation.PreDestroy;
@@ -24,7 +23,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.Function;
 
-import static com.unblu.middleware.common.registry.ContextRegistryWrapper.requestContext;
 import static com.unblu.middleware.common.utils.RequestWrapperUtils.wrapped;
 
 @Component
@@ -37,7 +35,7 @@ public class RequestQueue {
 
     private final Map<Class<?>, Function<?, Object>> subjectKeysByRequestType = new ConcurrentHashMap<>();
     private final Map<Class<?>, Actions<?>> actionsByRequestType = new ConcurrentHashMap<>();
-    private final Map<Class<?>, ContextEntries<?>> contextEntriesByRequestType = new ConcurrentHashMap<>();
+    private final Map<Class<?>, ContextSpec<?>> contextEntriesByRequestType = new ConcurrentHashMap<>();
 
     @Getter
     private final Flux<Void> flux;
@@ -58,28 +56,28 @@ public class RequestQueue {
         sink.emitNext(request, this::emitFailureHandler);
     }
 
-    public <T> void on(Class<T> requestType, Function<T, Mono<Void>> action, RequestOrderSpec<T> requestOrderSpec, Collection<ContextEntrySpec<T>> contextEntries) {
-        onWrapped(requestType, wrapped(action), wrapped(requestOrderSpec), wrapped(contextEntries));
+    public <T> void on(Class<T> requestType, Function<T, Mono<Void>> action, RequestOrderSpec<T> requestOrderSpec, ContextSpec<T> contextSpec) {
+        onWrapped(requestType, wrapped(action), wrapped(requestOrderSpec), wrapped(contextSpec));
     }
 
     @SuppressWarnings("unchecked")
-    public <T> void onWrapped(Class<T> requestType, Function<Request<T>, Mono<Void>> action, RequestOrderSpec<Request<T>> requestOrderSpec, Collection<ContextEntrySpec<Request<T>>> contextEntries) {
-        contextRegistryWrapper.registerContextEntries(contextEntries);
+    public <T> void onWrapped(Class<T> requestType, Function<Request<T>, Mono<Void>> action, RequestOrderSpec<Request<T>> requestOrderSpec, ContextSpec<Request<T>> contextSpec) {
+        contextRegistryWrapper.registerContextSpec(contextSpec);
         ((Actions<T>) actionsByRequestType.computeIfAbsent(requestType, _k -> Actions.empty())).add(action);
         subjectKeysByRequestType.put(requestType, requestOrderSpec.keyExtractor());
-        contextEntriesByRequestType.put(requestType, new ContextEntries<>(contextEntries));
+        contextEntriesByRequestType.put(requestType, contextSpec);
     }
 
     @SuppressWarnings("unchecked")
     private <T> Mono<Void> processRequest(Request<T> request) {
         var requestType = request.body().getClass();
         var actions = (Actions<T>) actionsByRequestType.getOrDefault(requestType, Actions.empty());
-        var contextEntries = (ContextEntries<Request<T>>) contextEntriesByRequestType.getOrDefault(requestType, ContextEntries.empty());
+        var contextSpec = (ContextSpec<Request<T>>) contextEntriesByRequestType.getOrDefault(requestType, ContextSpec.empty());
 
         return Flux.just(request)
                 .flatMap(actions::apply)
                 .doOnError(e -> log.error(e.getMessage()))
-                .contextWrite(requestContext(request, contextEntries))
+                .contextWrite(contextSpec.applyTo(request))
                 .then();
     }
 

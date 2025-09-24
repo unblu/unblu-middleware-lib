@@ -233,15 +233,14 @@ As an optional last parameter, handling methods also allow you to pass a list of
 
 [source,java]
 ----
-webhookHandlerService.onWrappedWebhook(
+webhookHandlerService.onWebhook(
         eventName("branch.branch"),
         BranchModificationEvent.class,
-        e -> processBranchModified(e.event()),
+        e -> processBranchModified(e),
         canIgnoreOrder(),
-        List.of(
-                contextOf("eventId", e -> e.header().eventID()),
-                contextOf("branchId", e -> e.event().getEntity().getId()),
-                contextOf("method", _e -> "processBranchModified")
+        ContextSpec.of(
+                "branchId", e -> e.getEntity().getId(),
+                "method", _e -> "processBranchModified"
         )
 )
 ----
@@ -264,6 +263,12 @@ logback.xml:
     </springProfile>
 </configuration>
 ----
+
+The following logback context variables are available for webhooks out-of-the-box (are always populated):
+
+* `eventId`
+* `deliveryId`
+* `retryNo`
 
 == Dialog bots
 Bots are a special type of middleware that can interact with Unblu dialogs and conversations. They can be used to automate tasks, provide information, or interact with users in a conversational manner. More details about bots can be found in the https://www.unblu.com/en/docs/latest/knowledge-base/integration/third-party-software/bots.html[Unblu documentation - Bot integration]. Currently, the middleware provides seemless support for dialog bots. Library provides means to implement conversation-observing bots through webhooks.
@@ -290,6 +295,14 @@ Like the webhook handler, the dialog bot handler also provides a `.onWrapped...(
 
 Also like the webhook handler, the dialog bot handler allows you to pass a list of context entry specs, which allows you to populate the logback context with event-related information. The usage is the same as for the webhook handler.
 
+The following logback context variables are available for webhooks out-of-the-box (are always populated):
+
+* `dialogToken`
+* `conversationId`
+* `invocationId` (for any outbound request)
+* `deliveryId` (for any outbound request)
+* `retryNo` (for any outbound request)
+
 == Outbound request handler API
 The library also exposes a lower-level api `OutboundRequestHandler`, primarily intended for cases which aren't yet explicitly covered by the library.
 
@@ -309,8 +322,8 @@ outboundRequestHandler.on(
                 .doOnNext(_response -> log.debug("Responding to bot dialog open")),
         request -> Mono.fromRunnable(() -> sendMessage(request.getDialogToken(), "Hello, I am a bot!")));,
         mustPreserveOrderForThoseWithTheSame(request -> request.getDialogToken()),
-        List.of(
-                contextOf("dialogToken", request -> request.getDialogToken())
+        ContextSpec.of(
+                "dialogToken", request -> request.getDialogToken()
         ));
 ----
 
@@ -320,6 +333,12 @@ outboundRequestHandler.on(
 Like the webhook handler, the outbound request handler also provides a `.onWrapped...()` method family, which allows you to access the headers of the request in your lambdas, in addition to the event object.
 
 Also like the webhook handler, the dialog bot handler allows you to pass a list of context entry specs, which allows you to populate the logback context with event-related information. The usage is the same as for the webhook handler.
+
+The following logback context variables are available for webhooks out-of-the-box (are always populated):
+
+* `invocationId`
+* `deliveryId`
+* `retryNo`
 
 == Troubleshooting
 
