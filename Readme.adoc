@@ -266,9 +266,9 @@ logback.xml:
 
 The following logback context variables are available for webhooks out-of-the-box (are always populated):
 
-* eventId
-* deliveryId
-* retryNo
+* `eventId`
+* `deliveryId`
+* `retryNo`
 
 == Dialog bots
 Bots are a special type of middleware that can interact with Unblu dialogs and conversations. They can be used to automate tasks, provide information, or interact with users in a conversational manner. More details about bots can be found in the https://www.unblu.com/en/docs/latest/knowledge-base/integration/third-party-software/bots.html[Unblu documentation - Bot integration]. Currently, the middleware provides seemless support for dialog bots. Library provides means to implement conversation-observing bots through webhooks.
@@ -297,11 +297,11 @@ Also like the webhook handler, the dialog bot handler allows you to pass a list 
 
 The following logback context variables are available for webhooks out-of-the-box (are always populated):
 
-* dialogToken
-* conversationId
-* invocationId (for any outbound request)
-* deliveryId (for any outbound request)
-* retryNo (for any outbound request)
+* `dialogToken`
+* `conversationId`
+* `invocationId` (for any outbound request)
+* `deliveryId` (for any outbound request)
+* `retryNo` (for any outbound request)
 
 == Outbound request handler API
 The library also exposes a lower-level api `OutboundRequestHandler`, primarily intended for cases which aren't yet explicitly covered by the library.
@@ -336,9 +336,9 @@ Also like the webhook handler, the dialog bot handler allows you to pass a list 
 
 The following logback context variables are available for webhooks out-of-the-box (are always populated):
 
-* invocationId
-* deliveryId
-* retryNo
+* `invocationId`
+* `deliveryId`
+* `retryNo`
 
 == Troubleshooting
 

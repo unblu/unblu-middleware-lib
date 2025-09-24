@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -25,6 +26,7 @@ import static org.mockito.Mockito.*;
         "unblu.webhook.cleanPrevious=true"
 })
 @Slf4j
+@DirtiesContext
 class WebhookRegistrationServiceCleanPreviousTest {
 
     @Autowired

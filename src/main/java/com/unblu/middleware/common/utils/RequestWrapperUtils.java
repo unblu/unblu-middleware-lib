@@ -4,6 +4,7 @@ import com.unblu.middleware.common.entity.ContextSpec;
 import com.unblu.middleware.common.entity.Request;
 import com.unblu.middleware.common.registry.RequestOrderSpec;
 import lombok.experimental.UtilityClass;
+import org.springframework.http.HttpHeaders;
 
 import java.util.Map;
 import java.util.function.Function;
@@ -27,5 +28,15 @@ public class RequestWrapperUtils {
 
     public static <T> RequestOrderSpec<Request<T>> wrapped(RequestOrderSpec<T> requestOrderSpec) {
         return new RequestOrderSpec<>(request -> requestOrderSpec.keyExtractor().apply(request.body()));
+    }
+
+    public static <T> ContextSpec<Request<T>> wrappedHeaderSpec(ContextSpec<HttpHeaders> contextSpec) {
+        var wrapped = contextSpec.contextEntries().entrySet()
+                .stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        e -> (Function<Request<T>, String>) (request -> e.getValue().apply(request.headers()))
+                ));
+        return ContextSpec.of(wrapped);
     }
 }

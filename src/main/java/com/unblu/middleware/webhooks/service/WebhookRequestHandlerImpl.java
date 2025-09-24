@@ -23,7 +23,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 import static com.unblu.middleware.common.request.RequestHandler.withRequestContext;
-import static com.unblu.middleware.webhooks.util.WebhookContextSpecUtil.webhookContextSpec;
+import static com.unblu.middleware.common.utils.RequestWrapperUtils.wrappedHeaderSpec;
+import static com.unblu.middleware.webhooks.util.WebhookContextSpecUtil.webhookHeadersContextSpec;
 
 @Service
 @Slf4j
@@ -45,7 +46,7 @@ public class WebhookRequestHandlerImpl extends RequestQueueServiceImpl implement
     public <T> void onWrappedWebhook(@NonNull EventName eventName, @NonNull Class<T> expectedType, @NonNull Function<Request<T>, Mono<Void>> processAction, @NonNull RequestOrderSpec<Request<T>> requestOrderSpec, @NonNull ContextSpec<Request<T>> contextSpec) {
         checkThatIsRegisteredFor(eventName);
         eventTypeMap.put(eventName, expectedType);
-        requestQueue.onWrapped(expectedType, processAction, requestOrderSpec, contextSpec.with(webhookContextSpec()));
+        requestQueue.onWrapped(expectedType, processAction, requestOrderSpec, contextSpec.with(wrappedHeaderSpec(webhookHeadersContextSpec())));
     }
 
     private void checkThatIsRegisteredFor(EventName eventName) {

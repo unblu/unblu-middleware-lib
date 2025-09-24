@@ -3,7 +3,9 @@ package com.unblu.middleware;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unblu.middleware.bots.service.DialogBotService;
 import com.unblu.middleware.outboundrequests.config.OutboundRequestsConfiguration;
-import com.unblu.webapi.model.v4.*;
+import com.unblu.webapi.model.v4.BotOffboardingOfferRequest;
+import com.unblu.webapi.model.v4.BotOnboardingOfferRequest;
+import com.unblu.webapi.model.v4.BotReboardingOfferRequest;
 import jakarta.annotation.PostConstruct;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
@@ -20,6 +23,7 @@ import reactor.core.publisher.Mono;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @Slf4j
+@DirtiesContext
 class DialogBotServiceOfferTest {
 
     @Autowired

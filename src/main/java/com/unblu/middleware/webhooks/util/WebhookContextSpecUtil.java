@@ -1,14 +1,15 @@
 package com.unblu.middleware.webhooks.util;
 
 import com.unblu.middleware.common.entity.ContextSpec;
-import com.unblu.middleware.common.entity.Request;
+import org.springframework.http.HttpHeaders;
 
 public class WebhookContextSpecUtil {
-    public static <T> ContextSpec<Request<T>> webhookContextSpec() {
+
+    public static ContextSpec<HttpHeaders> webhookHeadersContextSpec() {
         return ContextSpec.of(
-                "eventId", req -> req.headers().getFirst("X-Unblu-Event-ID"),
-                "deliveryId", req -> req.headers().getFirst("X-Unblu-Delivery"),
-                "retryNo", req -> req.headers().getFirst("X-Unblu-Retry-No")
+                "eventId", headers -> headers.getFirst("X-Unblu-Event-ID"),
+                "deliveryId", headers -> headers.getFirst("X-Unblu-Delivery"),
+                "retryNo", headers -> headers.getFirst("X-Unblu-Retry-No")
         );
     }
 }

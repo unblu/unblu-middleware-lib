@@ -23,7 +23,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 import static com.unblu.middleware.common.utils.RequestWrapperUtils.wrapped;
-import static com.unblu.middleware.outboundrequests.util.OutboundRequestsContextSpecUtil.outboundRequestContextSpec;
+import static com.unblu.middleware.common.utils.RequestWrapperUtils.wrappedHeaderSpec;
+import static com.unblu.middleware.outboundrequests.util.OutboundRequestsContextSpecUtil.outboundRequestHeadersContextSpec;
 
 @Service
 @Slf4j
@@ -77,7 +78,7 @@ public class OutboundRequestHandler extends RequestQueueServiceImpl {
             Function<Request<T>, Mono<Void>> asyncHandler,
             RequestOrderSpec<Request<T>> requestOrderSpec,
             @NonNull ContextSpec<Request<T>> contextSpec) {
-        var updatedContextSpec = contextSpec.with(outboundRequestContextSpec());
+        var updatedContextSpec = contextSpec.with(wrappedHeaderSpec(outboundRequestHeadersContextSpec()));
         if (asyncHandler != null) {
             requestQueue.onWrapped(requestClass, asyncHandler, requestOrderSpec, updatedContextSpec);
         }

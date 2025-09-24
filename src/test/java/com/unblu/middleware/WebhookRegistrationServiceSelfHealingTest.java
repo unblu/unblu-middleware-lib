@@ -14,6 +14,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -32,6 +33,7 @@ import static org.mockito.Mockito.*;
         "unblu.webhook.eventNames=something.happened,another.event",
 })
 @Slf4j
+@DirtiesContext
 class WebhookRegistrationServiceSelfHealingTest {
 
     @Autowired

@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -34,6 +35,7 @@ import static org.awaitility.Awaitility.await;
 @TestPropertySource(properties = {
         "unblu.webhook.eventNames=conversation.new_message1,conversation.new_message2,conversation.new_message3",
 })
+@DirtiesContext
 class WebhookRequestHandlerServiceTest {
 
     @Autowired
