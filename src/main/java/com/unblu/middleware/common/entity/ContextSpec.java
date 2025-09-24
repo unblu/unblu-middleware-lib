@@ -60,14 +60,13 @@ public record ContextSpec<T>(Map<String, Function<T, String>> contextEntries) {
         return ContextSpec.of(Map.of(s1, f1, s2, f2, s3, f3, s4, f4, s5, f5));
     }
 
-    public ContextSpec<T> with(ContextSpec<? super T> other) {
+    public ContextSpec<T> with(ContextSpec<T> other) {
         return with(other.contextEntries);
     }
 
-    @SuppressWarnings("unchecked")
-    private ContextSpec<T> with(Map<String, ? extends Function<? super T, String>> contextEntries) {
+    public ContextSpec<T> with(Map<String, Function<T, String>> contextEntries) {
         var combined = new HashMap<>(this.contextEntries);
-        combined.putAll((Map<? extends String, ? extends Function<T, String>>) contextEntries);
+        combined.putAll(contextEntries);
         return new ContextSpec<>(Map.copyOf(combined));
     }
 
