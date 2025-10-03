@@ -135,6 +135,11 @@ def updateLastVersionValueTask = tasks.register('updateLastVersionValue') {
         def newVersion = project.findProperty('release.releaseVersion') ?: version.replace('-SNAPSHOT', '')
         content = content.replaceAll("lastVersion=[0-9a-z\\.\\-]+", "lastVersion=" + newVersion)
         propertiesFile.text = content
+
+        def readmeFile = file('Readme.adoc')
+        def readme = readmeFile.text
+        readme = readme.replace('com.unblu.middleware:unblu-middleware-lib:' + lastVersion, 'com.unblu.middleware:unblu-middleware-lib:' + newVersion)
+        readmeFile.text = readme
     }
 }
 
