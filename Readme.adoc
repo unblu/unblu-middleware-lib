@@ -264,7 +264,7 @@ logback.xml:
 </configuration>
 ----
 
-The following logback context variables are available for webhooks out-of-the-box (are always populated):
+The following logback context variables are available for webhooks out-of-the-box (are always populated by the library):
 
 * `eventId`
 * `deliveryId`
@@ -295,7 +295,7 @@ Like the webhook handler, the dialog bot handler also provides a `.onWrapped...(
 
 Also like the webhook handler, the dialog bot handler allows you to pass a list of context entry specs, which allows you to populate the logback context with event-related information. The usage is the same as for the webhook handler.
 
-The following logback context variables are available for webhooks out-of-the-box (are always populated):
+The following logback context variables are available for webhooks out-of-the-box (are always populated by the library):
 
 * `dialogToken`
 * `conversationId`
@@ -334,7 +334,7 @@ Like the webhook handler, the outbound request handler also provides a `.onWrapp
 
 Also like the webhook handler, the dialog bot handler allows you to pass a list of context entry specs, which allows you to populate the logback context with event-related information. The usage is the same as for the webhook handler.
 
-The following logback context variables are available for webhooks out-of-the-box (are always populated):
+The following logback context variables are available for webhooks out-of-the-box (are always populated by the library):
 
 * `invocationId`
 * `deliveryId`
