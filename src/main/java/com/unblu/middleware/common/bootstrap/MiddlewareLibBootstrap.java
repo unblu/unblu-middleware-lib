@@ -1,6 +1,7 @@
 package com.unblu.middleware.common.bootstrap;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.unblu.webapi.jersey.v4.invoker.JSON;
 import io.micrometer.context.ContextRegistry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -23,7 +24,12 @@ public class MiddlewareLibBootstrap {
     }
 
     @Bean
-    public ObjectMapper objectMapper() {
-        return new ObjectMapper();
+    public JSON jerseyJsonResolver() {
+        return new JSON();
+    }
+
+    @Bean
+    public ObjectMapper objectMapper(JSON jerseyJsonResolver) {
+        return jerseyJsonResolver.getContext(Object.class);
     }
 }
