@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
@@ -88,14 +87,14 @@ public class OutboundRequestHandler extends RequestQueueServiceImpl {
     }
 
     @SuppressWarnings("unchecked")
-    public <T, R> Mono<R> handle(OutboundRequestType requestType, Request<T> request) {
+    public <T> Mono<Object> handle(OutboundRequestType requestType, Request<T> request) {
         requestQueue.queueRequest(request);
         var requestClass = request.body().getClass();
         var function = responseByRequestType.get(requestClass);
         var contextSpec = (ContextSpec<Request<T>>) contextEntriesByRequestType.getOrDefault(requestClass, ContextSpec.empty());
-        return Optional.ofNullable(function)
-                .map(it -> (Mono<R>) it.apply(request))
-                .orElseGet(() -> Mono.error(new NoHandlerException("No handler registered for outbound request type: " + requestType)))
+        return Mono.justOrEmpty(function)
+                .switchIfEmpty(Mono.error(new NoHandlerException("No handler registered for outbound request type: " + requestType)))
+                .flatMap(it -> (Mono<Object>) it.apply(request))
                 .contextWrite(contextSpec.applyTo(request));
     }
 
