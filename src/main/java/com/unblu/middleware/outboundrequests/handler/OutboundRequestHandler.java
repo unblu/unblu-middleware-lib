@@ -97,7 +97,7 @@ public class OutboundRequestHandler extends RequestQueueServiceImpl {
         return Optional.ofNullable(function)
                 .map(it -> (Mono<R>) it.apply(request))
                 .orElseGet(() -> Mono.error(new NoHandlerException("No handler registered for outbound request type: " + requestType)))
-                .doOnError(e -> log.error(e.getMessage()))
+                .onErrorResume(e -> Mono.fromRunnable(() -> log.error(e.getMessage())))
                 .contextWrite(contextSpec.applyTo(request));
     }
 
