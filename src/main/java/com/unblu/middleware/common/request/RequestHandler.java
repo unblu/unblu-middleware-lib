@@ -1,5 +1,6 @@
 package com.unblu.middleware.common.request;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unblu.middleware.common.entity.ContextSpec;
 import com.unblu.middleware.common.error.InvalidRequestException;
 import com.unblu.middleware.common.error.NoHandlerException;
@@ -13,29 +14,31 @@ import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import reactor.core.publisher.Mono;
 
 import java.io.InputStream;
+import java.util.List;
 import java.util.Optional;
 
 import static org.springframework.core.io.buffer.DataBufferUtils.release;
-import static org.springframework.http.ResponseEntity.badRequest;
-import static org.springframework.http.ResponseEntity.internalServerError;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.ResponseEntity.*;
 import static org.springframework.util.StreamUtils.copyToByteArray;
 
 @Slf4j
 public class RequestHandler {
 
+    private final ObjectMapper objectMapper;
     private final DataBufferFactory dataBufferFactory;
     private final HmacUtils hmacSha1;
     private final HmacUtils hmacSha256;
     private final ContextSpec<HttpHeaders> contextSpec;
 
-    public RequestHandler(DataBufferFactory dataBufferFactory, RequestHandlerConfiguration requestHandlerConfiguration, ContextRegistryWrapper contextRegistryWrapper, ContextSpec<HttpHeaders> contextSpec) {
+    public RequestHandler(DataBufferFactory dataBufferFactory, RequestHandlerConfiguration requestHandlerConfiguration, ContextRegistryWrapper contextRegistryWrapper, ObjectMapper objectMapper, ContextSpec<HttpHeaders> contextSpec) {
         this.dataBufferFactory = dataBufferFactory;
+        this.objectMapper = objectMapper;
         this.contextSpec = contextSpec;
         contextRegistryWrapper.registerContextSpec(contextSpec);
         this.hmacSha1 = new HmacUtils(HmacAlgorithms.HMAC_SHA_1, requestHandlerConfiguration.secretKey());
@@ -43,8 +46,8 @@ public class RequestHandler {
     }
 
 
-    public Mono<ResponseEntity<Object>> handle(@NonNull ServerHttpRequest request,
-                                               @NonNull ThrowingFunction<byte[], Mono<ResponseEntity<Object>>> processAction
+    public <T> Mono<ResponseEntity<String>> handle(@NonNull ServerHttpRequest request,
+                                                   @NonNull ThrowingFunction<byte[], Mono<T>> processAction
     ) {
 
         long contentLength = request.getHeaders().getContentLength();
@@ -62,18 +65,20 @@ public class RequestHandler {
                     }
                 })
                 .flatMap(processAction)
+                .flatMap(this::response)
                 .onErrorResume(InvalidRequestException.class, e -> {
-                    log.error(withRequestContext("Request not valid: {}", request.getHeaders()), e.getMessage(), e);
+                    log.error("Request not valid: {}", e.getMessage());
                     return Mono.just(badRequest().body("Request not valid: " + e.getMessage()));
                 })
                 .onErrorResume(NoHandlerException.class, e -> {
-                    log.error(withRequestContext("No handler registered for request: {}", request.getHeaders()), e.getMessage(), e);
+                    log.error("No handler registered for request: {}", e.getMessage());
                     return Mono.just(badRequest().body("No handler registered for request"));
                 })
                 .onErrorResume(e -> {
-                    log.error(withRequestContext("Error while processing request: {}", request.getHeaders()), e.getMessage(), e);
+                    log.error("Error while processing request: {}", e.getMessage());
                     return Mono.just(internalServerError().body("Error while processing request: " + e.getMessage()));
                 })
+                .map(this::signed)
                 .contextWrite(contextSpec.applyTo(request.getHeaders()));
     }
 
@@ -84,7 +89,7 @@ public class RequestHandler {
     private void checkHeaders(HttpHeaders headers) {
         var userAgent = headers.getFirst("user-agent");
         if (!"Unblu-Hookshot".equals(userAgent)) {
-            throw new InvalidRequestException(withRequestContext("Dropping request due to wrong useragent: " + userAgent, headers));
+            throw new InvalidRequestException("Dropping request due to wrong useragent: " + userAgent);
         }
     }
 
@@ -93,49 +98,39 @@ public class RequestHandler {
         var receivedSignature256 = Optional.ofNullable(headers.getFirst("x-unblu-signature-256"));
 
         if (receivedSignature.isEmpty() && receivedSignature256.isEmpty()) {
-            throw new InvalidRequestException(withRequestContext("Webhook signature not present", headers));
+            throw new InvalidRequestException("Webhook signature not present");
         }
 
         receivedSignature256.ifPresent(it -> {
             var calculatedSignature = hmacSha256.hmacHex(body);
             if (!it.equals(calculatedSignature)) {
-                throw new InvalidRequestException(withRequestContext("Webhook signature mismatch for SHA256", headers));
+                throw new InvalidRequestException("Webhook signature mismatch for SHA256");
             }
         });
 
         receivedSignature.ifPresent(it -> {
             var calculatedSignature = hmacSha1.hmacHex(body);
             if (!it.equals(calculatedSignature)) {
-                throw new InvalidRequestException(withRequestContext("Webhook signature mismatch for SHA1", headers));
+                throw new InvalidRequestException("Webhook signature mismatch for SHA1");
             }
         });
     }
 
-    public static String withRequestContext(String message, HttpRequest headers) {
-        return withRequestContext(message, headers.getHeaders());
+    private <T> Mono<ResponseEntity<String>> response(T body) {
+        return Mono.just(body)
+                .map((ThrowingFunction<T, String>) objectMapper::writeValueAsString)
+                .map(bodySerialized -> ok()
+                        .contentType(APPLICATION_JSON)
+                        .body(bodySerialized));
     }
 
-    public static String withRequestContext(String message, HttpHeaders headers) {
-        var deliveryIdInfo = Optional.ofNullable(headers.getFirst("X-Unblu-Delivery"))
-                .map(it -> ", Delivery id: " + it)
-                .orElse("");
-
-        var invocationIdInfo = Optional.ofNullable(headers.getFirst("X-Unblu-Invocation"))
-                .map(it -> ", Invocation id: " + it)
-                .orElse("");
-
-        var eventIdInfo = Optional.ofNullable(headers.getFirst("X-Unblu-Event-ID"))
-                .map(it -> ", Event id: " + it)
-                .orElse("");
-
-        var retryNoInfo = Optional.ofNullable(headers.getFirst("X-Unblu-Retry-No"))
-                .map(it -> ", Retry no: " + it)
-                .orElse("");
-
-        return message +
-                deliveryIdInfo +
-                invocationIdInfo +
-                eventIdInfo +
-                retryNoInfo;
+    private ResponseEntity<String> signed(ResponseEntity<String> responseEntity) {
+        return ResponseEntity
+                .status(responseEntity.getStatusCode())
+                .headers(httpHeaders -> {
+                    httpHeaders.putAll(responseEntity.getHeaders());
+                    httpHeaders.put("x-unblu-signature-256", List.of(hmacSha256.hmacHex(responseEntity.getBody())));
+                })
+                .body(responseEntity.getBody());
     }
 }

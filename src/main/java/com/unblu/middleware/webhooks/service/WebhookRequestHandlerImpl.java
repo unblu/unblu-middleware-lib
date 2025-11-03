@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
-import static com.unblu.middleware.common.request.RequestHandler.withRequestContext;
 import static com.unblu.middleware.common.utils.RequestWrapperUtils.wrappedHeaderSpec;
 import static com.unblu.middleware.webhooks.util.WebhookContextSpecUtil.webhookHeadersContextSpec;
 
@@ -69,7 +68,7 @@ public class WebhookRequestHandlerImpl extends RequestQueueServiceImpl implement
             var requestBody = objectMapper.readValue(body, expectedType);
             requestQueue.queueRequest(new Request<>(requestBody, headers));
         } catch (IOException e) {
-            throw new InvalidRequestException(withRequestContext("Failed to parse webhook", headers), e);
+            throw new InvalidRequestException("Failed to parse webhook", e);
         }
     }
 

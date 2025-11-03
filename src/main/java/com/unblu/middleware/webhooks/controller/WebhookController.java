@@ -10,7 +10,6 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
-import static com.unblu.middleware.common.request.RequestHandler.withRequestContext;
 import static com.unblu.middleware.webhooks.entity.EventName.eventName;
 import static org.springframework.http.ResponseEntity.ok;
 
@@ -25,18 +24,17 @@ public class WebhookController {
     private final WebhookRequestHandler webhookRequestHandler;
 
     @PostMapping
-    public Mono<ResponseEntity<Object>> webhook(@RequestHeader("x-unblu-event") String eventType, ServerHttpRequest request) {
+    public Mono<ResponseEntity<String>> webhook(@RequestHeader("x-unblu-event") String eventType, ServerHttpRequest request) {
 
         if ("ping".equals(eventType)) {
             return Mono.just(ok("Pong!"));
         }
 
-        return requestHandler.handle(request,
-                body -> {
-                    log.debug(withRequestContext("Start processing webhook event: {}", request), eventType);
-                    webhookRequestHandler.handle(eventName(eventType), body, request.getHeaders());
-                    log.debug(withRequestContext("Processed webhook event: {}", request), eventType);
-                    return Mono.just(ok(withRequestContext("Webhook processed", request)));
-                });
+        return requestHandler.handle(request, body -> {
+            log.debug("Start processing webhook event: {}", eventType);
+            webhookRequestHandler.handle(eventName(eventType), body, request.getHeaders());
+            return Mono.just("Webhook processed")
+                    .doOnNext(_r -> log.debug("Processed webhook event: {}", eventType));
+        });
     }
 }

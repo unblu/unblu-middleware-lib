@@ -1,5 +1,6 @@
 package com.unblu.middleware.webhooks.bootstrap;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unblu.middleware.common.registry.ContextRegistryWrapper;
 import com.unblu.middleware.common.request.RequestHandler;
 import com.unblu.middleware.common.request.RequestHandlerConfiguration;
@@ -18,7 +19,7 @@ public class WebhooksBootstrap {
 
     @Bean
     @Qualifier("webhooksRequestHandler")
-    public RequestHandler webhooksRequestHandler(DataBufferFactory dataBufferFactory, WebhookConfiguration webhookConfiguration, ContextRegistryWrapper contextRegistryWrapper) {
-        return new RequestHandler(dataBufferFactory, new RequestHandlerConfiguration(webhookConfiguration.getSecret()), contextRegistryWrapper, webhookHeadersContextSpec());
+    public RequestHandler webhooksRequestHandler(DataBufferFactory dataBufferFactory, WebhookConfiguration webhookConfiguration, ContextRegistryWrapper contextRegistryWrapper, ObjectMapper objectMapper) {
+        return new RequestHandler(dataBufferFactory, new RequestHandlerConfiguration(webhookConfiguration.getSecret()), contextRegistryWrapper, objectMapper, webhookHeadersContextSpec());
     }
 }
