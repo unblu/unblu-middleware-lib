@@ -24,7 +24,8 @@ import java.util.Optional;
 
 import static org.springframework.core.io.buffer.DataBufferUtils.release;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.http.ResponseEntity.*;
+import static org.springframework.http.ResponseEntity.badRequest;
+import static org.springframework.http.ResponseEntity.internalServerError;
 import static org.springframework.util.StreamUtils.copyToByteArray;
 
 @Slf4j
@@ -65,7 +66,7 @@ public class RequestHandler {
                     }
                 })
                 .flatMap(processAction)
-                .flatMap(this::response)
+                .flatMap(this::okResponse)
                 .onErrorResume(InvalidRequestException.class, e -> {
                     log.error("Request not valid: {}", e.getMessage());
                     return Mono.just(badRequest().body("Request not valid: " + e.getMessage()));
@@ -116,10 +117,10 @@ public class RequestHandler {
         });
     }
 
-    private <T> Mono<ResponseEntity<String>> response(T body) {
+    private <T> Mono<ResponseEntity<String>> okResponse(T body) {
         return Mono.just(body)
                 .map((ThrowingFunction<T, String>) objectMapper::writeValueAsString)
-                .map(bodySerialized -> ok()
+                .map(bodySerialized -> ResponseEntity.ok()
                         .contentType(APPLICATION_JSON)
                         .body(bodySerialized));
     }

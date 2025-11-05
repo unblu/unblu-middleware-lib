@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import static com.unblu.middleware.outboundrequests.entity.OutboundRequestType.outboundRequestType;
-import static org.springframework.http.ResponseEntity.ok;
 
 @RestController
 @RequestMapping(value = "${unblu.outbound-requests.api-path}", method = RequestMethod.POST)
@@ -26,14 +25,10 @@ public class OutboundRequestsController {
     @PostMapping
     public Mono<ResponseEntity<String>> outbound(@RequestHeader("x-unblu-service-name") String requestType, ServerHttpRequest request) {
 
-        if ("outbound.ping".equals(requestType)) {
-            return Mono.just(ok("Pong!"));
-        }
-
         return requestHandler.handle(request, body -> {
             log.debug("Started processing outbound request: {}", requestType);
             return outboundRequestHandler.handle(outboundRequestType(requestType), body, request)
-                    .doOnNext(_r -> log.debug("Processed outbound request: {}", requestType));
+                    .doOnNext(_r -> log.debug("Responded to outbound request: {}", requestType));
         });
     }
 }
