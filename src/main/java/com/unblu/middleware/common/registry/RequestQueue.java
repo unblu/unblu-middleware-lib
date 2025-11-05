@@ -49,8 +49,7 @@ public class RequestQueue {
                 .groupBy(it -> subjectKeyHash(it) % 100) // max 100 parallel
                 .flatMap(f -> f
                         .publishOn(Schedulers.boundedElastic())
-                        .flatMap(this::processRequest)
-                        .onErrorResume(e -> Mono.fromRunnable(() -> log.error(e.getMessage()))));
+                        .flatMap(this::processRequest));
     }
 
     public <T> void queueRequest(Request<T> request) {
@@ -77,7 +76,7 @@ public class RequestQueue {
 
         return Flux.just(request)
                 .flatMap(actions::apply)
-                .onErrorResume(e -> Mono.fromRunnable(() -> log.error(e.getMessage())))
+                .onErrorContinue((e, _r) -> log.error(e.getMessage()))
                 .contextWrite(contextSpec.applyTo(request))
                 .then();
     }

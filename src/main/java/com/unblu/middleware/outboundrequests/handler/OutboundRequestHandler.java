@@ -3,12 +3,12 @@ package com.unblu.middleware.outboundrequests.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unblu.middleware.common.entity.ContextSpec;
 import com.unblu.middleware.common.entity.Request;
-import com.unblu.middleware.common.error.InvalidRequestException;
 import com.unblu.middleware.common.error.NoHandlerException;
 import com.unblu.middleware.common.registry.ContextRegistryWrapper;
 import com.unblu.middleware.common.registry.RequestOrderSpec;
 import com.unblu.middleware.common.registry.RequestQueue;
 import com.unblu.middleware.common.registry.RequestQueueServiceImpl;
+import com.unblu.middleware.common.utils.ThrowingFunction;
 import com.unblu.middleware.outboundrequests.entity.OutboundRequestType;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -16,9 +16,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.io.IOException;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
@@ -89,24 +87,21 @@ public class OutboundRequestHandler extends RequestQueueServiceImpl {
     }
 
     @SuppressWarnings("unchecked")
-    public <T, R> Mono<R> handle(OutboundRequestType requestType, Request<T> request) {
+    public <T> Mono<Object> handle(OutboundRequestType requestType, Request<T> request) {
         requestQueue.queueRequest(request);
         var requestClass = request.body().getClass();
         var function = responseByRequestType.get(requestClass);
         var contextSpec = (ContextSpec<Request<T>>) contextEntriesByRequestType.getOrDefault(requestClass, ContextSpec.empty());
-        return Optional.ofNullable(function)
-                .map(it -> (Mono<R>) it.apply(request))
-                .orElseGet(() -> Mono.error(new NoHandlerException("No handler registered for outbound request type: " + requestType)))
-                .onErrorResume(e -> Mono.fromRunnable(() -> log.error(e.getMessage())))
+        return Mono.justOrEmpty(function)
+                .switchIfEmpty(Mono.error(new NoHandlerException("No handler registered for outbound request type: " + requestType)))
+                .flatMap(it -> (Mono<Object>) it.apply(request))
                 .contextWrite(contextSpec.applyTo(request));
     }
 
     public Mono<Object> handle(OutboundRequestType requestType, byte[] body, ServerHttpRequest request) {
-        try {
-            var parsedRequest = objectMapper.readValue(body, requestClassByRequestType.get(requestType));
-            return handle(requestType, new Request<>(parsedRequest, request.getHeaders()));
-        } catch (IOException e) {
-            throw new InvalidRequestException("Request of type %s could not be parsed".formatted(requestType), e);
-        }
+        return Mono.justOrEmpty(requestClassByRequestType.get(requestType))
+                .switchIfEmpty(Mono.error(new NoHandlerException("No handler registered for outbound request type: " + requestType)))
+                .map((ThrowingFunction<Class<?>, ?>) type -> objectMapper.readValue(body, type))
+                .flatMap(parsed -> handle(requestType, new Request<>(parsed, request.getHeaders())));
     }
 }

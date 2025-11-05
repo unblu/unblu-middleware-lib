@@ -1,5 +1,6 @@
 package com.unblu.middleware.outboundrequests.bootstrap;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unblu.middleware.common.registry.ContextRegistryWrapper;
 import com.unblu.middleware.common.request.RequestHandler;
 import com.unblu.middleware.common.request.RequestHandlerConfiguration;
@@ -18,7 +19,7 @@ public class OutboundRequestsBootstrap {
 
     @Bean
     @Qualifier("outboundRequestsRequestHandler")
-    public RequestHandler outboundRequestsRequestHandler(DataBufferFactory dataBufferFactory, OutboundRequestsConfiguration outboundRequestsConfiguration, ContextRegistryWrapper contextRegistryWrapper) {
-        return new RequestHandler(dataBufferFactory, new RequestHandlerConfiguration(outboundRequestsConfiguration.getSecret()), contextRegistryWrapper, outboundRequestHeadersContextSpec());
+    public RequestHandler outboundRequestsRequestHandler(DataBufferFactory dataBufferFactory, OutboundRequestsConfiguration outboundRequestsConfiguration, ContextRegistryWrapper contextRegistryWrapper, ObjectMapper objectMapper) {
+        return new RequestHandler(dataBufferFactory, new RequestHandlerConfiguration(outboundRequestsConfiguration.getSecret()), contextRegistryWrapper, objectMapper, outboundRequestHeadersContextSpec());
     }
 }
