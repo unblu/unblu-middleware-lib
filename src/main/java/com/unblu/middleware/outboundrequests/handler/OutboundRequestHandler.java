@@ -10,6 +10,9 @@ import com.unblu.middleware.common.registry.RequestQueue;
 import com.unblu.middleware.common.registry.RequestQueueServiceImpl;
 import com.unblu.middleware.common.utils.ThrowingFunction;
 import com.unblu.middleware.outboundrequests.entity.OutboundRequestType;
+import com.unblu.webapi.model.v4.PingRequest;
+import com.unblu.webapi.model.v4.PingResponse;
+import jakarta.annotation.PostConstruct;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -22,6 +25,7 @@ import java.util.function.Function;
 
 import static com.unblu.middleware.common.utils.RequestWrapperUtils.wrapped;
 import static com.unblu.middleware.common.utils.RequestWrapperUtils.wrappedHeaderSpec;
+import static com.unblu.middleware.outboundrequests.entity.OutboundRequestType.outboundRequestType;
 import static com.unblu.middleware.outboundrequests.util.OutboundRequestsContextSpecUtil.outboundRequestHeadersContextSpec;
 
 @Service
@@ -38,6 +42,15 @@ public class OutboundRequestHandler extends RequestQueueServiceImpl {
         super(requestQueue);
         this.objectMapper = objectMapper;
         this.contextRegistryWrapper = contextRegistryWrapper;
+    }
+
+    @PostConstruct
+    private void registerOutboundPingHandler() {
+        on(outboundRequestType("outbound.ping"), PingRequest.class, PingResponse.class,
+                request -> Mono.just(new PingResponse().pingId(request.getPingId())),
+                request -> Mono.fromRunnable(() -> log.info("Received ping outbound request")),
+                RequestOrderSpec.canIgnoreOrder(),
+                ContextSpec.empty());
     }
 
     public <T, R> void on(

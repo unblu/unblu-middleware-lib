@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import static com.unblu.middleware.webhooks.entity.EventName.eventName;
-import static org.springframework.http.ResponseEntity.ok;
 
 @RestController
 @RequestMapping(value = "${unblu.webhook.api-path}", method = RequestMethod.POST)
@@ -26,15 +25,11 @@ public class WebhookController {
     @PostMapping
     public Mono<ResponseEntity<String>> webhook(@RequestHeader("x-unblu-event") String eventType, ServerHttpRequest request) {
 
-        if ("ping".equals(eventType)) {
-            return Mono.just(ok("Pong!"));
-        }
-
         return requestHandler.handle(request, body -> {
             log.debug("Start processing webhook event: {}", eventType);
             webhookRequestHandler.handle(eventName(eventType), body, request.getHeaders());
-            return Mono.just("Webhook processed")
-                    .doOnNext(_r -> log.debug("Processed webhook event: {}", eventType));
+            return Mono.just(new WebhookResponse())
+                    .doOnNext(_r -> log.debug("Responded to webhook event: {}", eventType));
         });
     }
 }

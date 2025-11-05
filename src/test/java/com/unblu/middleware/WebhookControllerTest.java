@@ -71,8 +71,7 @@ class WebhookControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(body)
                 .exchange()
-                .expectStatus().isOk()
-                .expectBody(String.class).isEqualTo("Pong!");
+                .expectStatus().isOk();
     }
 
     @Test

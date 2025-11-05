@@ -10,6 +10,8 @@ import com.unblu.middleware.common.registry.RequestOrderSpec;
 import com.unblu.middleware.common.registry.RequestQueue;
 import com.unblu.middleware.common.registry.RequestQueueServiceImpl;
 import com.unblu.middleware.webhooks.entity.EventName;
+import com.unblu.webapi.model.v4.WebhookPingEvent;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.lang.NonNull;
@@ -22,6 +24,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
+import static com.unblu.middleware.common.registry.RequestOrderSpec.canIgnoreOrder;
 import static com.unblu.middleware.common.utils.RequestWrapperUtils.wrappedHeaderSpec;
 import static com.unblu.middleware.webhooks.util.WebhookContextSpecUtil.webhookHeadersContextSpec;
 
@@ -39,6 +42,13 @@ public class WebhookRequestHandlerImpl extends RequestQueueServiceImpl implement
         this.middlewareConfiguration = middlewareConfiguration;
         this.webhookRegistrationService = webhookRegistrationService;
         this.objectMapper = objectMapper;
+    }
+
+    @PostConstruct
+    private void registerWebhookPingHandler() {
+        onWebhook(EventName.eventName("ping"), WebhookPingEvent.class,
+                request -> Mono.fromRunnable(() -> log.info("Received webhook ping event")),
+                canIgnoreOrder());
     }
 
     @Override
