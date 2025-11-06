@@ -340,6 +340,71 @@ The following logback context variables are available for webhooks out-of-the-bo
 * `deliveryId`
 * `retryNo`
 
+== Consume the middleware-lib from jitpack
+
+The service https://jitpack.io/ is able to build any commit from any open source repo.
+
+WARNING: Jars on the jitpack repositories are not immutable (like on a SNAPSHOT respository) and the build of the jar is delegated to an external service.
+It is not recommended to use them in a middleware application that goes to production.
+
+An additional repository has to be declared in the `respositories` section:
+
+[source,gradle]
+----
+maven {
+    url "https://jitpack.io"
+    content {
+        includeGroup "com.github.unblu"
+    }
+}
+----
+
+The coordinates are different:
+
+* *GroupId*: `com.github.unblu`
+* *ArtifactId*: `unblu-middleware-lib` (same as on maven central)
+* *Version* can be a commit (like `e8f15d5ef4`), a tag (like `1.8.1`) or a branch name (like `main-SNAPSHOT`)
+
+Example diff:
+
+[source,diff]
+----
+diff --git a/build.gradle b/build.gradle
+index 3efa35a..87d9ceb 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -16,8 +16,13 @@ java {
+ }
+ 
+ repositories {
++    maven {
++        url "https://jitpack.io"
++        content {
++            includeGroup "com.github.unblu"
++        }
++    }
+     mavenCentral()
+-    mavenLocal()
+ }
+ 
+ wrapper {
+@@ -27,7 +32,7 @@ wrapper {
+ 
+ dependencies {
+     implementation 'org.springframework.boot:spring-boot-starter-webflux'
+-    implementation 'com.unblu.middleware:unblu-middleware-lib:1.8.0'
++    implementation 'com.github.unblu:unblu-middleware-lib:e8f15d5ef47da08724d806d5be5e08f18728095c'
+     implementation 'com.unblu.openapi:jersey3-client-v4:8.24.0'
+     implementation 'org.projectlombok:lombok:1.18.34'
+     annotationProcessor 'org.projectlombok:lombok:1.18.34'
+----
+
+Troubleshoot a build on jitpack:
+
+Next to the published artifact on the maven repo, jitpack is publishing a `build.log` file. Example:
+https://jitpack.io/com/github/unblu/unblu-middleware-lib/e8f15d5ef4/build.log
+
+
 == Troubleshooting
 
 === Configuration issues
