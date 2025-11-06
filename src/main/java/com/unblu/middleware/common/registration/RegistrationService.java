@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import static com.unblu.middleware.common.utils.ObjectUtils.areLenientEqual;
 import static com.unblu.middleware.common.utils.ObjectUtils.copyOf;
 
 @Slf4j
@@ -87,8 +88,8 @@ public abstract class RegistrationService<T> implements SelfHealing, AutoRegistr
     }
 
     private void updateRegistrationIfChanged(T originalRegistration, T newRegistration) throws ApiException {
-        if (!newRegistration.equals(originalRegistration)) {
-            log.info("Registration '{}' has changed, updating", getRegistrationName());
+        if (!areLenientEqual(newRegistration,originalRegistration)) {
+            log.info("Registration '{}' has changed, updating. Registration at Unblu: \n{}\nDesired registration: \n{}", getRegistrationName(), originalRegistration, newRegistration);
             callUpdateRegistration(newRegistration);
         }
     }
@@ -127,7 +128,7 @@ public abstract class RegistrationService<T> implements SelfHealing, AutoRegistr
         return new RegistrationException(message, e);
     }
 
-    private <P> Consumer<P> wrapException(ThrowingConsumer<P> consumer) {
+    protected <P> Consumer<P> wrapException(ThrowingConsumer<P> consumer) {
         return t -> {
             try {
                 consumer.accept(t);
