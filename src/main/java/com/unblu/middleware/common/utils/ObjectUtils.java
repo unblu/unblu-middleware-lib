@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unblu.webapi.jersey.v4.invoker.JSON;
 import lombok.experimental.UtilityClass;
-import org.skyscreamer.jsonassert.JSONAssert;
+import org.skyscreamer.jsonassert.JSONCompare;
 import org.skyscreamer.jsonassert.JSONCompareMode;
 
 @UtilityClass
@@ -21,22 +21,17 @@ public class ObjectUtils {
         }
     }
 
-    public static <T> boolean areLenientEqual(T object1, T object2) {
+    // Compares two objects, ignoring order in collections
+    public static <T> boolean areTheSame(T object1, T object2) throws JsonProcessingException {
         if (object1 == null && object2 == null) {
             return true;
         }
         if (object1 == null || object2 == null) {
             return false;
         }
-        try {
-            String json1 = objectMapper.writeValueAsString(object1);
-            String json2 = objectMapper.writeValueAsString(object2);
-            JSONAssert.assertEquals(json1, json2, JSONCompareMode.NON_EXTENSIBLE);
-            return true;
-        } catch (AssertionError e) {
-            return false;
-        } catch (Exception e) {
-            throw new RuntimeException("Weak equal error: Can't serialize objects", e);
-        }
+        String json1 = objectMapper.writeValueAsString(object1);
+        String json2 = objectMapper.writeValueAsString(object2);
+        var compareResult = JSONCompare.compareJSON(json1, json2, JSONCompareMode.NON_EXTENSIBLE);
+        return compareResult.passed();
     }
 }

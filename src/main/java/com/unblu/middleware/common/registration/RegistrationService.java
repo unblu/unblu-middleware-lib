@@ -1,5 +1,6 @@
 package com.unblu.middleware.common.registration;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.unblu.middleware.common.automation.AutoRegistrable;
 import com.unblu.middleware.common.automation.SelfHealing;
 import com.unblu.middleware.common.error.RegistrationException;
@@ -12,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import static com.unblu.middleware.common.utils.ObjectUtils.areLenientEqual;
+import static com.unblu.middleware.common.utils.ObjectUtils.areTheSame;
 import static com.unblu.middleware.common.utils.ObjectUtils.copyOf;
 
 @Slf4j
@@ -87,8 +88,8 @@ public abstract class RegistrationService<T> implements SelfHealing, AutoRegistr
                         this::deleteRegistration);
     }
 
-    private void updateRegistrationIfChanged(T originalRegistration, T newRegistration) throws ApiException {
-        if (!areLenientEqual(newRegistration,originalRegistration)) {
+    private void updateRegistrationIfChanged(T originalRegistration, T newRegistration) throws ApiException, JsonProcessingException {
+        if (!areTheSame(newRegistration, originalRegistration)) {
             log.info("Registration '{}' has changed, updating. Registration at Unblu: \n{}\nDesired registration: \n{}", getRegistrationName(), originalRegistration, newRegistration);
             callUpdateRegistration(newRegistration);
         }
