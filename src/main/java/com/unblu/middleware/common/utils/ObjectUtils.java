@@ -31,8 +31,7 @@ public class ObjectUtils {
         try {
             String json1 = objectMapper.writeValueAsString(object1);
             String json2 = objectMapper.writeValueAsString(object2);
-            JSONAssert.assertEquals(json1, json2, JSONCompareMode.LENIENT);
-            JSONAssert.assertEquals(json2, json1, JSONCompareMode.LENIENT);
+            JSONAssert.assertEquals(json1, json2, JSONCompareMode.NON_EXTENSIBLE);
             return true;
         } catch (AssertionError e) {
             return false;
