@@ -13,8 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import static com.unblu.middleware.common.utils.ObjectUtils.areTheSame;
-import static com.unblu.middleware.common.utils.ObjectUtils.copyOf;
+import static com.unblu.middleware.common.utils.ObjectUtils.*;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -89,8 +88,10 @@ public abstract class RegistrationService<T> implements SelfHealing, AutoRegistr
     }
 
     private void updateRegistrationIfChanged(T originalRegistration, T newRegistration) throws ApiException, JsonProcessingException {
-        if (!areTheSame(newRegistration, originalRegistration)) {
-            log.info("Registration '{}' has changed, updating. Registration at Unblu: \n{}\nDesired registration: \n{}", getRegistrationName(), originalRegistration, newRegistration);
+        var comparisonResult = compare(newRegistration, originalRegistration);
+        if (!areTheSame(comparisonResult)) {
+            log.info("Registration '{}' has changed. Differences: \n{}", getRegistrationName(), comparisonResult.getMessage());
+            log.info("Updating registration '{}'.", getRegistrationName());
             callUpdateRegistration(newRegistration);
         }
     }

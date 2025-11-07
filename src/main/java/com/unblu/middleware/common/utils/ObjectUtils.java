@@ -6,6 +6,7 @@ import com.unblu.webapi.jersey.v4.invoker.JSON;
 import lombok.experimental.UtilityClass;
 import org.skyscreamer.jsonassert.JSONCompare;
 import org.skyscreamer.jsonassert.JSONCompareMode;
+import org.skyscreamer.jsonassert.JSONCompareResult;
 
 @UtilityClass
 public class ObjectUtils {
@@ -22,16 +23,19 @@ public class ObjectUtils {
     }
 
     // Compares two objects, ignoring order in collections
-    public static <T> boolean areTheSame(T object1, T object2) throws JsonProcessingException {
+    public static <T> JSONCompareResult compare(T object1, T object2) throws JsonProcessingException {
         if (object1 == null && object2 == null) {
-            return true;
+            return new JSONCompareResult();
         }
         if (object1 == null || object2 == null) {
-            return false;
+            return new JSONCompareResult().fail("One of the objects is null while the other is not", object1, object2);
         }
         String json1 = objectMapper.writeValueAsString(object1);
         String json2 = objectMapper.writeValueAsString(object2);
-        var compareResult = JSONCompare.compareJSON(json1, json2, JSONCompareMode.NON_EXTENSIBLE);
+        return JSONCompare.compareJSON(json1, json2, JSONCompareMode.NON_EXTENSIBLE);
+    }
+
+    public static <T> boolean areTheSame(JSONCompareResult compareResult) {
         return compareResult.passed();
     }
 }
