@@ -5,6 +5,7 @@ import com.unblu.middleware.common.entity.Request;
 import com.unblu.middleware.common.registry.RequestOrderSpec;
 import com.unblu.middleware.common.registry.RequestQueueService;
 import com.unblu.middleware.webhooks.entity.EventName;
+import com.unblu.middleware.webhooks.entity.WebhookHandlerOptions;
 import org.springframework.lang.NonNull;
 import reactor.core.publisher.Mono;
 
@@ -15,6 +16,34 @@ import static com.unblu.middleware.webhooks.entity.EventName.eventName;
 
 public interface WebhookHandlerService extends RequestQueueService {
 
+    default <T> void onWebhook(@NonNull EventName eventName,
+                               @NonNull Class<T> expectedType,
+                               @NonNull Function<T, Mono<Void>> processAction) {
+        onWebhook(eventName, expectedType, processAction, WebhookHandlerOptions.defaults());
+    }
+
+    default <T> void onWebhook(@NonNull EventName eventName,
+                               @NonNull Class<T> expectedType,
+                               @NonNull Function<T, Mono<Void>> processAction,
+                               @NonNull WebhookHandlerOptions<T> webhookHandlerOptions) {
+        onWrappedWebhook(eventName, expectedType, wrapped(processAction), wrapped(webhookHandlerOptions));
+    }
+
+    default <T> void onWrappedWebhook(@NonNull EventName eventName,
+                                      @NonNull Class<T> expectedType,
+                                      @NonNull Function<Request<T>, Mono<Void>> processAction) {
+        onWrappedWebhook(eventName, expectedType, processAction, WebhookHandlerOptions.defaults());
+    }
+
+    <T> void onWrappedWebhook(@NonNull EventName eventName,
+                              @NonNull Class<T> expectedType,
+                              @NonNull Function<Request<T>, Mono<Void>> processAction,
+                              @NonNull WebhookHandlerOptions<Request<T>> webhookHandlerOptions);
+
+    /**
+     * @deprecated Use onWebhook with WebhookHandlerOptions.requestOrderSpec(requestOrderSpec)
+     */
+    @Deprecated
     default <T> void onWebhook(@NonNull String eventName,
                                @NonNull Class<T> expectedType,
                                @NonNull Function<T, Mono<Void>> processAction,
@@ -22,6 +51,10 @@ public interface WebhookHandlerService extends RequestQueueService {
         onWebhook(eventName(eventName), expectedType, processAction, requestOrderSpec);
     }
 
+    /**
+     * @deprecated Use onWebhook with WebhookHandlerOptions.requestOrderSpec(requestOrderSpec)
+     */
+    @Deprecated
     default <T> void onWebhook(@NonNull EventName eventName,
                                @NonNull Class<T> expectedType,
                                @NonNull Function<T, Mono<Void>> processAction,
@@ -29,6 +62,10 @@ public interface WebhookHandlerService extends RequestQueueService {
         onWebhook(eventName, expectedType, processAction, requestOrderSpec, ContextSpec.empty());
     }
 
+    /**
+     * @deprecated Use onWebhook with WebhookHandlerOptions.requestOrderSpec(requestOrderSpec)
+     */
+    @Deprecated
     default <T> void onWebhook(@NonNull String eventName,
                                @NonNull Class<T> expectedType,
                                @NonNull Function<T, Mono<Void>> processAction,
@@ -37,6 +74,10 @@ public interface WebhookHandlerService extends RequestQueueService {
         onWebhook(eventName(eventName), expectedType, processAction, requestOrderSpec, contextSpec);
     }
 
+    /**
+     * @deprecated Use onWebhook with WebhookHandlerOptions.requestOrderSpec(requestOrderSpec).withContextSpec(contextSpec)
+     */
+    @Deprecated
     default <T> void onWebhook(@NonNull EventName eventName,
                                @NonNull Class<T> expectedType,
                                @NonNull Function<T, Mono<Void>> processAction,
@@ -45,6 +86,10 @@ public interface WebhookHandlerService extends RequestQueueService {
         onWrappedWebhook(eventName, expectedType, wrapped(processAction), wrapped(requestOrderSpec), wrapped(contextSpec));
     }
 
+    /**
+     * @deprecated Use onWrappedWebhook with WebhookHandlerOptions.requestOrderSpec(requestOrderSpec)
+     */
+    @Deprecated
     default <T> void onWrappedWebhook(@NonNull String eventName,
                                       @NonNull Class<T> expectedType,
                                       @NonNull Function<Request<T>, Mono<Void>> processAction,
@@ -52,6 +97,10 @@ public interface WebhookHandlerService extends RequestQueueService {
         onWrappedWebhook(eventName(eventName), expectedType, processAction, requestOrderSpec);
     }
 
+    /**
+     * @deprecated Use onWrappedWebhook with WebhookHandlerOptions.requestOrderSpec(requestOrderSpec)
+     */
+    @Deprecated
     default <T> void onWrappedWebhook(@NonNull EventName eventName,
                                       @NonNull Class<T> expectedType,
                                       @NonNull Function<Request<T>, Mono<Void>> processAction,
@@ -59,6 +108,10 @@ public interface WebhookHandlerService extends RequestQueueService {
         onWrappedWebhook(eventName, expectedType, processAction, requestOrderSpec, ContextSpec.empty());
     }
 
+    /**
+     * @deprecated Use onWrappedWebhook with WebhookHandlerOptions.requestOrderSpec(requestOrderSpec).withContextSpec(contextSpec)
+     */
+    @Deprecated
     default <T> void onWrappedWebhook(@NonNull String eventName,
                                       @NonNull Class<T> expectedType,
                                       @NonNull Function<Request<T>, Mono<Void>> processAction,
@@ -67,9 +120,17 @@ public interface WebhookHandlerService extends RequestQueueService {
         onWrappedWebhook(eventName(eventName), expectedType, processAction, requestOrderSpec, contextSpec);
     }
 
-    <T> void onWrappedWebhook(@NonNull EventName eventName,
-                              @NonNull Class<T> expectedType,
-                              @NonNull Function<Request<T>, Mono<Void>> processAction,
-                              @NonNull RequestOrderSpec<Request<T>> requestOrderSpec,
-                              @NonNull ContextSpec<Request<T>> contextSpec);
+    /**
+     * @deprecated Use onWrappedWebhook with WebhookHandlerOptions.requestOrderSpec(requestOrderSpec).withContextSpec(contextSpec)
+     */
+    @Deprecated
+    default <T> void onWrappedWebhook(@NonNull EventName eventName,
+                                      @NonNull Class<T> expectedType,
+                                      @NonNull Function<Request<T>, Mono<Void>> processAction,
+                                      @NonNull RequestOrderSpec<Request<T>> requestOrderSpec,
+                                      @NonNull ContextSpec<Request<T>> contextSpec) {
+        onWrappedWebhook(eventName, expectedType, processAction,
+                WebhookHandlerOptions.requestOrderSpec(requestOrderSpec)
+                        .withContextSpec(contextSpec));
+    }
 }

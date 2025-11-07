@@ -2,14 +2,13 @@ package com.unblu.middleware.webhooks.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unblu.middleware.common.config.MiddlewareConfiguration;
-import com.unblu.middleware.common.entity.ContextSpec;
 import com.unblu.middleware.common.entity.Request;
 import com.unblu.middleware.common.error.InvalidRequestException;
 import com.unblu.middleware.common.error.NoHandlerException;
-import com.unblu.middleware.common.registry.RequestOrderSpec;
 import com.unblu.middleware.common.registry.RequestQueue;
 import com.unblu.middleware.common.registry.RequestQueueServiceImpl;
 import com.unblu.middleware.webhooks.entity.EventName;
+import com.unblu.middleware.webhooks.entity.WebhookHandlerOptions;
 import com.unblu.webapi.model.v4.WebhookPingEvent;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +23,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
-import static com.unblu.middleware.common.registry.RequestOrderSpec.canIgnoreOrder;
 import static com.unblu.middleware.common.utils.RequestWrapperUtils.wrappedHeaderSpec;
 import static com.unblu.middleware.webhooks.util.WebhookContextSpecUtil.webhookHeadersContextSpec;
 
@@ -47,22 +45,26 @@ public class WebhookRequestHandlerImpl extends RequestQueueServiceImpl implement
     @PostConstruct
     private void registerWebhookPingHandler() {
         onWebhook(EventName.eventName("ping"), WebhookPingEvent.class,
-                request -> Mono.fromRunnable(() -> log.info("Received webhook ping event")),
-                canIgnoreOrder());
+                request -> Mono.fromRunnable(() -> log.info("Received webhook ping event")));
     }
 
     @Override
-    public <T> void onWrappedWebhook(@NonNull EventName eventName, @NonNull Class<T> expectedType, @NonNull Function<Request<T>, Mono<Void>> processAction, @NonNull RequestOrderSpec<Request<T>> requestOrderSpec, @NonNull ContextSpec<Request<T>> contextSpec) {
-        checkThatIsRegisteredFor(eventName);
+    public <T> void onWrappedWebhook(@NonNull EventName eventName,
+                                     @NonNull Class<T> expectedType,
+                                     @NonNull Function<Request<T>, Mono<Void>> processAction,
+                                     @NonNull WebhookHandlerOptions<Request<T>> webhookHandlerOptions) {
+        if (webhookHandlerOptions.shouldAssertRegistered()) {
+            checkThatIsRegisteredFor(eventName);
+        }
         eventTypeMap.put(eventName, expectedType);
-        requestQueue.onWrapped(expectedType, processAction, requestOrderSpec, contextSpec.with(wrappedHeaderSpec(webhookHeadersContextSpec())));
+        requestQueue.onWrapped(expectedType, processAction, webhookHandlerOptions.requestOrderSpec(), webhookHandlerOptions.contextSpec().with(wrappedHeaderSpec(webhookHeadersContextSpec())));
     }
 
     private void checkThatIsRegisteredFor(EventName eventName) {
         if (middlewareConfiguration.isAutoRegister()) {
             webhookRegistrationService.assertRegistered(eventName);
         } else if (!webhookRegistrationService.isRegisteredFor(eventName)) {
-            log.info("While registering a handler for webhook event {}, we detected that the event was not registered " +
+            log.warn("While registering a handler for webhook event {}, we detected that the event was not registered " +
                     "in an Unblu webhook registration managed by the webhookRegistrationService and the library is " +
                     "not configured to auto-register webhooks. Make sure you registered it manually.", eventName);
         }
