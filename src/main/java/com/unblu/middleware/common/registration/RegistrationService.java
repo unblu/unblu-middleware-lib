@@ -1,5 +1,6 @@
 package com.unblu.middleware.common.registration;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.unblu.middleware.common.automation.AutoRegistrable;
 import com.unblu.middleware.common.automation.SelfHealing;
 import com.unblu.middleware.common.error.RegistrationException;
@@ -12,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import static com.unblu.middleware.common.utils.ObjectUtils.copyOf;
+import static com.unblu.middleware.common.utils.ObjectUtils.*;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -86,9 +87,11 @@ public abstract class RegistrationService<T> implements SelfHealing, AutoRegistr
                         this::deleteRegistration);
     }
 
-    private void updateRegistrationIfChanged(T originalRegistration, T newRegistration) throws ApiException {
-        if (!newRegistration.equals(originalRegistration)) {
-            log.info("Registration '{}' has changed, updating", getRegistrationName());
+    private void updateRegistrationIfChanged(T originalRegistration, T newRegistration) throws ApiException, JsonProcessingException {
+        var comparisonResult = compare(newRegistration, originalRegistration);
+        if (!areTheSame(comparisonResult)) {
+            log.info("Registration '{}' has changed. Differences: \n{}", getRegistrationName(), comparisonResult.getMessage());
+            log.info("Updating registration '{}'.", getRegistrationName());
             callUpdateRegistration(newRegistration);
         }
     }
@@ -127,7 +130,7 @@ public abstract class RegistrationService<T> implements SelfHealing, AutoRegistr
         return new RegistrationException(message, e);
     }
 
-    private <P> Consumer<P> wrapException(ThrowingConsumer<P> consumer) {
+    protected <P> Consumer<P> wrapException(ThrowingConsumer<P> consumer) {
         return t -> {
             try {
                 consumer.accept(t);

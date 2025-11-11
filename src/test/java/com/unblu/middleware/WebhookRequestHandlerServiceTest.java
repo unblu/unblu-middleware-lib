@@ -3,7 +3,8 @@ package com.unblu.middleware;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unblu.middleware.common.entity.ContextSpec;
 import com.unblu.middleware.webhooks.config.WebhookConfiguration;
-import com.unblu.middleware.webhooks.service.WebhookHandlerService;
+import com.unblu.middleware.webhooks.entity.WebhookHandlerOptions;
+import com.unblu.middleware.webhooks.service.WebhookHandler;
 import com.unblu.webapi.model.v4.ConversationNewMessageEvent;
 import com.unblu.webapi.model.v4.TextMessageData;
 import lombok.Getter;
@@ -23,7 +24,6 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
 import reactor.util.context.ContextView;
 
-import static com.unblu.middleware.common.registry.RequestOrderSpec.canIgnoreOrder;
 import static com.unblu.middleware.webhooks.entity.EventName.eventName;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,7 +39,7 @@ import static org.awaitility.Awaitility.await;
 class WebhookRequestHandlerServiceTest {
 
     @Autowired
-    WebhookHandlerService webhookHandlerService;
+    WebhookHandler webhookHandler;
 
     @Autowired
     WebhookConfiguration webhookConfiguration;
@@ -54,13 +54,12 @@ class WebhookRequestHandlerServiceTest {
     void registeredWebhookHandler_isCalledOnWebhook() {
         var messageHandler = new NewMessageHandler();
 
-        webhookHandlerService.onWebhook(
+        webhookHandler.onWebhook(
                 eventName("conversation.new_message1"),
                 ConversationNewMessageEvent.class,
-                messageHandler::handle,
-                canIgnoreOrder()
+                messageHandler::handle
         );
-        webhookHandlerService.subscribe();
+        webhookHandler.subscribe();
 
         var event = new ConversationNewMessageEvent()
                 .eventType("conversation.new_message1")
@@ -78,13 +77,12 @@ class WebhookRequestHandlerServiceTest {
     void registeredWebhookHandlerWithHeader_isCalledOnWebhook() {
         var messageHandler = new NewMessageHandler();
 
-        webhookHandlerService.onWrappedWebhook(
+        webhookHandler.onWrappedWebhook(
                 eventName("conversation.new_message2"),
                 ConversationNewMessageEvent.class,
-                e -> messageHandler.handle(e.body()),
-                canIgnoreOrder()
+                e -> messageHandler.handle(e.body())
         );
-        webhookHandlerService.subscribe();
+        webhookHandler.subscribe();
 
         var event = new ConversationNewMessageEvent()
                 .eventType("conversation.new_message2")
@@ -102,18 +100,18 @@ class WebhookRequestHandlerServiceTest {
     void registeredWebhookHandlerWithHeader_onWebhook_contextIsCorrect() {
         var messageHandler = new NewMessageHandler();
 
-        webhookHandlerService.onWrappedWebhook(
+        webhookHandler.onWrappedWebhook(
                 eventName("conversation.new_message3"),
                 ConversationNewMessageEvent.class,
                 e -> Mono.just(e).transformDeferredContextual((e1, ctx) -> messageHandler.withContextView(ctx)),
-                canIgnoreOrder(),
-                ContextSpec.of(
-                        "eventId", e -> e.headers().getFirst("X-Unblu-Event-Id"),
-                        "accountId", e -> e.body().getAccountId(),
-                        "methodName", _e -> "myMethodName3"
-                )
+                WebhookHandlerOptions.contextSpec(
+                        ContextSpec.of(
+                                "eventId", e -> e.headers().getFirst("X-Unblu-Event-Id"),
+                                "accountId", e -> e.body().getAccountId(),
+                                "methodName", _e -> "myMethodName3"
+                        ))
         );
-        webhookHandlerService.subscribe();
+        webhookHandler.subscribe();
 
         var event = new ConversationNewMessageEvent()
                 .eventType("conversation.new_message3")

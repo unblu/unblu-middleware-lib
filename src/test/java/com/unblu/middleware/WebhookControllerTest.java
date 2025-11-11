@@ -1,7 +1,7 @@
 package com.unblu.middleware;
 
 import com.unblu.middleware.webhooks.config.WebhookConfiguration;
-import com.unblu.middleware.webhooks.service.WebhookHandlerService;
+import com.unblu.middleware.webhooks.service.WebhookHandler;
 import com.unblu.middleware.webhooks.service.WebhookRegistrationService;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +17,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
 
-import static com.unblu.middleware.common.registry.RequestOrderSpec.canIgnoreOrder;
 import static com.unblu.middleware.webhooks.entity.EventName.eventName;
 import static org.mockito.Mockito.when;
 
@@ -34,7 +33,7 @@ class WebhookControllerTest {
     WebhookConfiguration webhookConfiguration;
 
     @Autowired
-    WebhookHandlerService webhookHandlerService;
+    WebhookHandler webhookHandler;
 
     @MockitoBean
     WebhookRegistrationService webhookRegistrationService;
@@ -42,8 +41,8 @@ class WebhookControllerTest {
     @PostConstruct
     public void init() {
         when(webhookRegistrationService.isRegisteredFor(eventName("test"))).thenReturn(true);
-        webhookHandlerService.onWebhook(eventName("test"), Object.class, event -> Mono.fromRunnable(() -> log.info("Handled test webhook")), canIgnoreOrder());
-        webhookHandlerService.subscribe();
+        webhookHandler.onWebhook(eventName("test"), Object.class, event -> Mono.fromRunnable(() -> log.info("Handled test webhook")));
+        webhookHandler.subscribe();
     }
 
     @Test

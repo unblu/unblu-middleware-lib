@@ -72,7 +72,7 @@ public class BotRegistrationService extends RegistrationService<CustomDialogBotD
 
     public PersonData assertBotPersonRegistered() throws ApiException {
         try {
-            return personsApi.personsGetBySource(EPersonSource.VIRTUAL, botConfiguration.getPerson().getSourceId(), null);
+            return personsApi.personsGetBySource(EPersonSource.USER_DB, botConfiguration.getPerson().getSourceId(), List.of());
         } catch (ApiException e) {
             if (e.getCode() == 404) {
                 return createBotPerson();

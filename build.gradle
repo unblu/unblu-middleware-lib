@@ -37,6 +37,7 @@ dependencies {
     implementation "io.micrometer:context-propagation"
     implementation "org.projectlombok:lombok:${lombokVersion}"
     implementation "com.google.guava:guava:[32.1.2-jre,)"
+    implementation "org.skyscreamer:jsonassert:2.0-rc1"
 
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor:${springBootVersion}"
 

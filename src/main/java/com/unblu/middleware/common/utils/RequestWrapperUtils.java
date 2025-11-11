@@ -3,6 +3,7 @@ package com.unblu.middleware.common.utils;
 import com.unblu.middleware.common.entity.ContextSpec;
 import com.unblu.middleware.common.entity.Request;
 import com.unblu.middleware.common.registry.RequestOrderSpec;
+import com.unblu.middleware.webhooks.entity.WebhookHandlerOptions;
 import lombok.experimental.UtilityClass;
 import org.springframework.http.HttpHeaders;
 
@@ -38,5 +39,13 @@ public class RequestWrapperUtils {
                         e -> (Function<Request<T>, String>) (request -> e.getValue().apply(request.headers()))
                 ));
         return ContextSpec.of(wrapped);
+    }
+
+    public static <T> WebhookHandlerOptions<Request<T>> wrapped(WebhookHandlerOptions<T> options) {
+        return new WebhookHandlerOptions<>(
+                wrapped(options.requestOrderSpec()),
+                wrapped(options.contextSpec()),
+                options.shouldAssertRegistered()
+        );
     }
 }
