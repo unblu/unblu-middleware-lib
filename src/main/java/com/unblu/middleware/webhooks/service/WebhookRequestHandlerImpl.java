@@ -28,7 +28,7 @@ import static com.unblu.middleware.webhooks.util.WebhookContextSpecUtil.webhookH
 
 @Service
 @Slf4j
-public class WebhookRequestHandlerImpl extends RequestQueueServiceImpl implements WebhookHandlerService, WebhookRequestHandler {
+public class WebhookRequestHandlerImpl extends RequestQueueServiceImpl implements WebhookHandler, WebhookRequestHandler {
 
     private final MiddlewareConfiguration middlewareConfiguration;
     private final WebhookRegistrationService webhookRegistrationService;

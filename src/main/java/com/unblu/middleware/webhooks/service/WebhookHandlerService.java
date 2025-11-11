@@ -14,7 +14,39 @@ import java.util.function.Function;
 import static com.unblu.middleware.common.utils.RequestWrapperUtils.wrapped;
 import static com.unblu.middleware.webhooks.entity.EventName.eventName;
 
+/**
+ * @deprecated Renamed to WebhookHandler
+ */
 public interface WebhookHandlerService extends RequestQueueService {
+
+    default <T> void onWebhook(@NonNull String eventName,
+                               @NonNull Class<T> expectedType,
+                               @NonNull Function<T, Mono<Void>> processAction) {
+        onWebhook(eventName(eventName), expectedType, processAction);
+    }
+
+    default <T> void onWebhook(@NonNull String eventName,
+                               @NonNull Class<T> expectedType,
+                               @NonNull Function<T, Mono<Void>> processAction,
+                               @NonNull WebhookHandlerOptions<T> webhookHandlerOptions) {
+        onWebhook(eventName(eventName), expectedType, processAction, webhookHandlerOptions);
+    }
+
+    default <T> void onWrappedWebhook(@NonNull String eventName,
+                                      @NonNull Class<T> expectedType,
+                                      @NonNull Function<Request<T>, Mono<Void>> processAction) {
+        onWrappedWebhook(eventName(eventName), expectedType, processAction);
+    }
+
+    default <T> void onWrappedWebhook(@NonNull String eventName,
+                              @NonNull Class<T> expectedType,
+                              @NonNull Function<Request<T>, Mono<Void>> processAction,
+                              @NonNull WebhookHandlerOptions<Request<T>> webhookHandlerOptions) {
+        onWrappedWebhook(eventName(eventName), expectedType, processAction, webhookHandlerOptions);
+    }
+
+
+
 
     default <T> void onWebhook(@NonNull EventName eventName,
                                @NonNull Class<T> expectedType,
