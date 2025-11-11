@@ -17,6 +17,7 @@ import static com.unblu.middleware.webhooks.entity.EventName.eventName;
 /**
  * @deprecated Renamed to WebhookHandler
  */
+@Deprecated
 public interface WebhookHandlerService extends RequestQueueService {
 
     default <T> void onWebhook(@NonNull String eventName,
