@@ -3,89 +3,113 @@ package com.unblu.middleware.bots.service;
 import com.unblu.middleware.common.entity.ContextSpec;
 import com.unblu.middleware.common.entity.Request;
 import com.unblu.webapi.model.v4.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.util.function.Function;
 
-import static com.unblu.middleware.common.utils.RequestWrapperUtils.wrapped;
-
 /**
- * @deprecated Renamed to DialogBot
+ * @deprecated Renamed to DialogBot, signatures changed to methodNameMono()
  */
 @Deprecated
-public interface DialogBotService {
+@Lazy
+@Service
+@RequiredArgsConstructor
+public class DialogBotService {
 
-    default void acceptOnboardingOfferIf(Function<BotOnboardingOfferRequest, Mono<Boolean>> condition) {
-        acceptWrappedOnboardingOfferIf(wrapped(condition));
-    }
-    default void acceptReboardingOfferIf(Function<BotReboardingOfferRequest, Mono<Boolean>> condition) {
-        acceptWrappedReboardingOfferIf(wrapped(condition));
-    }
-    default void acceptOffboardingOfferIf(Function<BotOffboardingOfferRequest, Mono<Boolean>> condition) {
-        acceptWrappedOffboardingOfferIf(wrapped(condition));
-    }
+    private final DialogBot dialogBot;
 
-    default void acceptOnboardingOfferIf(Function<BotOnboardingOfferRequest, Mono<Boolean>> condition, ContextSpec<BotOnboardingOfferRequest> contextSpec) {
-        acceptWrappedOnboardingOfferIf(wrapped(condition), wrapped(contextSpec));
+    public void acceptOnboardingOfferIf(Function<BotOnboardingOfferRequest, Mono<Boolean>> condition) {
+        dialogBot.acceptOnboardingOfferIfMono(condition);
     }
-    default void acceptReboardingOfferIf(Function<BotReboardingOfferRequest, Mono<Boolean>> condition, ContextSpec<BotReboardingOfferRequest> contextSpec) {
-        acceptWrappedReboardingOfferIf(wrapped(condition), wrapped(contextSpec));
+    public void acceptReboardingOfferIf(Function<BotReboardingOfferRequest, Mono<Boolean>> condition) {
+        dialogBot.acceptReboardingOfferIfMono(condition);
     }
-    default void acceptOffboardingOfferIf(Function<BotOffboardingOfferRequest, Mono<Boolean>> condition, ContextSpec<BotOffboardingOfferRequest> contextSpec) {
-        acceptWrappedOffboardingOfferIf(wrapped(condition), wrapped(contextSpec));
+    public void acceptOffboardingOfferIf(Function<BotOffboardingOfferRequest, Mono<Boolean>> condition) {
+        dialogBot.acceptOffboardingOfferIfMono(condition);
     }
 
-    default void acceptWrappedOnboardingOfferIf(Function<Request<BotOnboardingOfferRequest>, Mono<Boolean>> condition) {
-        acceptWrappedOnboardingOfferIf(condition, ContextSpec.empty());
+    public void acceptOnboardingOfferIf(Function<BotOnboardingOfferRequest, Mono<Boolean>> condition, ContextSpec<BotOnboardingOfferRequest> contextSpec) {
+        dialogBot.acceptOnboardingOfferIfMono(condition, contextSpec);
     }
-    default void acceptWrappedReboardingOfferIf(Function<Request<BotReboardingOfferRequest>, Mono<Boolean>> condition) {
-        acceptWrappedReboardingOfferIf(condition, ContextSpec.empty());
+    public void acceptReboardingOfferIf(Function<BotReboardingOfferRequest, Mono<Boolean>> condition, ContextSpec<BotReboardingOfferRequest> contextSpec) {
+        dialogBot.acceptReboardingOfferIfMono(condition, contextSpec);
     }
-    default void acceptWrappedOffboardingOfferIf(Function<Request<BotOffboardingOfferRequest>, Mono<Boolean>> condition) {
-        acceptWrappedOffboardingOfferIf(condition, ContextSpec.empty());
-    }
-
-    void acceptWrappedOnboardingOfferIf(Function<Request<BotOnboardingOfferRequest>, Mono<Boolean>> condition, ContextSpec<Request<BotOnboardingOfferRequest>> contextSpec);
-    void acceptWrappedReboardingOfferIf(Function<Request<BotReboardingOfferRequest>, Mono<Boolean>> condition, ContextSpec<Request<BotReboardingOfferRequest>> contextSpec);
-    void acceptWrappedOffboardingOfferIf(Function<Request<BotOffboardingOfferRequest>, Mono<Boolean>> condition, ContextSpec<Request<BotOffboardingOfferRequest>> contextSpec);
-
-    default void onDialogOpen(Function<BotDialogOpenRequest, Mono<Void>> action) {
-        onDialogOpen(action, ContextSpec.empty());
-    }
-    default void onDialogMessage(Function<BotDialogMessageRequest, Mono<Void>> action) {
-        onDialogMessage(action, ContextSpec.empty());
-    }
-    default void onDialogMessageState(Function<BotDialogMessageStateRequest, Mono<Void>> action) {
-        onDialogMessageState(action, ContextSpec.empty());
-    }
-    default void onDialogCounterpartChanged(Function<BotDialogCounterpartChangedRequest, Mono<Void>> action) {
-        onDialogCounterpartChanged(action, ContextSpec.empty());
-    }
-    default void onDialogClosed(Function<BotDialogClosedRequest, Mono<Void>> action) {
-        onDialogClosed(action, ContextSpec.empty());
+    public void acceptOffboardingOfferIf(Function<BotOffboardingOfferRequest, Mono<Boolean>> condition, ContextSpec<BotOffboardingOfferRequest> contextSpec) {
+        dialogBot.acceptOffboardingOfferIfMono(condition, contextSpec);
     }
 
-    default void onDialogOpen(Function<BotDialogOpenRequest, Mono<Void>> action, ContextSpec<BotDialogOpenRequest> contextSpec) {
-        onWrappedDialogOpen(wrapped(action), wrapped(contextSpec));
+    public void acceptWrappedOnboardingOfferIf(Function<Request<BotOnboardingOfferRequest>, Mono<Boolean>> condition) {
+        dialogBot.acceptWrappedOnboardingOfferIfMono(condition);
     }
-    default void onDialogMessage(Function<BotDialogMessageRequest, Mono<Void>> action, ContextSpec<BotDialogMessageRequest> contextSpec) {
-        onWrappedDialogMessage(wrapped(action), wrapped(contextSpec));
+    public void acceptWrappedReboardingOfferIf(Function<Request<BotReboardingOfferRequest>, Mono<Boolean>> condition) {
+        dialogBot.acceptWrappedReboardingOfferIfMono(condition);
     }
-    default void onDialogMessageState(Function<BotDialogMessageStateRequest, Mono<Void>> action, ContextSpec<BotDialogMessageStateRequest> contextSpec) {
-        onWrappedDialogMessageState(wrapped(action), wrapped(contextSpec));
-    }
-    default void onDialogCounterpartChanged(Function<BotDialogCounterpartChangedRequest, Mono<Void>> action, ContextSpec<BotDialogCounterpartChangedRequest> contextSpec) {
-        onWrappedDialogCounterpartChanged(wrapped(action), wrapped(contextSpec));
-    }
-    default void onDialogClosed(Function<BotDialogClosedRequest, Mono<Void>> action, ContextSpec<BotDialogClosedRequest> contextSpec) {
-        onWrappedDialogClosed(wrapped(action), wrapped(contextSpec));
+    public void acceptWrappedOffboardingOfferIf(Function<Request<BotOffboardingOfferRequest>, Mono<Boolean>> condition) {
+        dialogBot.acceptWrappedOffboardingOfferIfMono(condition);
     }
 
-    void onWrappedDialogOpen(Function<Request<BotDialogOpenRequest>, Mono<Void>> action, ContextSpec<Request<BotDialogOpenRequest>> contextSpec);
-    void onWrappedDialogMessage(Function<Request<BotDialogMessageRequest>, Mono<Void>> action, ContextSpec<Request<BotDialogMessageRequest>> contextSpec);
-    void onWrappedDialogMessageState(Function<Request<BotDialogMessageStateRequest>, Mono<Void>> action, ContextSpec<Request<BotDialogMessageStateRequest>> contextSpec);
-    void onWrappedDialogCounterpartChanged(Function<Request<BotDialogCounterpartChangedRequest>, Mono<Void>> action, ContextSpec<Request<BotDialogCounterpartChangedRequest>> contextSpec);
-    void onWrappedDialogClosed(Function<Request<BotDialogClosedRequest>, Mono<Void>> action, ContextSpec<Request<BotDialogClosedRequest>> contextSpec);
+    public void acceptWrappedOnboardingOfferIf(Function<Request<BotOnboardingOfferRequest>, Mono<Boolean>> condition, ContextSpec<Request<BotOnboardingOfferRequest>> contextSpec) {
+        dialogBot.acceptWrappedOnboardingOfferIfMono(condition, contextSpec);
+    }
+    public void acceptWrappedReboardingOfferIf(Function<Request<BotReboardingOfferRequest>, Mono<Boolean>> condition, ContextSpec<Request<BotReboardingOfferRequest>> contextSpec) {
+        dialogBot.acceptWrappedReboardingOfferIfMono(condition, contextSpec);
+    }
+    public void acceptWrappedOffboardingOfferIf(Function<Request<BotOffboardingOfferRequest>, Mono<Boolean>> condition, ContextSpec<Request<BotOffboardingOfferRequest>> contextSpec) {
+        dialogBot.acceptWrappedOffboardingOfferIfMono(condition, contextSpec);
+    }
 
-    void assertSubscribed();
+    public void onDialogOpen(Function<BotDialogOpenRequest, Mono<Void>> action) {
+        dialogBot.onDialogOpenMono(action);
+    }
+    public void onDialogMessage(Function<BotDialogMessageRequest, Mono<Void>> action) {
+        dialogBot.onDialogMessageMono(action);
+    }
+    public void onDialogMessageState(Function<BotDialogMessageStateRequest, Mono<Void>> action) {
+        dialogBot.onDialogMessageStateMono(action);
+    }
+    public void onDialogCounterpartChanged(Function<BotDialogCounterpartChangedRequest, Mono<Void>> action) {
+        dialogBot.onDialogCounterpartChangedMono(action);
+    }
+    public void onDialogClosed(Function<BotDialogClosedRequest, Mono<Void>> action) {
+        dialogBot.onDialogClosedMono(action);
+    }
+
+    public void onDialogOpen(Function<BotDialogOpenRequest, Mono<Void>> action, ContextSpec<BotDialogOpenRequest> contextSpec) {
+        dialogBot.onDialogOpenMono(action, contextSpec);
+    }
+    public void onDialogMessage(Function<BotDialogMessageRequest, Mono<Void>> action, ContextSpec<BotDialogMessageRequest> contextSpec) {
+        dialogBot.onDialogMessageMono(action, contextSpec);
+    }
+    public void onDialogMessageState(Function<BotDialogMessageStateRequest, Mono<Void>> action, ContextSpec<BotDialogMessageStateRequest> contextSpec) {
+        dialogBot.onDialogMessageStateMono(action, contextSpec);
+    }
+    public void onDialogCounterpartChanged(Function<BotDialogCounterpartChangedRequest, Mono<Void>> action, ContextSpec<BotDialogCounterpartChangedRequest> contextSpec) {
+        dialogBot.onDialogCounterpartChangedMono(action, contextSpec);
+    }
+    public void onDialogClosed(Function<BotDialogClosedRequest, Mono<Void>> action, ContextSpec<BotDialogClosedRequest> contextSpec) {
+        dialogBot.onDialogClosedMono(action, contextSpec);
+    }
+
+    public void onWrappedDialogOpen(Function<Request<BotDialogOpenRequest>, Mono<Void>> action, ContextSpec<Request<BotDialogOpenRequest>> contextSpec) {
+        dialogBot.onWrappedDialogOpenMono(action, contextSpec);
+    }
+    public void onWrappedDialogMessage(Function<Request<BotDialogMessageRequest>, Mono<Void>> action, ContextSpec<Request<BotDialogMessageRequest>> contextSpec) {
+        dialogBot.onWrappedDialogMessageMono(action, contextSpec);
+    }
+    public void onWrappedDialogMessageState(Function<Request<BotDialogMessageStateRequest>, Mono<Void>> action, ContextSpec<Request<BotDialogMessageStateRequest>> contextSpec) {
+        dialogBot.onWrappedDialogMessageStateMono(action, contextSpec);
+    }
+    public void onWrappedDialogCounterpartChanged(Function<Request<BotDialogCounterpartChangedRequest>, Mono<Void>> action, ContextSpec<Request<BotDialogCounterpartChangedRequest>> contextSpec) {
+        dialogBot.onWrappedDialogCounterpartChangedMono(action, contextSpec);
+    }
+    public void onWrappedDialogClosed(Function<Request<BotDialogClosedRequest>, Mono<Void>> action, ContextSpec<Request<BotDialogClosedRequest>> contextSpec) {
+        dialogBot.onWrappedDialogClosedMono(action, contextSpec);
+    }
+
+    public void assertSubscribed() {
+        dialogBot.assertSubscribed();
+    }
 }

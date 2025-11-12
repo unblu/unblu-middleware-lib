@@ -6,8 +6,10 @@ import com.unblu.middleware.common.registry.RequestOrderSpec;
 import com.unblu.middleware.webhooks.entity.WebhookHandlerOptions;
 import lombok.experimental.UtilityClass;
 import org.springframework.http.HttpHeaders;
+import reactor.core.publisher.Mono;
 
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -47,5 +49,13 @@ public class RequestWrapperUtils {
                 wrapped(options.contextSpec()),
                 options.shouldAssertRegistered()
         );
+    }
+
+    public static <T> Function<T, Mono<Void>> mono(Consumer<T> consumer) {
+        return t -> Mono.fromRunnable(() -> consumer.accept(t));
+    }
+
+    public static <T, R> Function<T, Mono<R>> mono(Function<T, R> function) {
+        return t -> Mono.just(t).map(function);
     }
 }

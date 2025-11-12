@@ -18,7 +18,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import reactor.core.publisher.Mono;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -40,9 +39,9 @@ class DialogBotServiceOfferTest {
 
     @PostConstruct
     public void init() {
-        dialogBot.acceptOnboardingOfferIf(o -> Mono.just("testOnAccountId".equals(o.getAccountId())));
-        dialogBot.acceptReboardingOfferIf(o -> Mono.just("testReAccountId".equals(o.getAccountId())));
-        dialogBot.acceptOffboardingOfferIf(o -> Mono.just("testOffAccountId".equals(o.getAccountId())));
+        dialogBot.acceptOnboardingOfferIf(o -> "testOnAccountId".equals(o.getAccountId()));
+        dialogBot.acceptReboardingOfferIf(o -> "testReAccountId".equals(o.getAccountId()));
+        dialogBot.acceptOffboardingOfferIf(o -> "testOffAccountId".equals(o.getAccountId()));
     }
 
     @Test
@@ -54,6 +53,7 @@ class DialogBotServiceOfferTest {
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody()
+                .consumeWith(body -> log.info("Response body: {}", new String(body.getResponseBody())))
                 .jsonPath("$.$_type").isEqualTo("BotBoardingOfferResponse")
                 .jsonPath("$.offerAccepted").isEqualTo(true);
     }

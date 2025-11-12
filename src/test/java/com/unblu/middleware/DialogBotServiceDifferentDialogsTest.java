@@ -2,7 +2,7 @@ package com.unblu.middleware;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unblu.middleware.bots.service.DialogBot;
-import com.unblu.middleware.common.utils.ThrowingRunnable;
+import com.unblu.middleware.common.utils.ThrowingConsumer;
 import com.unblu.middleware.outboundrequests.config.OutboundRequestsConfiguration;
 import com.unblu.middleware.outboundrequests.handler.OutboundRequestHandler;
 import com.unblu.webapi.model.v4.BotDialogMessageRequest;
@@ -19,7 +19,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import reactor.core.publisher.Mono;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -53,11 +52,11 @@ class DialogBotServiceDifferentDialogsTest {
 
     @PostConstruct
     public void init() {
-        dialogBot.onDialogMessage(dialogMessage -> Mono.fromRunnable((ThrowingRunnable) () -> {
+        dialogBot.onDialogMessage((ThrowingConsumer<BotDialogMessageRequest>) dialogMessage -> {
             Thread.sleep(200); // Simulate some processing delay
             log.info("Message Token: {} Thread: {}", dialogMessage.getDialogToken(), Thread.currentThread().getName());
             testQueue.add(dialogMessage.getConversationMessage().getFallbackText());
-        }));
+        });
 
         outboundRequestHandler.subscribe();
     }
