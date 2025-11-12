@@ -11,11 +11,6 @@ unblu:
   outboundRequests:
     apiPath: /outbound
     secret: hello-im-also-secure
-  bot:
-    person:
-      firstName: Test
-      lastName: Bot
-      sourceId: Test middleware
   webhook:
     apiPath: /webhook
     secret: hello-im-also-secure

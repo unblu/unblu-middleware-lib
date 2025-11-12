@@ -16,11 +16,11 @@ import static com.unblu.middleware.outboundrequests.entity.OutboundRequestType.o
 
 @Service
 @Slf4j
-public class DialogBotServiceImpl implements DialogBotService {
+public class DialogBotImpl implements DialogBot {
 
     private final OutboundRequestHandler outboundRequestHandler;
 
-    public DialogBotServiceImpl(OutboundRequestHandler outboundRequestHandler) {
+    public DialogBotImpl(OutboundRequestHandler outboundRequestHandler) {
         this.outboundRequestHandler = outboundRequestHandler;
         acceptWrappedOnboardingOfferIf(_request -> Mono.just(false));
         acceptWrappedOffboardingOfferIf(_request -> Mono.just(false));

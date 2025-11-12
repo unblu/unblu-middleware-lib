@@ -1,7 +1,7 @@
 package com.unblu.middleware;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.unblu.middleware.bots.service.DialogBotService;
+import com.unblu.middleware.bots.service.DialogBot;
 import com.unblu.middleware.outboundrequests.config.OutboundRequestsConfiguration;
 import com.unblu.webapi.model.v4.BotOffboardingOfferRequest;
 import com.unblu.webapi.model.v4.BotOnboardingOfferRequest;
@@ -33,16 +33,16 @@ class DialogBotServiceOfferTest {
     OutboundRequestsConfiguration outboundRequestsConfiguration;
 
     @Autowired
-    DialogBotService dialogBotService;
+    DialogBot dialogBot;
 
     @Autowired
     ObjectMapper objectMapper;
 
     @PostConstruct
     public void init() {
-        dialogBotService.acceptOnboardingOfferIf(o -> Mono.just("testOnAccountId".equals(o.getAccountId())));
-        dialogBotService.acceptReboardingOfferIf(o -> Mono.just("testReAccountId".equals(o.getAccountId())));
-        dialogBotService.acceptOffboardingOfferIf(o -> Mono.just("testOffAccountId".equals(o.getAccountId())));
+        dialogBot.acceptOnboardingOfferIf(o -> Mono.just("testOnAccountId".equals(o.getAccountId())));
+        dialogBot.acceptReboardingOfferIf(o -> Mono.just("testReAccountId".equals(o.getAccountId())));
+        dialogBot.acceptOffboardingOfferIf(o -> Mono.just("testOffAccountId".equals(o.getAccountId())));
     }
 
     @Test

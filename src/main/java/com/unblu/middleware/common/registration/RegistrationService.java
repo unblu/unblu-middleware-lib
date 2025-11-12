@@ -124,7 +124,7 @@ public abstract class RegistrationService<T> implements SelfHealing, AutoRegistr
         return registrationConfiguration.registrationName();
     }
 
-    private RegistrationException error(Throwable e) {
+    protected RegistrationException error(Throwable e) {
         var message = "Error during webhook registration management for '" + getRegistrationName() + "': " + e.getMessage();
         log.error(message);
         return new RegistrationException(message, e);

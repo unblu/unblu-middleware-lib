@@ -98,10 +98,6 @@ unblu:
     secret: hello-im-secure
   bot:
     onboardingFilter: VISITORS
-    person:
-      firstName: Test
-      lastName: Bot
-      sourceId: Test middleware
 ----
 
 Annotate your service (or middleware app) with `@Import(UnbluBots.class)`.

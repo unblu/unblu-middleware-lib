@@ -9,6 +9,10 @@ import java.util.function.Function;
 
 import static com.unblu.middleware.common.utils.RequestWrapperUtils.wrapped;
 
+/**
+ * @deprecated Renamed to DialogBot
+ */
+@Deprecated
 public interface DialogBotService {
 
     default void acceptOnboardingOfferIf(Function<BotOnboardingOfferRequest, Mono<Boolean>> condition) {
