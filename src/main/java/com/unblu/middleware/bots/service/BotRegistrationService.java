@@ -120,7 +120,9 @@ public class BotRegistrationService extends RegistrationService<CustomDialogBotD
                 .onTimeoutBehavior(botConfiguration.getOnTimeoutBehavior())
                 .messageStateHandledExternally(botConfiguration.isMessageStateHandledExternally())
                 .automaticTypingStateHandlingEnabled(botConfiguration.isAutomaticTypingStateHandlingEnabled())
-                .needsCounterpartPresence(botConfiguration.isNeedsCounterpartPresence()));
+                .needsCounterpartPresence(botConfiguration.isNeedsCounterpartPresence())
+                .retryCount(botConfiguration.getRetryCount())
+                .retryDelay(botConfiguration.getRetryDelayInMilliSeconds()));
     }
 
     private String getBotUrl() {
