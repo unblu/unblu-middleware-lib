@@ -54,7 +54,7 @@ class WebhookRequestHandlerServiceTest {
     void registeredWebhookHandler_isCalledOnWebhook() {
         var messageHandler = new NewMessageHandler();
 
-        webhookHandler.onWebhook(
+        webhookHandler.onWebhookMono(
                 eventName("conversation.new_message1"),
                 ConversationNewMessageEvent.class,
                 messageHandler::handle
@@ -77,7 +77,7 @@ class WebhookRequestHandlerServiceTest {
     void registeredWebhookHandlerWithHeader_isCalledOnWebhook() {
         var messageHandler = new NewMessageHandler();
 
-        webhookHandler.onWrappedWebhook(
+        webhookHandler.onWrappedWebhookMono(
                 eventName("conversation.new_message2"),
                 ConversationNewMessageEvent.class,
                 e -> messageHandler.handle(e.body())
@@ -100,7 +100,7 @@ class WebhookRequestHandlerServiceTest {
     void registeredWebhookHandlerWithHeader_onWebhook_contextIsCorrect() {
         var messageHandler = new NewMessageHandler();
 
-        webhookHandler.onWrappedWebhook(
+        webhookHandler.onWrappedWebhookMono(
                 eventName("conversation.new_message3"),
                 ConversationNewMessageEvent.class,
                 e -> Mono.just(e).transformDeferredContextual((e1, ctx) -> messageHandler.withContextView(ctx)),

@@ -15,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
@@ -45,14 +44,14 @@ public class WebhookRequestHandlerImpl extends RequestQueueServiceImpl implement
     @PostConstruct
     private void registerWebhookPingHandler() {
         onWebhook(EventName.eventName("ping"), WebhookPingEvent.class,
-                request -> Mono.fromRunnable(() -> log.info("Received webhook ping event")));
+                request -> log.info("Received webhook ping event"));
     }
 
     @Override
-    public <T> void onWrappedWebhook(@NonNull EventName eventName,
-                                     @NonNull Class<T> expectedType,
-                                     @NonNull Function<Request<T>, Mono<Void>> processAction,
-                                     @NonNull WebhookHandlerOptions<Request<T>> webhookHandlerOptions) {
+    public <T> void onWrappedWebhookMono(@NonNull EventName eventName,
+                                         @NonNull Class<T> expectedType,
+                                         @NonNull Function<Request<T>, Mono<Void>> processAction,
+                                         @NonNull WebhookHandlerOptions<Request<T>> webhookHandlerOptions) {
         if (webhookHandlerOptions.shouldAssertRegistered()) {
             checkThatIsRegisteredFor(eventName);
         }
@@ -82,15 +81,5 @@ public class WebhookRequestHandlerImpl extends RequestQueueServiceImpl implement
         } catch (IOException e) {
             throw new InvalidRequestException("Failed to parse webhook", e);
         }
-    }
-
-    @Override
-    public void subscribe() {
-        getFlux().subscribe();
-    }
-
-    @Override
-    public Flux<Void> getFlux() {
-        return requestQueue.getFlux();
     }
 }
