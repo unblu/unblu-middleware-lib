@@ -22,7 +22,8 @@ public class AutoSubscribe implements ApplicationListener<ApplicationReadyEvent>
 
     @Override
     public void onApplicationEvent(@NonNull ApplicationReadyEvent event) {
-        log.info("Initializing autoSubscribe");
+        log.info("Initializing auto-subscribe of {} bean(s)", subscribableBeans.size());
         subscribableBeans.forEach(Subscribable::assertSubscribed);
+        log.info("Auto-subscribe process completed");
     }
 }

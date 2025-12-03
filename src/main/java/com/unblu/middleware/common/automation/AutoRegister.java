@@ -22,7 +22,8 @@ public class AutoRegister implements ApplicationListener<ApplicationReadyEvent> 
 
     @Override
     public void onApplicationEvent(@NonNull ApplicationReadyEvent event) {
-        log.info("Initializing auto-registration");
+        log.info("Initializing auto-registration of {} bean(s)", autoRegistrableBeans.size());
         autoRegistrableBeans.forEach(AutoRegistrable::autoRegister);
+        log.info("Auto-registration completed");
     }
 }
