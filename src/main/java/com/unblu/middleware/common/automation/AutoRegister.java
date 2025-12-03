@@ -14,7 +14,7 @@ import java.util.List;
 @Configuration
 @RequiredArgsConstructor
 @Slf4j
-@ConditionalOnProperty(value = "unblu.middleware.autoRegister", havingValue = "true")
+@ConditionalOnProperty(value = "unblu.middleware.auto-register", havingValue = "true")
 @Order(99)
 public class AutoRegister implements ApplicationListener<ApplicationReadyEvent> {
 
