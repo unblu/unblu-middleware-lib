@@ -18,14 +18,14 @@ public class BotPersonRegistrationService {
     private final PersonsApi personsApi;
     private final BotConfiguration botConfiguration;
 
-    public PersonData assertBotPersonRegistered() throws ApiException {
+    public PersonData assertBotPersonRegistered() {
         try {
             return personsApi.personsGetBySource(EPersonSource.VIRTUAL, botConfiguration.getPerson().getSourceId(), List.of());
         } catch (ApiException e) {
             if (e.getCode() == 404) {
                 return createBotPerson();
             } else {
-                throw e;
+                throw new RegistrationException("Error retrieving bot person: " + e.getMessage(), e);
             }
         }
     }

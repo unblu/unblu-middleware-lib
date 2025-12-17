@@ -108,8 +108,10 @@ public class WebhookRegistrationServiceImpl extends RegistrationService<WebhookR
         if (registeredEventNames.isEmpty()) {
             return Optional.empty(); // No events to register, skip registration
         }
+        if (!ERegistrationStatus.INACTIVE.equals(webhookRegistration.getStatus())) { // if not manually disabled
+            webhookRegistration.setStatus(ERegistrationStatus.ACTIVE);
+        }
         return Optional.of(webhookRegistration
-                .status(ERegistrationStatus.ACTIVE)
                 .name(getRegistrationName())
                 .description(Strings.isBlank(middlewareConfiguration.getDescription()) ? "Registered from Middleware: " + middlewareConfiguration.getName() : middlewareConfiguration.getDescription())
                 .events(registeredEventNames.stream().map(EventName::name).toList())

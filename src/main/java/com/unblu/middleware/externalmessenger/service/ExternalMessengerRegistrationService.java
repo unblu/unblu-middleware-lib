@@ -72,12 +72,14 @@ public class ExternalMessengerRegistrationService extends RegistrationService<Cu
 
     @Override
     protected Optional<CustomExternalMessengerChannel> applyConfiguration(CustomExternalMessengerChannel channel) {
+        if (!ERegistrationStatus.INACTIVE.equals(channel.getWebhookStatus())) { // if not manually disabled
+            channel.setWebhookStatus(ERegistrationStatus.ACTIVE);
+        }
         return Optional.of(channel
                         .name(getRegistrationName())
                         .description(Strings.isBlank(middlewareConfiguration.getDescription()) ? "Registered from Middleware: " + middlewareConfiguration.getName() : middlewareConfiguration.getDescription())
                         .webhookApiVersion(EWebApiVersion.V4)
                         .outboundSupported(true)
-                        .webhookStatus(ERegistrationStatus.ACTIVE)
                         .webhookEndpoint(getExternalMessengerUrl())
                         .webhookSecret(outboundRequestsConfiguration.getSecret())
 

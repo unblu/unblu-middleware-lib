@@ -80,17 +80,19 @@ public class BotRegistrationService extends RegistrationService<CustomDialogBotD
      * @deprecated use BotPersonRegistrationService.assertBotPersonRegistered() instead
      */
     @Deprecated
-    public PersonData assertBotPersonRegistered() throws ApiException {
+    public PersonData assertBotPersonRegistered() {
         return botPersonRegistrationService.assertBotPersonRegistered();
     }
 
     @Override
     protected Optional<CustomDialogBotData> applyConfiguration(CustomDialogBotData botData) {
+        if (!ERegistrationStatus.INACTIVE.equals(botData.getWebhookStatus())) { // if not manually disabled
+            botData.setWebhookStatus(ERegistrationStatus.ACTIVE);
+        }
         return Optional.of(botData
                 .webhookApiVersion(EWebApiVersion.V4)
                 .name(getRegistrationName())
                 .description(Strings.isBlank(middlewareConfiguration.getDescription()) ? "Registered from Middleware: " + middlewareConfiguration.getName() : middlewareConfiguration.getDescription())
-                .webhookStatus(ERegistrationStatus.ACTIVE)
                 .webhookEndpoint(getBotUrl())
                 .webhookSecret(outboundRequestsConfiguration.getSecret())
                 .outboundTimeoutMillis(botConfiguration.getTimeoutInMilliSeconds())

@@ -72,7 +72,7 @@ class WebhookRegistrationServiceTest {
                 new WebhookRegistration().name("middleware webhook")
                         .id("middleware-id")
                         .events(List.of("whatever.nonsense"))
-                        .status(ERegistrationStatus.INACTIVE)
+                        .status(ERegistrationStatus.INACTIVE_UNAVAILABLE)
         );
 
         webhookRegistrationService.assertRegistered(eventNames("something.happened"));
