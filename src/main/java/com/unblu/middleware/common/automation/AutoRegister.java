@@ -14,7 +14,7 @@ import java.util.List;
 @Configuration
 @RequiredArgsConstructor
 @Slf4j
-@ConditionalOnProperty(value = "unblu.middleware.autoRegister", havingValue = "true")
+@ConditionalOnProperty(value = "unblu.middleware.auto-register", havingValue = "true")
 @Order(99)
 public class AutoRegister implements ApplicationListener<ApplicationReadyEvent> {
 
@@ -22,7 +22,8 @@ public class AutoRegister implements ApplicationListener<ApplicationReadyEvent> 
 
     @Override
     public void onApplicationEvent(@NonNull ApplicationReadyEvent event) {
-        log.info("Initializing auto-registration");
+        log.info("Initializing auto-registration of {} bean(s)", autoRegistrableBeans.size());
         autoRegistrableBeans.forEach(AutoRegistrable::autoRegister);
+        log.info("Auto-registration completed");
     }
 }

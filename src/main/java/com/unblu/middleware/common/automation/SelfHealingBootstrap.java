@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 @Slf4j
 @EnableScheduling
-@ConditionalOnProperty(value = "unblu.middleware.selfHealingEnabled", havingValue = "true")
+@ConditionalOnProperty(value = "unblu.middleware.self-healing-enabled", havingValue = "true")
 public class SelfHealingBootstrap {
 
     private final List<SelfHealing> selfHealingBeans;

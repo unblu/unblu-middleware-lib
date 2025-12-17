@@ -1,16 +1,17 @@
 package com.unblu.middleware.common.bootstrap;
 
 import com.unblu.middleware.common.config.UnbluConfiguration;
+import com.unblu.middleware.common.config.YamlPropertySourceFactory;
 import com.unblu.webapi.jersey.v4.api.*;
 import com.unblu.webapi.jersey.v4.invoker.ApiClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.*;
 
 @Configuration
 @Lazy
+@PropertySource(value = "classpath:middleware-application.yml", factory = YamlPropertySourceFactory.class)
+@ComponentScan(basePackages = {"com.unblu.middleware.common"})
 public class UnbluApis {
 
     @Bean
