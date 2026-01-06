@@ -59,7 +59,7 @@ class DialogBotServiceDifferentDialogsTest {
             testQueue.add(dialogMessage.getConversationMessage().getFallbackText());
         }));
 
-        outboundRequestHandler.subscribe();
+        outboundRequestHandler.assertSubscribed();
     }
 
     @Test
@@ -105,7 +105,7 @@ class DialogBotServiceDifferentDialogsTest {
         testQueue.add("Zero");
 
         await().atMost(5, SECONDS)
-                .until(() -> testQueue.size() >= 5);
+                .until(() -> testQueue.size() == 5);
 
         assertThat(testQueue)
                 .containsExactlyInAnyOrder("Zero", "1-One", "1-Two", "2-One", "2-Two")

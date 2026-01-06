@@ -75,8 +75,7 @@ public class RequestQueue {
         var contextSpec = (ContextSpec<Request<T>>) contextEntriesByRequestType.getOrDefault(requestType, ContextSpec.empty());
 
         return Flux.just(request)
-                .flatMap(actions::apply)
-                .onErrorContinue((e, _r) -> log.error(e.getMessage()))
+                .flatMap(actions::applyAndCatchErrors)
                 .contextWrite(contextSpec.applyTo(request))
                 .then();
     }
@@ -104,9 +103,11 @@ public class RequestQueue {
             actions.add(action);
         }
 
-        public Flux<Void> apply(Request<T> request) {
+        public Flux<Void> applyAndCatchErrors(Request<T> request) {
             return Flux.fromIterable(actions)
-                    .flatMap(action -> action.apply(request));
+                    .flatMap(action -> action.apply(request))
+                    .doOnError(e -> log.error(e.getMessage()))
+                    .onErrorResume(_e -> Mono.empty()); // default error handling, can be overridden by calling .onErrorResume() in registered actions
         }
     }
 
