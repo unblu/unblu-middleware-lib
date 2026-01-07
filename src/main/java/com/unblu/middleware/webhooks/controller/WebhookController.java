@@ -16,7 +16,7 @@ import static com.unblu.middleware.webhooks.entity.EventName.eventName;
 @RequestMapping(value = "${unblu.webhook.api-path}", method = RequestMethod.POST)
 @RequiredArgsConstructor
 @Slf4j
-public class WebhookController {
+class WebhookController {
 
     @Qualifier("webhooksRequestHandler")
     private final RequestHandler requestHandler;

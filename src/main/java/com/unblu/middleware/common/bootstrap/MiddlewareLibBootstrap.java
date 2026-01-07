@@ -11,7 +11,7 @@ import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 
 @Configuration
 @RequiredArgsConstructor
-public class MiddlewareLibBootstrap {
+class MiddlewareLibBootstrap {
 
     @Bean
     public ContextRegistry contextRegistry() {

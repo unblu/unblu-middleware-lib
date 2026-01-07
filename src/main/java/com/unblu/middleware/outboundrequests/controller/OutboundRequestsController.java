@@ -16,7 +16,7 @@ import static com.unblu.middleware.outboundrequests.entity.OutboundRequestType.o
 @RequestMapping(value = "${unblu.outbound-requests.api-path}", method = RequestMethod.POST)
 @RequiredArgsConstructor
 @Slf4j
-public class OutboundRequestsController {
+class OutboundRequestsController {
 
     @Qualifier("outboundRequestsRequestHandler")
     private final RequestHandler requestHandler;

@@ -1,8 +1,7 @@
-package com.unblu.middleware;
+package com.unblu.middleware.webhooks.service;
 
 import com.unblu.middleware.bots.service.BotRegistrationService;
 import com.unblu.middleware.externalmessenger.service.ExternalMessengerRegistrationService;
-import com.unblu.middleware.webhooks.service.WebhookRegistrationServiceImpl;
 import com.unblu.webapi.jersey.v4.api.WebhookRegistrationsApi;
 import com.unblu.webapi.jersey.v4.invoker.ApiException;
 import com.unblu.webapi.model.v4.ERegistrationStatus;

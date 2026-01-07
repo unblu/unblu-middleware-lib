@@ -15,7 +15,7 @@ import static com.unblu.middleware.webhooks.util.WebhookContextSpecUtil.webhookH
 
 @Configuration
 @RequiredArgsConstructor
-public class WebhooksBootstrap {
+class WebhooksBootstrap {
 
     @Bean
     @Qualifier("webhooksRequestHandler")

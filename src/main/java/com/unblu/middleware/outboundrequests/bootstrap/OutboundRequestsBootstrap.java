@@ -15,7 +15,7 @@ import static com.unblu.middleware.outboundrequests.util.OutboundRequestsContext
 
 @Configuration
 @RequiredArgsConstructor
-public class OutboundRequestsBootstrap {
+class OutboundRequestsBootstrap {
 
     @Bean
     @Qualifier("outboundRequestsRequestHandler")

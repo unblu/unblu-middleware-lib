@@ -1,6 +1,5 @@
-package com.unblu.middleware;
+package com.unblu.middleware.webhooks.service;
 
-import com.unblu.middleware.webhooks.service.WebhookRegistrationService;
 import com.unblu.webapi.jersey.v4.api.WebhookRegistrationsApi;
 import com.unblu.webapi.jersey.v4.invoker.ApiException;
 import com.unblu.webapi.model.v4.ERegistrationStatus;

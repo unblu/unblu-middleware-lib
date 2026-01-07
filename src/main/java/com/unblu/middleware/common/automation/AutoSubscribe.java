@@ -16,7 +16,7 @@ import java.util.List;
 @Slf4j
 @ConditionalOnProperty(value = "unblu.middleware.auto-subscribe", havingValue = "true")
 @Order(100) // Ensure this runs after other configurations
-public class AutoSubscribe implements ApplicationListener<ApplicationReadyEvent> {
+class AutoSubscribe implements ApplicationListener<ApplicationReadyEvent> {
 
     private final List<Subscribable> subscribableBeans;
 

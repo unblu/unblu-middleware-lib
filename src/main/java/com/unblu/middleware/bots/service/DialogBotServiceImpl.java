@@ -16,7 +16,7 @@ import static com.unblu.middleware.outboundrequests.entity.OutboundRequestType.o
 
 @Service
 @Slf4j
-public class DialogBotServiceImpl implements DialogBotService {
+class DialogBotServiceImpl implements DialogBotService {
 
     private final OutboundRequestHandler outboundRequestHandler;
 

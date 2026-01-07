@@ -111,7 +111,7 @@ Use `dialogBotService.accept...OfferIf()` to define conditions for accepting dia
 ----
 @Service
 @RequiredArgsConstructor
-@Import(UnbluBots.class)
+@Import(UnbluDialogBot.class)
 public class MyAwesomeMiddlewareService implements ApplicationRunner {
 
     private final DialogBotService dialogBotService;
@@ -307,7 +307,7 @@ The following logback context variables are available for webhooks out-of-the-bo
 == Outbound request handler API
 The library also exposes a lower-level api `OutboundRequestHandler`, primarily intended for cases which aren't yet explicitly covered by the library.
 
-Outbound requests are implicitly imported with `@Import(UnbluBots.class)` but if you don't use that annotation, you can import them explicitly with `@Import(UnbluOutboundRequests.class)`. This exposes the `outboundRequestHandler` bean.
+Outbound requests are implicitly imported with `@Import(UnbluDialogBot.class)` but if you don't use that annotation, you can import them explicitly with `@Import(UnbluOutboundRequests.class)`. This exposes the `outboundRequestHandler` bean.
 
 Outbound requests are handled similarly to webhooks, however require a proper response in the form of a class `<Xxx>Response` for each `<Xxx>Request`. Like with webhooks, the general practice is to respond as quickly as possible, and perform longer processing asynchronously. For outbound requests however, this may not always be possible, because an actual response with results of the handler operation is sometimes needed. For that reason, the `outboundRequestHandler.registerHandler()` provides a way to pass a synchronous lambda used to retrieve a `Mono<XxxResponse>`, and an asynchronous handler lambda which returns a `Mono<Void>`.
 

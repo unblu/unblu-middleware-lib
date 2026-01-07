@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Profile;
 import reactor.core.publisher.Mono;
 
 @Configuration
-public class RequestQueueErrorHandlerBootstrap {
+class RequestQueueErrorHandlerBootstrap {
 
     @Bean
     @Profile("!test")

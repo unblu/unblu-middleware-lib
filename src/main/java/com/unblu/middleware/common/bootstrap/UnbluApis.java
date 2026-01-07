@@ -12,7 +12,7 @@ import org.springframework.context.annotation.*;
 @Lazy
 @PropertySource(value = "classpath:middleware-application.yml", factory = YamlPropertySourceFactory.class)
 @ComponentScan(basePackages = {"com.unblu.middleware.common"})
-public class UnbluApis {
+class UnbluApis {
 
     @Bean
     @ConditionalOnMissingBean
@@ -32,7 +32,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(AccountsApi.class)
-    public static class AccountsApiConfiguration {
+    static class AccountsApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public AccountsApi accountsApi(ApiClient apiClient) {
@@ -43,7 +43,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(ApiKeysApi.class)
-    public static class ApiKeysApiConfiguration {
+    static class ApiKeysApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public ApiKeysApi apiKeysApi(ApiClient apiClient) {
@@ -54,7 +54,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(AuditApi.class)
-    public static class AuditApiConfiguration {
+    static class AuditApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public AuditApi auditApi(ApiClient apiClient) {
@@ -65,7 +65,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(AuthenticatorApi.class)
-    public static class AuthenticatorApiConfiguration {
+    static class AuthenticatorApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public AuthenticatorApi authenticatorApi(ApiClient apiClient) {
@@ -76,7 +76,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(AvailabilityApi.class)
-    public static class AvailabilityApiConfiguration {
+    static class AvailabilityApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public AvailabilityApi availabilityApi(ApiClient apiClient) {
@@ -87,7 +87,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(AvatarsApi.class)
-    public static class AvatarsApiConfiguration {
+    static class AvatarsApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public AvatarsApi avatarsApi(ApiClient apiClient) {
@@ -98,7 +98,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(BotsApi.class)
-    public static class BotsApiConfiguration {
+    static class BotsApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public BotsApi botsApi(ApiClient apiClient) {
@@ -109,7 +109,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(BranchClientStatesApi.class)
-    public static class BranchClientStatesApiConfiguration {
+    static class BranchClientStatesApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public BranchClientStatesApi branchClientStatesApi(ApiClient apiClient) {
@@ -120,7 +120,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(BranchClientsApi.class)
-    public static class BranchClientsApiConfiguration {
+    static class BranchClientsApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public BranchClientsApi branchClientsApi(ApiClient apiClient) {
@@ -131,7 +131,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(BranchesApi.class)
-    public static class BranchesApiConfiguration {
+    static class BranchesApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public BranchesApi branchesApi(ApiClient apiClient) {
@@ -142,7 +142,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(CallsApi.class)
-    public static class CallsApiConfiguration {
+    static class CallsApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public CallsApi callsApi(ApiClient apiClient) {
@@ -153,7 +153,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(CannedResponsesApi.class)
-    public static class CannedResponsesApiConfiguration {
+    static class CannedResponsesApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public CannedResponsesApi cannedResponsesApi(ApiClient apiClient) {
@@ -164,7 +164,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(CollaborationLayerEventsApi.class)
-    public static class CollaborationLayerEventsApiConfiguration {
+    static class CollaborationLayerEventsApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public CollaborationLayerEventsApi collaborationLayerEventsApi(ApiClient apiClient) {
@@ -175,7 +175,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(CollaborationLayerLogsApi.class)
-    public static class CollaborationLayerLogsApiConfiguration {
+    static class CollaborationLayerLogsApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public CollaborationLayerLogsApi collaborationLayerLogsApi(ApiClient apiClient) {
@@ -186,7 +186,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(ConversationHistoryApi.class)
-    public static class ConversationHistoryApiConfiguration {
+    static class ConversationHistoryApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public ConversationHistoryApi conversationHistoryApi(ApiClient apiClient) {
@@ -197,7 +197,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(ConversationTemplatesApi.class)
-    public static class ConversationTemplatesApiConfiguration {
+    static class ConversationTemplatesApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public ConversationTemplatesApi conversationTemplatesApi(ApiClient apiClient) {
@@ -208,7 +208,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(ConversationsApi.class)
-    public static class ConversationsApiConfiguration {
+    static class ConversationsApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public ConversationsApi conversationsApi(ApiClient apiClient) {
@@ -219,7 +219,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(CustomActionsApi.class)
-    public static class CustomActionsApiConfiguration {
+    static class CustomActionsApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public CustomActionsApi customActionsApi(ApiClient apiClient) {
@@ -230,7 +230,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(DeputyRelationshipsApi.class)
-    public static class DeputyRelationshipsApiConfiguration {
+    static class DeputyRelationshipsApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public DeputyRelationshipsApi deputyRelationshipsApi(ApiClient apiClient) {
@@ -241,7 +241,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(DomainsApi.class)
-    public static class DomainsApiConfiguration {
+    static class DomainsApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public DomainsApi domainsApi(ApiClient apiClient) {
@@ -252,7 +252,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(ExternalMessengerContactsApi.class)
-    public static class ExternalMessengerContactsApiConfiguration {
+    static class ExternalMessengerContactsApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public ExternalMessengerContactsApi externalMessengerContactsApi(ApiClient apiClient) {
@@ -263,7 +263,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(ExternalMessengersApi.class)
-    public static class ExternalMessengersApiConfiguration {
+    static class ExternalMessengersApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public ExternalMessengersApi externalMessengersApi(ApiClient apiClient) {
@@ -274,7 +274,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(FileUploadGlobalInterceptorsApi.class)
-    public static class FileUploadGlobalInterceptorsApiConfiguration {
+    static class FileUploadGlobalInterceptorsApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public FileUploadGlobalInterceptorsApi fileUploadGlobalInterceptorsApi(ApiClient apiClient) {
@@ -285,7 +285,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(FileUploadInterceptorsApi.class)
-    public static class FileUploadInterceptorsApiConfiguration {
+    static class FileUploadInterceptorsApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public FileUploadInterceptorsApi fileUploadInterceptorsApi(ApiClient apiClient) {
@@ -296,7 +296,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(GlobalApi.class)
-    public static class GlobalApiConfiguration {
+    static class GlobalApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public GlobalApi globalApi(ApiClient apiClient) {
@@ -307,7 +307,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(ImagesApi.class)
-    public static class ImagesApiConfiguration {
+    static class ImagesApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public ImagesApi imagesApi(ApiClient apiClient) {
@@ -318,7 +318,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(InvitationsApi.class)
-    public static class InvitationsApiConfiguration {
+    static class InvitationsApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public InvitationsApi invitationsApi(ApiClient apiClient) {
@@ -329,7 +329,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(MessageInterceptorsApi.class)
-    public static class MessageInterceptorsApiConfiguration {
+    static class MessageInterceptorsApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public MessageInterceptorsApi messageInterceptorsApi(ApiClient apiClient) {
@@ -340,7 +340,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(NamedAreasApi.class)
-    public static class NamedAreasApiConfiguration {
+    static class NamedAreasApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public NamedAreasApi namedAreasApi(ApiClient apiClient) {
@@ -351,7 +351,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(PersonLabelsApi.class)
-    public static class PersonLabelsApiConfiguration {
+    static class PersonLabelsApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public PersonLabelsApi personLabelsApi(ApiClient apiClient) {
@@ -362,7 +362,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(PersonPresencesApi.class)
-    public static class PersonPresencesApiConfiguration {
+    static class PersonPresencesApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public PersonPresencesApi personPresencesApi(ApiClient apiClient) {
@@ -373,7 +373,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(PersonVisibilityRulesApi.class)
-    public static class PersonVisibilityRulesApiConfiguration {
+    static class PersonVisibilityRulesApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public PersonVisibilityRulesApi personVisibilityRulesApi(ApiClient apiClient) {
@@ -384,7 +384,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(PersonsApi.class)
-    public static class PersonsApiConfiguration {
+    static class PersonsApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public PersonsApi personsApi(ApiClient apiClient) {
@@ -395,7 +395,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(RecordRetentionApi.class)
-    public static class RecordRetentionApiConfiguration {
+    static class RecordRetentionApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public RecordRetentionApi recordRetentionApi(ApiClient apiClient) {
@@ -406,7 +406,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(SearchIndexApi.class)
-    public static class SearchIndexApiConfiguration {
+    static class SearchIndexApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public SearchIndexApi searchIndexApi(ApiClient apiClient) {
@@ -417,7 +417,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(SuggestionSourcesApi.class)
-    public static class SuggestionSourcesApiConfiguration {
+    static class SuggestionSourcesApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public SuggestionSourcesApi suggestionSourcesApi(ApiClient apiClient) {
@@ -428,7 +428,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(TeamsApi.class)
-    public static class TeamsApiConfiguration {
+    static class TeamsApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public TeamsApi teamsApi(ApiClient apiClient) {
@@ -439,7 +439,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(UsersApi.class)
-    public static class UsersApiConfiguration {
+    static class UsersApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public UsersApi usersApi(ApiClient apiClient) {
@@ -450,7 +450,7 @@ public class UnbluApis {
     @Configuration(proxyBeanMethods = false)
     @Lazy
     @ConditionalOnClass(WebhookRegistrationsApi.class)
-    public static class WebhookRegistrationsApiConfiguration {
+    static class WebhookRegistrationsApiConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public WebhookRegistrationsApi webhookRegistrationsApi(ApiClient apiClient) {

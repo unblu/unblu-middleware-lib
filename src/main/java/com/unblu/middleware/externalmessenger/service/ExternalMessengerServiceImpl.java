@@ -18,7 +18,7 @@ import static com.unblu.middleware.outboundrequests.entity.OutboundRequestType.o
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class ExternalMessengerServiceImpl implements ExternalMessengerService {
+class ExternalMessengerServiceImpl implements ExternalMessengerService {
 
     private final OutboundRequestHandler outboundRequestHandler;
 

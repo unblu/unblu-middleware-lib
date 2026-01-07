@@ -23,7 +23,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 @Service
 @Slf4j
-public class WebhookRegistrationServiceImpl extends RegistrationService<WebhookRegistration> implements WebhookRegistrationService {
+class WebhookRegistrationServiceImpl extends RegistrationService<WebhookRegistration> implements WebhookRegistrationService {
 
     private final WebhookRegistrationsApi webhookRegistrationsApi;
     private final WebhookConfiguration webhookConfiguration;
