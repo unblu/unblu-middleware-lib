@@ -46,7 +46,6 @@ class WebhookContextTests {
     @Autowired
     WebTestClient webTestClient;
 
-
     @Test
     void onWebhookHandler_contextIsAsExpected() throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(2);
@@ -55,24 +54,24 @@ class WebhookContextTests {
                 request -> {
 
                     if (Objects.equals(request.headers().getFirst("X-Unblu-Event-Id"), "event-123")) {
-                        latch.countDown();
                         assertThat(MDC.get("text")).isEqualTo("hello-123");
                         assertThat(MDC.get("conversationId")).isEqualTo("conv-123");
                         assertThat(MDC.get("accountId")).isEqualTo("account-123");
 
                         // defaults too
                         assertThat(MDC.get("eventId")).isEqualTo("event-123");
+                        latch.countDown();
                         return Mono.just("ok").then();
                     }
 
                     if (Objects.equals(request.headers().getFirst("X-Unblu-Event-Id"), "event-456")) {
-                        latch.countDown();
                         assertThat(MDC.get("text")).isEqualTo("hello-456");
                         assertThat(MDC.get("conversationId")).isEqualTo("conv-456");
                         assertThat(MDC.get("accountId")).isEqualTo("account-456");
 
                         // defaults too
                         assertThat(MDC.get("eventId")).isEqualTo("event-456");
+                        latch.countDown();
                         return Mono.just("ok").then();
                     }
 

@@ -57,7 +57,6 @@ class OutboundContextTests {
                 // checking context in sync handler
                 request -> {
                     if (Objects.equals(request.headers().getFirst("X-Unblu-Invocation-ID"), "invocation-123")) {
-                        syncLatch.countDown();
                         assertThat(MDC.get("text")).isEqualTo("hello-123");
                         assertThat(MDC.get("conversationId")).isEqualTo("conv-123");
                         assertThat(MDC.get("accountId")).isEqualTo("account-123");
@@ -66,11 +65,12 @@ class OutboundContextTests {
                         assertThat(MDC.get("deliveryId")).isEqualTo("delivery-123");
                         assertThat(MDC.get("invocationId")).isEqualTo("invocation-123");
                         assertThat(MDC.get("retryNo")).isEqualTo("123");
+
+                        syncLatch.countDown();
                         return Mono.just(new BotDialogMessageResponse());
                     }
 
                     if (Objects.equals(request.headers().getFirst("X-Unblu-Invocation-ID"), "invocation-456")) {
-                        syncLatch.countDown();
                         assertThat(MDC.get("text")).isEqualTo("hello-456");
                         assertThat(MDC.get("conversationId")).isEqualTo("conv-456");
                         assertThat(MDC.get("accountId")).isEqualTo("account-456");
@@ -79,6 +79,8 @@ class OutboundContextTests {
                         assertThat(MDC.get("deliveryId")).isEqualTo("delivery-456");
                         assertThat(MDC.get("invocationId")).isEqualTo("invocation-456");
                         assertThat(MDC.get("retryNo")).isEqualTo("456");
+
+                        syncLatch.countDown();
                         return Mono.just(new BotDialogMessageResponse());
                     }
                     return Mono.error(new RuntimeException("Unexpected event id"));
@@ -87,7 +89,6 @@ class OutboundContextTests {
                 request -> {
 
                     if (Objects.equals(request.headers().getFirst("X-Unblu-Invocation-ID"), "invocation-123")) {
-                        asyncLatch.countDown();
                         assertThat(MDC.get("text")).isEqualTo("hello-123");
                         assertThat(MDC.get("conversationId")).isEqualTo("conv-123");
                         assertThat(MDC.get("accountId")).isEqualTo("account-123");
@@ -96,11 +97,12 @@ class OutboundContextTests {
                         assertThat(MDC.get("deliveryId")).isEqualTo("delivery-123");
                         assertThat(MDC.get("invocationId")).isEqualTo("invocation-123");
                         assertThat(MDC.get("retryNo")).isEqualTo("123");
+
+                        asyncLatch.countDown();
                         return Mono.just("ok").then();
                     }
 
                     if (Objects.equals(request.headers().getFirst("X-Unblu-Invocation-ID"), "invocation-456")) {
-                        asyncLatch.countDown();
                         assertThat(MDC.get("text")).isEqualTo("hello-456");
                         assertThat(MDC.get("conversationId")).isEqualTo("conv-456");
                         assertThat(MDC.get("accountId")).isEqualTo("account-456");
@@ -109,6 +111,8 @@ class OutboundContextTests {
                         assertThat(MDC.get("deliveryId")).isEqualTo("delivery-456");
                         assertThat(MDC.get("invocationId")).isEqualTo("invocation-456");
                         assertThat(MDC.get("retryNo")).isEqualTo("456");
+
+                        asyncLatch.countDown();
                         return Mono.just("ok").then();
                     }
 

@@ -37,11 +37,14 @@ public class RequestQueue {
     private final Map<Class<?>, Actions<?>> actionsByRequestType = new ConcurrentHashMap<>();
     private final Map<Class<?>, ContextSpec<?>> contextEntriesByRequestType = new ConcurrentHashMap<>();
 
+    private final RequestQueueErrorHandler requestQueueErrorHandler;
+
     @Getter
     private final Flux<Void> flux;
 
-    public RequestQueue(FatalStartupErrorHandler fatalStartupErrorHandler, ContextRegistryWrapper contextRegistryWrapper) {
+    public RequestQueue(FatalStartupErrorHandler fatalStartupErrorHandler, ContextRegistryWrapper contextRegistryWrapper, RequestQueueErrorHandler requestQueueErrorHandler) {
         this.contextRegistryWrapper = contextRegistryWrapper;
+        this.requestQueueErrorHandler = requestQueueErrorHandler;
         this.flux = sink.asFlux()
                 .publishOn(Schedulers.boundedElastic())
                 .doOnError(_e -> fatalStartupErrorHandler.shutdown())
@@ -74,8 +77,11 @@ public class RequestQueue {
         var actions = (Actions<T>) actionsByRequestType.getOrDefault(requestType, Actions.empty());
         var contextSpec = (ContextSpec<Request<T>>) contextEntriesByRequestType.getOrDefault(requestType, ContextSpec.empty());
 
-        return Flux.just(request)
-                .flatMap(actions::applyAndCatchErrors)
+        return Flux.fromIterable(actions.actions())
+                .flatMap(action ->
+                        action.apply(request)
+                                .doOnError(e -> log.error(e.getMessage()))
+                                .onErrorResume(requestQueueErrorHandler::handleError))
                 .contextWrite(contextSpec.applyTo(request))
                 .then();
     }
@@ -101,13 +107,6 @@ public class RequestQueue {
 
         public void add(Function<Request<T>, Mono<Void>> action) {
             actions.add(action);
-        }
-
-        public Flux<Void> applyAndCatchErrors(Request<T> request) {
-            return Flux.fromIterable(actions)
-                    .flatMap(action -> action.apply(request))
-                    .doOnError(e -> log.error(e.getMessage()))
-                    .onErrorResume(_e -> Mono.empty()); // default error handling, can be overridden by calling .onErrorResume() in registered actions
         }
     }
 
