@@ -8,6 +8,7 @@ unblu:
     name: middleware
     autoRegister: false # only changed for testing purposes, never change in production
     autoSubscribe: false
+    pingUnbluOnStartup: false
   outboundRequests:
     apiPath: /outbound
     secret: hello-im-also-secure

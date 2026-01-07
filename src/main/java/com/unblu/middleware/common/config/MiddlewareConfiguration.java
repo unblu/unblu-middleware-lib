@@ -22,4 +22,5 @@ public class MiddlewareConfiguration {
     private boolean autoSubscribe = true;
     private boolean selfHealingEnabled = true;
     private long selfHealingCheckIntervalInSeconds = 60;
+    private boolean pingUnbluOnStartup = true;
 }

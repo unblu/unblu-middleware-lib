@@ -11,6 +11,7 @@ unblu:
     autoRegister: true # should always be true, only exists for testing purposes
     selfHealingEnabled: true # set to true to enable self-healing, false to disable
     selfHealingCheckIntervalInSeconds: 60 # interval in seconds to check for self-healing, default is 60 seconds
+    pingUnbluOnStartup: true # set to true to verify Unblu connectivity on startup
   outboundRequests:
     apiPath: /outbound
     secret:

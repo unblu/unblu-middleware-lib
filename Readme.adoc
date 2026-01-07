@@ -167,6 +167,7 @@ unblu:
     selfHealingEnabled: true  # see below, this is the default
     selfHealingCheckIntervalInSeconds: 60 # see below, this is the default
     autoSubscribe: true # if true, the middleware will automatically subscribe to webhooks and bots after startup, otherwise you need to call webhookHandler.subscribe() and dialogBotService.subscribe() manually or retrieve the Flux and subscribe to it yourself
+    pingUnbluOnStartup: true # if true, the middleware will send a ping to Unblu after startup to verify connectivity; app dies if ping fails
 
   webhook:
     secret: another-secure-secret  # mandatory if webhooks are used
@@ -177,13 +178,13 @@ unblu:
 
   outboundRequests:
     secret: a-secure-secret  # mandatory if services requiring outbound requests (e.g. dialog bots) are used
-    apiPath: /outbound   # api path used by the middleware outbound controller, e.g. https://where.my.middleware.is.running/webhook. /outbound this is the default
+    apiPath: /outbound   # api path used by the middleware outbound controller, e.g. https://where.my.middleware.is.running/outbound. /outbound this is the default
 
   bot:
     person:
-      firstName: Test                      # mandatory if bots are used
-      lastName: Bot                        # mandatory if bots are used
-      sourceId: Test middleware            # mandatory if bots are used
+      sourceId: concierge-bot-person-id    # concierge is used as the default bot
+      firstName: Unblu
+      lastName: Concierge
 
     cleanPrevious: false       # see below, this is the default
     onboardingFilter: VISITORS # can be VISITORS, AGENTS, BOTH, or NONE (default)
@@ -243,7 +244,7 @@ webhookHandler.onWebhook(
                 "branchId", e -> e.getEntity().getId(),
                 "method", _e -> "processBranchModified"
         )
-)
+);
 ----
 
 logback.xml:
@@ -272,7 +273,7 @@ The following logback context variables are available for webhooks out-of-the-bo
 * `retryNo`
 
 == Dialog bots
-Bots are a special type of middleware that can interact with Unblu dialogs and conversations. They can be used to automate tasks, provide information, or interact with users in a conversational manner. More details about bots can be found in the https://www.unblu.com/en/docs/latest/knowledge-base/integration/third-party-software/bots.html[Unblu documentation - Bot integration]. Currently, the middleware provides seemless support for dialog bots. Library provides means to implement conversation-observing bots through webhooks.
+Dialog bots are a special type of middleware that can interact with Unblu dialogs and conversations. They can be used to automate tasks, provide information, or interact with users in a conversational manner. More details about bots can be found in the https://www.unblu.com/en/docs/latest/knowledge-base/integration/third-party-software/bots.html[Unblu documentation - Bot integration].
 
 === Accepting boarding offers
 DialogBotService allows you to define which onboarding, offboarding, and reboarding offers the bot should accept. You can use the `acceptOnboardingOfferIf()`, `acceptOffboardingOfferIf()` and `acceptReboardingOfferIf()` methods to define conditions for accepting boarding offers. The methods take a function that returns a `Mono<Boolean>`, which determines whether the offer should be accepted or not. By default, no offers are accepted.
@@ -303,6 +304,9 @@ The following logback context variables are available for webhooks out-of-the-bo
 * `invocationId` (for any outbound request)
 * `deliveryId` (for any outbound request)
 * `retryNo` (for any outbound request)
+
+== Conversation observing bots
+Conversation observing bots are implemented using webhooks. You can also use BotPersonRegistrationService to register a bot person to interact with the conversations (write messages).
 
 == Outbound request handler API
 The library also exposes a lower-level api `OutboundRequestHandler`, primarily intended for cases which aren't yet explicitly covered by the library.

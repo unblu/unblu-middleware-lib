@@ -12,7 +12,7 @@ import org.springframework.context.annotation.*;
 @Lazy
 @PropertySource(value = "classpath:middleware-application.yml", factory = YamlPropertySourceFactory.class)
 @ComponentScan(basePackages = {"com.unblu.middleware.common"})
-class UnbluApis {
+public class UnbluApis {
 
     @Bean
     @ConditionalOnMissingBean
