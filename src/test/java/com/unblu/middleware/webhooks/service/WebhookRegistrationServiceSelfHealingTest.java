@@ -52,7 +52,7 @@ class WebhookRegistrationServiceSelfHealingTest {
 
     @Test
     @SneakyThrows
-    void givenRegistrationGetsDeactivated_selfHealing_restoreItsState() {
+    void givenRegistrationGetsAutoDeactivated_selfHealing_restoreItsState() {
         doThrow(new ApiException(404, "Not Found"))
                 .when(webhookRegistrationsApi)
                 .webhookRegistrationsGetByName("middleware webhook");
@@ -69,5 +69,43 @@ class WebhookRegistrationServiceSelfHealingTest {
         // wait for self-healing to kick in
         await().atMost(3, SECONDS).untilAsserted(() ->
                 verify(webhookRegistrationsApi, atLeast(1)).webhookRegistrationsUpdate(registration));
+    }
+
+    @Test
+    @SneakyThrows
+    void givenChangedOrderInRegisteredEvents_selfHealingDoesntAct() {
+        doThrow(new ApiException(404, "Not Found"))
+                .when(webhookRegistrationsApi)
+                .webhookRegistrationsGetByName("middleware webhook");
+
+        webhookRegistrationService.autoRegister();
+
+        verify(webhookRegistrationsApi).webhookRegistrationsCreate(registrationCaptor.capture());
+        var registration = registrationCaptor.getValue();
+
+        doReturn(copyOf(registration).events(registration.getEvents().reversed()))
+                .when(webhookRegistrationsApi)
+                .webhookRegistrationsGetByName("middleware webhook");
+
+        verify(webhookRegistrationsApi, after(3000).never()).webhookRegistrationsUpdate(any());
+    }
+
+    @Test
+    @SneakyThrows
+    void givenRegistrationGetsManuallyDisabled_selfHealingDoesntAct() {
+        doThrow(new ApiException(404, "Not Found"))
+                .when(webhookRegistrationsApi)
+                .webhookRegistrationsGetByName("middleware webhook");
+
+        webhookRegistrationService.autoRegister();
+
+        verify(webhookRegistrationsApi).webhookRegistrationsCreate(registrationCaptor.capture());
+        var registration = registrationCaptor.getValue();
+
+        doReturn(copyOf(registration).status(ERegistrationStatus.INACTIVE))
+                .when(webhookRegistrationsApi)
+                .webhookRegistrationsGetByName("middleware webhook");
+
+        verify(webhookRegistrationsApi, after(3000).never()).webhookRegistrationsUpdate(any());
     }
 }
