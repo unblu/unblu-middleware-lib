@@ -1,7 +1,15 @@
 = Unblu middleware lib
 :toc:
 
-This library is used to create a middleware for the Unblu v8 platform (API v4), based on Spring Boot. It provides a set of tools and utilities to facilitate the integration with Unblu services.
+This library is used to create a middleware for the Unblu v8 platform (API v4). It provides a set of tools and utilities to facilitate the integration with Unblu services.
+
+*NOTE:* This project is now structured as a multi-module library. See link:MIGRATION_GUIDE.md[Migration Guide] for details.
+
+== Modules
+
+* *unblu-middleware-lib-core* - Framework-agnostic core library (contains domain logic)
+* *unblu-middleware-lib-spring* - Spring Boot integration (use this for Spring Boot projects)
+* *unblu-middleware-lib-quarkus* - Quarkus integration (use this for Quarkus projects)
 
 Usage example: https://github.com/unblu/example-middleware[example-middleware]
 
@@ -13,7 +21,7 @@ Main features:
 * Uses reactor to handle backpressure, supports options for asynchronous processing, as well as order guarantees where needed
 * Provides utility methods to define webhook handlers, declare conditions to accept boarding requests, or allowing you to react on different types of dialog bot outbound requests
 
-== Quick start - webhooks
+== Quick start - webhooks (Spring Boot)
 
 Add a dependency to your `build.gradle` file:
 
@@ -21,12 +29,14 @@ Add a dependency to your `build.gradle` file:
 ----
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
-    implementation 'com.unblu.middleware:unblu-middleware-lib:1.11.0'
+    implementation 'com.unblu.middleware:unblu-middleware-lib-spring:1.11.1-SNAPSHOT'
     implementation 'com.unblu.openapi:jersey3-client-v4:8.24.0'
     implementation 'org.projectlombok:lombok:1.18.34'
     annotationProcessor 'org.projectlombok:lombok:1.18.34'
 }
 ----
+
+NOTE: For existing users, the artifact name has changed from `unblu-middleware-lib` to `unblu-middleware-lib-spring`.
 
 Configure the Unblu connection in your `application.yml` file. (You can also include unblu.bot settings, if you want to handle bots in the same middleware app.)
 

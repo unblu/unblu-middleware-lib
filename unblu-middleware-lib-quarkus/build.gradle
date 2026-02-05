@@ -1,0 +1,50 @@
+plugins {
+    id 'java-library'
+}
+
+group "com.unblu.middleware"
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+    compileJava.options.encoding = "UTF-8"
+
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Depend on core module
+    api project(':unblu-middleware-lib-core')
+
+    // Quarkus specific dependencies
+    implementation enforcedPlatform("io.quarkus.platform:quarkus-bom:3.17.7")
+//    api "io.quarkus:quarkus-resteasy-reactive"
+//    api "io.quarkus:quarkus-resteasy-reactive-jackson"
+    api "io.quarkus:quarkus-arc"
+    api "io.quarkus:quarkus-reactive-routes"
+    api "io.quarkus:quarkus-micrometer"
+    api "io.quarkus:quarkus-smallrye-health"
+
+    // Lombok
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+    // Testing
+    testImplementation "io.quarkus:quarkus-junit5"
+    testImplementation "io.rest-assured:rest-assured"
+    testImplementation platform("org.junit:junit-bom")
+    testImplementation "org.junit.jupiter:junit-jupiter-api"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+}
+
+test {
+    useJUnitPlatform()
+    systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
+}

@@ -1,1 +1,6 @@
 rootProject.name = 'unblu-middleware-lib'
+
+include 'unblu-middleware-lib-core'
+include 'unblu-middleware-lib-spring'
+include 'unblu-middleware-lib-quarkus'
+
