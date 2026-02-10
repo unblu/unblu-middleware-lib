@@ -4,6 +4,7 @@ import com.unblu.middleware.bots.config.BotConfiguration;
 import com.unblu.middleware.externalmessenger.config.ExternalMessengerConfiguration;
 import com.unblu.middleware.outboundrequests.config.OutboundRequestsConfiguration;
 import com.unblu.middleware.webhooks.config.WebhookConfiguration;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -14,11 +15,22 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "unblu")
 public class MiddlewareLibConfigurationProperties {
     private MiddlewareConfiguration middleware;
-    private UnbluConfiguration server;
     private BotConfiguration bot;
     private WebhookConfiguration webhook;
     private OutboundRequestsConfiguration outboundRequests;
     private ExternalMessengerConfiguration externalMessenger;
+
+    // must unwrap & copy for compatibility :-((
+    @NotBlank
+    private String host;
+    @NotBlank
+    private String apiBasePath;
+    @NotBlank
+    private String user;
+    @NotBlank
+    private String password;
+    private String idPropagationHeaderName;
+    private String idPropagationUserId;
 
     @Bean
     public MiddlewareConfiguration middlewareConfiguration() {
@@ -27,7 +39,14 @@ public class MiddlewareLibConfigurationProperties {
 
     @Bean
     public UnbluConfiguration unbluConfiguration() {
-        return server;
+        var unbluConfig = new UnbluConfiguration();
+        unbluConfig.setHost(host);
+        unbluConfig.setApiBasePath(apiBasePath);
+        unbluConfig.setUser(user);
+        unbluConfig.setPassword(password);
+        unbluConfig.setIdPropagationHeaderName(idPropagationHeaderName);
+        unbluConfig.setIdPropagationUserId(idPropagationUserId);
+        return unbluConfig;
     }
 
     @Bean

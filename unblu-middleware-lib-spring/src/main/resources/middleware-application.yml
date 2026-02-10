@@ -1,9 +1,8 @@
 unblu:
-  server:
-    host:       # populate me
-    apiBasePath: /app/rest/v4
-    user:       # populate me
-    password:   # populate me
+  host:       # populate me
+  apiBasePath: /app/rest/v4
+  user:       # populate me
+  password:   # populate me
   middleware:
     url:       # populate me
     name:      # populate me
