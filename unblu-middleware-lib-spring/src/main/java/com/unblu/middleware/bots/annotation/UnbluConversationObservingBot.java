@@ -1,4 +1,4 @@
-package com.unblu.middleware.bot.annotation;
+package com.unblu.middleware.bots.annotation;
 
 import com.unblu.middleware.bots.config.BotConfiguration;
 import com.unblu.middleware.bots.service.BotPersonRegistrationService;

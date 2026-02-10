@@ -1,7 +1,7 @@
 package middleware;
 
-import com.unblu.middleware.bot.annotation.UnbluConversationObservingBot;
-import com.unblu.middleware.bot.annotation.UnbluDialogBot;
+import com.unblu.middleware.bots.annotation.UnbluConversationObservingBot;
+import com.unblu.middleware.bots.annotation.UnbluDialogBot;
 import com.unblu.middleware.webhooks.annotation.UnbluWebhooks;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

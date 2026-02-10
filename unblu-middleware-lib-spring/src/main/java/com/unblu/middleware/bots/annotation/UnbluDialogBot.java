@@ -1,4 +1,4 @@
-package com.unblu.middleware.bot.annotation;
+package com.unblu.middleware.bots.annotation;
 
 import com.unblu.middleware.outboundrequests.annotation.UnbluOutboundRequests;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
