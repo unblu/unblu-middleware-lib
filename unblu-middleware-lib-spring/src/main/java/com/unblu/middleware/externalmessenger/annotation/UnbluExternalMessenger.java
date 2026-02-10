@@ -1,12 +1,18 @@
 package com.unblu.middleware.externalmessenger.annotation;
 
-import com.unblu.middleware.common.config.YamlPropertySourceFactory;
+import com.unblu.middleware.outboundrequests.annotation.UnbluOutboundRequests;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.FullyQualifiedAnnotationBeanNameGenerator;
+import org.springframework.context.annotation.Import;
 
-@Configuration
-@PropertySource(value = "classpath:middleware-application.yml", factory = YamlPropertySourceFactory.class)
-@ComponentScan(basePackages = {"com.unblu.middleware.common", "com.unblu.middleware.outboundrequests", "com.unblu.middleware.externalmessenger"})
+@AutoConfiguration
+@Import(UnbluOutboundRequests.class)
+@ComponentScan(
+        basePackages = "com.unblu.middleware.externalmessenger",
+        excludeFilters = {@ComponentScan.Filter(type = FilterType.ANNOTATION, classes = {AutoConfiguration.class})},
+        nameGenerator = FullyQualifiedAnnotationBeanNameGenerator.class
+)
 public class UnbluExternalMessenger {
 }

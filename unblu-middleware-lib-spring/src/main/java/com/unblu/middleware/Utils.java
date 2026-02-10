@@ -1,4 +1,4 @@
-package com.unblu.middleware.controller;
+package com.unblu.middleware;
 
 import com.unblu.middleware.common.entity.HttpResponse;
 import com.unblu.middleware.common.entity.RawRequest;

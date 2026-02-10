@@ -14,7 +14,7 @@ import reactor.core.publisher.Hooks;
 @Singleton
 public class ContextRegistryWrapper {
 
-    private final ContextRegistry contextRegistry;
+    private final ContextRegistry contextRegistry = ContextRegistry.getInstance();
 
     @PostConstruct
     public void init() {

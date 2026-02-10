@@ -1,6 +1,6 @@
-package com.unblu.middleware.webhooks.annotation;
+package com.unblu.middleware.bot.annotation;
 
-import com.unblu.middleware.common.annotation.UnbluMiddlewareLibCommon;
+import com.unblu.middleware.outboundrequests.annotation.UnbluOutboundRequests;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
@@ -8,11 +8,11 @@ import org.springframework.context.annotation.FullyQualifiedAnnotationBeanNameGe
 import org.springframework.context.annotation.Import;
 
 @AutoConfiguration
-@Import(UnbluMiddlewareLibCommon.class)
+@Import(UnbluOutboundRequests.class)
 @ComponentScan(
-        basePackages = "com.unblu.middleware.webhooks",
+        basePackages = "com.unblu.middleware.bots",
         excludeFilters = {@ComponentScan.Filter(type = FilterType.ANNOTATION, classes = {AutoConfiguration.class})},
         nameGenerator = FullyQualifiedAnnotationBeanNameGenerator.class
 )
-public class UnbluWebhooks {
+public class UnbluDialogBot {
 }

@@ -1,8 +1,9 @@
 unblu:
-  host: https://dummy
-  apiBasePath: /app/rest/v4
-  user: dummy
-  password: hello-im-secure
+  server:
+    host: https://dummy
+    apiBasePath: /app/rest/v4
+    user: dummy
+    password: hello-im-secure
   middleware:
     url: https://dummy-webhook
     name: middleware
@@ -21,5 +22,4 @@ unblu:
     apiPath: /webhook
     secret: hello-im-also-secure
     eventNames: []
-  externalMessenger:
-    secret: a-very-secret
+#  externalMessenger: {}

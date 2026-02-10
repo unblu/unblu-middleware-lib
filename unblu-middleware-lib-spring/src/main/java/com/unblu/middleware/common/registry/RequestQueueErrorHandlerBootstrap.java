@@ -10,12 +10,6 @@ import reactor.core.publisher.Mono;
 class RequestQueueErrorHandlerBootstrap {
 
     @Bean
-    @Profile("!test")
-    public RequestQueueErrorHandler requestQueueErrorHandler() {
-        return throwable -> Mono.empty(); // No-op error handler (resume operation) for non-test profiles
-    }
-
-    @Bean
     @Primary
     @Profile("test")
     public RequestQueueErrorHandler testRequestQueueErrorHandler() {

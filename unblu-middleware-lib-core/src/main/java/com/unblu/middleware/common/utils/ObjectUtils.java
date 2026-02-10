@@ -3,6 +3,7 @@ package com.unblu.middleware.common.utils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unblu.webapi.jersey.v4.invoker.JSON;
+import lombok.Getter;
 import lombok.experimental.UtilityClass;
 import org.skyscreamer.jsonassert.JSONCompare;
 import org.skyscreamer.jsonassert.JSONCompareMode;
@@ -11,6 +12,7 @@ import org.skyscreamer.jsonassert.JSONCompareResult;
 @UtilityClass
 public class ObjectUtils {
 
+    @Getter
     private static final ObjectMapper objectMapper = new JSON().getContext(Object.class).copy();
 
     @SuppressWarnings("unchecked")

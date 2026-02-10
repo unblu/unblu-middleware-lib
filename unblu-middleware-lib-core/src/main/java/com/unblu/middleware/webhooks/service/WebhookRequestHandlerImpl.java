@@ -5,7 +5,6 @@ import com.unblu.middleware.common.config.MiddlewareConfiguration;
 import com.unblu.middleware.common.entity.Request;
 import com.unblu.middleware.common.error.InvalidRequestException;
 import com.unblu.middleware.common.error.NoHandlerException;
-import com.unblu.middleware.common.registry.RequestQueue;
 import com.unblu.middleware.common.registry.RequestQueueServiceImpl;
 import com.unblu.middleware.webhooks.entity.EventName;
 import com.unblu.middleware.webhooks.entity.WebhookHandlerOptions;
@@ -37,7 +36,7 @@ public class WebhookRequestHandlerImpl extends RequestQueueServiceImpl implement
     private final ObjectMapper objectMapper;
     private final Map<EventName, Class<?>> eventTypeMap = new ConcurrentHashMap<>();
 
-    public WebhookRequestHandlerImpl(@Named("webhookRequestQueue") RequestQueue requestQueue, MiddlewareConfiguration middlewareConfiguration, WebhookRegistrationService webhookRegistrationService, ObjectMapper objectMapper) {
+    public WebhookRequestHandlerImpl(WebhookRequestQueue requestQueue, MiddlewareConfiguration middlewareConfiguration, WebhookRegistrationService webhookRegistrationService, ObjectMapper objectMapper) {
         super(requestQueue);
         this.middlewareConfiguration = middlewareConfiguration;
         this.webhookRegistrationService = webhookRegistrationService;

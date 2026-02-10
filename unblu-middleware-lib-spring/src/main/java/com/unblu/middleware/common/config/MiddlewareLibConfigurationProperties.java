@@ -5,13 +5,11 @@ import com.unblu.middleware.externalmessenger.config.ExternalMessengerConfigurat
 import com.unblu.middleware.outboundrequests.config.OutboundRequestsConfiguration;
 import com.unblu.middleware.webhooks.config.WebhookConfiguration;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Data
-@RequiredArgsConstructor
 @Configuration
 @ConfigurationProperties(prefix = "unblu")
 public class MiddlewareLibConfigurationProperties {

@@ -1,4 +1,4 @@
-package com.unblu.middleware.webhooks.annotation;
+package com.unblu.middleware.outboundrequests.annotation;
 
 import com.unblu.middleware.common.annotation.UnbluMiddlewareLibCommon;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -10,9 +10,9 @@ import org.springframework.context.annotation.Import;
 @AutoConfiguration
 @Import(UnbluMiddlewareLibCommon.class)
 @ComponentScan(
-        basePackages = "com.unblu.middleware.webhooks",
+        basePackages = "com.unblu.middleware.outboundrequests",
         excludeFilters = {@ComponentScan.Filter(type = FilterType.ANNOTATION, classes = {AutoConfiguration.class})},
         nameGenerator = FullyQualifiedAnnotationBeanNameGenerator.class
 )
-public class UnbluWebhooks {
+public class UnbluOutboundRequests {
 }

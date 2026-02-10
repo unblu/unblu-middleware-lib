@@ -1,8 +1,9 @@
 unblu:
-  host:       # populate me
-  apiBasePath: /app/rest/v4
-  user:       # populate me
-  password:   # populate me
+  server:
+    host:       # populate me
+    apiBasePath: /app/rest/v4
+    user:       # populate me
+    password:   # populate me
   middleware:
     url:       # populate me
     name:      # populate me
@@ -19,5 +20,4 @@ unblu:
     apiPath: /webhook
     secret:          # populate me
     eventNames: []   # populate with event names you want to register, e.g. ["something.happened", "another.event"]
-  externalMessenger:
-    secret:           # populate me
+#  externalMessenger: {}

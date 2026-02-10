@@ -4,7 +4,6 @@ import com.unblu.middleware.common.entity.Request;
 import com.unblu.middleware.common.error.SpringFatalStartupErrorHandler;
 import com.unblu.middleware.common.registry.ContextRegistryWrapper;
 import com.unblu.middleware.common.registry.RequestQueue;
-import io.micrometer.context.ContextRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
@@ -18,7 +17,7 @@ class RequestQueueTest {
 
     @Test
     void requestQueueCompletesOnShutdown() {
-        var requestQueue = new RequestQueue(new SpringFatalStartupErrorHandler(null), new ContextRegistryWrapper(new ContextRegistry()), Mono::error);
+        var requestQueue = new RequestQueue(new SpringFatalStartupErrorHandler(null), new ContextRegistryWrapper(), Mono::error);
         StepVerifier.create(requestQueue.getFlux().then())
                 .then(() -> requestQueue.queueRequest(new Request<>("test", HttpHeaders.of(Map.of(), (s1, s2) -> true))))
                 .then(requestQueue::shutdown)

@@ -7,7 +7,6 @@ import com.unblu.middleware.common.entity.Request;
 import com.unblu.middleware.common.error.NoHandlerException;
 import com.unblu.middleware.common.registry.ContextRegistryWrapper;
 import com.unblu.middleware.common.registry.RequestOrderSpec;
-import com.unblu.middleware.common.registry.RequestQueue;
 import com.unblu.middleware.common.registry.RequestQueueServiceImpl;
 import com.unblu.middleware.common.utils.ThrowingFunction;
 import com.unblu.middleware.outboundrequests.entity.OutboundRequestType;
@@ -40,7 +39,7 @@ public class OutboundRequestHandler extends RequestQueueServiceImpl {
     private final Map<OutboundRequestType, Class<?>> requestClassByRequestType = new ConcurrentHashMap<>();
     private final Map<Class<?>, ContextSpec<?>> contextEntriesByRequestType = new ConcurrentHashMap<>();
 
-    public OutboundRequestHandler(@Named("outboundRequestQueue") RequestQueue outboundRequestQueue, ObjectMapper objectMapper, ContextRegistryWrapper contextRegistryWrapper) {
+    public OutboundRequestHandler(OutboundRequestQueue outboundRequestQueue, ObjectMapper objectMapper, ContextRegistryWrapper contextRegistryWrapper) {
         super(outboundRequestQueue);
         this.objectMapper = objectMapper;
         this.contextRegistryWrapper = contextRegistryWrapper;
