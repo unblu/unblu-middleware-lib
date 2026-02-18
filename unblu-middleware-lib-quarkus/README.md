@@ -1,14 +1,22 @@
-# Unblu Middleware Library - Quarkus Wrapper
+# Unblu Middleware Library - Quarkus Runtime
 
-This module provides Quarkus integration for the Unblu Middleware Library.
+This module provides the Quarkus runtime components for the Unblu Middleware Library.
 
 ## Description
 
-This module wraps the core library with Quarkus-specific configuration and components:
-- Quarkus extensions and CDI integration
-- RESTEasy Reactive endpoints
-- Quarkus dependency injection setup
-- Quarkus-specific annotations and adapters
+This is the **runtime** module that clients should depend on. It provides:
+- RESTEasy Reactive endpoints for webhooks and outbound requests
+- Quarkus CDI integration
+- Runtime utilities for request/response handling
+- Configuration templates
+
+The deployment-time components (auto-configuration, bootstrapping, etc.) are in the separate `unblu-middleware-lib-quarkus-deployment` module, which is automatically pulled in by Quarkus during the build.
+
+## Architecture
+
+This module follows the Quarkus extension pattern:
+- **Runtime Module** (this module): Contains runtime components that are included in the final application
+- **Deployment Module** (`unblu-middleware-lib-quarkus-deployment`): Contains build-time components for auto-configuration
 
 ## Usage
 
@@ -30,7 +38,9 @@ Or with Maven:
 </dependency>
 ```
 
+The deployment module will be automatically included by Quarkus during the build process.
+
 ## Requirements
 
-- Quarkus 3.17.7 or higher
+- Quarkus 3.31.2 or higher
 - Java 21 or higher

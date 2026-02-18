@@ -1,0 +1,76 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'io.smallrye:jandex:3.1.6'
+    }
+}
+
+plugins {
+    id 'java-library'
+}
+
+group "com.unblu.middleware"
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+    compileJava.options.encoding = "UTF-8"
+
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Depend on runtime module
+    implementation project(':unblu-middleware-lib-quarkus')
+
+    // Quarkus deployment dependencies
+    implementation platform("io.quarkus.platform:quarkus-bom:3.31.2")
+    implementation "io.quarkus:quarkus-arc-deployment"
+    implementation "io.quarkus:quarkus-scheduler-deployment"
+    implementation "io.quarkus:quarkus-config-yaml"
+    implementation "io.smallrye.config:smallrye-config-core"
+
+    // For Jackson in DtoBinder
+    implementation "com.fasterxml.jackson.core:jackson-databind"
+
+    // Lombok
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+}
+
+tasks.register('indexUtf8') {
+    def destinationDir = file("build/resources/main/META-INF")
+    dependsOn compileJava
+    doLast {
+        def indexer = new org.jboss.jandex.Indexer()
+        sourceSets.main.output.classesDirs.each { dir ->
+            if (dir.exists()) {
+                fileTree(dir).visit { details ->
+                    if (!details.isDirectory() && details.name.endsWith(".class")) {
+                        try (def stream = new FileInputStream(details.file)) {
+                            indexer.index(stream)
+                        }
+                    }
+                }
+            }
+        }
+        def index = indexer.complete()
+        if (!destinationDir.exists()) {
+            destinationDir.mkdirs()
+        }
+        try (def stream = new FileOutputStream(new File(destinationDir, "jandex.idx"))) {
+            def writer = new org.jboss.jandex.IndexWriter(stream)
+            writer.write(index)
+        }
+    }
+}
+
+processResources.dependsOn indexUtf8

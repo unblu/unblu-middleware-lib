@@ -1,0 +1,62 @@
+plugins {
+    id 'java'
+    id 'io.quarkus' version '3.31.2'
+}
+
+group "com.unblu.middleware"
+
+java {
+    compileJava.options.encoding = "UTF-8"
+
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Depend on runtime module for runtime components
+    implementation project(':unblu-middleware-lib-quarkus')
+    implementation project(':unblu-middleware-lib-quarkus-deployment')
+
+    // Quarkus BOM
+    implementation enforcedPlatform("io.quarkus.platform:quarkus-bom:3.31.2")
+
+    // Quarkus test dependencies
+    testImplementation "io.quarkus:quarkus-junit5"
+    testImplementation "io.rest-assured:rest-assured"
+
+    // JUnit
+    testImplementation platform("org.junit:junit-bom:5.10.2")
+    testImplementation "org.junit.jupiter:junit-jupiter-api"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+
+    // Lombok for tests
+    testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+}
+
+test {
+    useJUnitPlatform()
+    systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
+}
+
+// This module only contains tests, no main sources
+sourceSets {
+    main {
+        java.srcDirs = []
+        resources.srcDirs = []
+    }
+}
+
+// Quarkus configuration
+quarkus {
+    // Disable building native image
+    quarkusBuild {
+        nativeEnabled = false
+    }
+}
+

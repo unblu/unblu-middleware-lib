@@ -1,4 +1,4 @@
-package com.unblu.middleware.common.bootstrap;
+package com.unblu.middleware.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.smallrye.config.SmallRyeConfig;
@@ -15,7 +15,9 @@ public class DtoBinder {
     public <T> T bindPrefix(SmallRyeConfig cfg, String prefix, Class<T> type) {
         Map<String, String> flat = readFlatSubtree(cfg, prefix);
         Object nested = expand(flat); // Map/List scalar tree
-        return objectMapper.convertValue(nested, type);
+        ObjectMapper mapper = objectMapper.copy();
+        mapper.setPropertyNamingStrategy(com.fasterxml.jackson.databind.PropertyNamingStrategies.KEBAB_CASE);
+        return mapper.convertValue(nested, type);
     }
 
     private Map<String, String> readFlatSubtree(SmallRyeConfig cfg, String prefix) {
@@ -99,59 +101,62 @@ public class DtoBinder {
     }
 
     private static List<Object> asList(Object o) {
-        if (o instanceof List<?> l) return (List<Object>) l;
+        if (o instanceof List<?> list) return (List<Object>) list;
         throw new IllegalArgumentException("Expected List but got: " + o.getClass());
     }
 
     private static void ensureSize(List<Object> list, int size) {
-        while (list.size() < size) list.add(null);
+        while (list.size() < size) {
+            list.add(null);
+        }
     }
 
     enum TokenKind { PROP, INDEX }
 
-    static final class Token {
-        final TokenKind kind;
-        final String name;
-        final int index;
+    static class Token {
+        TokenKind kind;
+        String name;    // for PROP
+        int index;      // for INDEX
 
-        private Token(TokenKind kind, String name, int index) {
-            this.kind = kind; this.name = name; this.index = index;
+        static List<Token> parse(String key) {
+            List<Token> result = new ArrayList<>();
+            int i = 0;
+            while (i < key.length()) {
+                if (key.charAt(i) == '[') {
+                    int close = key.indexOf(']', i);
+                    if (close == -1) throw new IllegalArgumentException("Unclosed [: " + key);
+                    String num = key.substring(i + 1, close);
+                    Token t = new Token();
+                    t.kind = TokenKind.INDEX;
+                    t.index = Integer.parseInt(num);
+                    result.add(t);
+                    i = close + 1;
+                    if (i < key.length() && key.charAt(i) == '.') i++; // skip trailing dot
+                } else {
+                    int next = indexOfAny(key, i, '[', '.');
+                    if (next == -1) next = key.length();
+                    String name = key.substring(i, next);
+                    if (!name.isEmpty()) {
+                        Token t = new Token();
+                        t.kind = TokenKind.PROP;
+                        t.name = name;
+                        result.add(t);
+                    }
+                    i = next;
+                    if (i < key.length() && key.charAt(i) == '.') i++;
+                }
+            }
+            return result;
         }
 
-        static Token prop(String name) { return new Token(TokenKind.PROP, name, -1); }
-        static Token idx(int index) { return new Token(TokenKind.INDEX, null, index); }
-
-        // Parses "a.b[0].c" into [PROP(a), PROP(b), INDEX(0), PROP(c)]
-        static List<Token> parse(String key) {
-            List<Token> out = new ArrayList<>();
-            int i = 0;
-            StringBuilder buf = new StringBuilder();
-
-            while (i < key.length()) {
-                char ch = key.charAt(i);
-
-                if (ch == '.') {
-                    if (buf.length() > 0) { out.add(prop(buf.toString())); buf.setLength(0); }
-                    i++;
-                    continue;
+        private static int indexOfAny(String s, int start, char... chars) {
+            for (int i = start; i < s.length(); i++) {
+                for (char c : chars) {
+                    if (s.charAt(i) == c) return i;
                 }
-
-                if (ch == '[') {
-                    if (buf.length() > 0) { out.add(prop(buf.toString())); buf.setLength(0); }
-                    int end = key.indexOf(']', i);
-                    if (end < 0) throw new IllegalArgumentException("Missing ] in: " + key);
-                    int idx = Integer.parseInt(key.substring(i + 1, end));
-                    out.add(idx(idx));
-                    i = end + 1;
-                    continue;
-                }
-
-                buf.append(ch);
-                i++;
             }
-
-            if (buf.length() > 0) out.add(prop(buf.toString()));
-            return out;
+            return -1;
         }
     }
 }
+

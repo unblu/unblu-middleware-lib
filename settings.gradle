@@ -3,4 +3,8 @@ rootProject.name = 'unblu-middleware-lib'
 include 'unblu-middleware-lib-core'
 include 'unblu-middleware-lib-spring'
 include 'unblu-middleware-lib-quarkus'
+include 'unblu-middleware-lib-quarkus-deployment'
+include 'unblu-middleware-lib-quarkus-integration-tests'
 
+project(':unblu-middleware-lib-quarkus').name = 'unblu-middleware-lib-quarkus'
+project(':unblu-middleware-lib-quarkus-deployment').name = 'unblu-middleware-lib-quarkus-deployment'
