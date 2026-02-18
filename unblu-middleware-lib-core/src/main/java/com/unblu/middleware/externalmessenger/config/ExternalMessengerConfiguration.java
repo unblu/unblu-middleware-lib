@@ -1,10 +1,10 @@
 package com.unblu.middleware.externalmessenger.config;
 
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 
 @Data
-@RequiredArgsConstructor
+@NoArgsConstructor
 public class ExternalMessengerConfiguration {
     private long timeoutInMilliSeconds = 1000;
     private boolean cleanPrevious = false;

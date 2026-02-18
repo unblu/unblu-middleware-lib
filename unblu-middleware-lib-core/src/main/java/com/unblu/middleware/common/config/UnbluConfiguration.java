@@ -2,10 +2,10 @@ package com.unblu.middleware.common.config;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 
 @Data
-@RequiredArgsConstructor
+@NoArgsConstructor
 public class UnbluConfiguration {
     @NotBlank
     private String host;

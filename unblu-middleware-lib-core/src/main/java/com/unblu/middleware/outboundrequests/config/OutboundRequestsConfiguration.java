@@ -2,10 +2,10 @@ package com.unblu.middleware.outboundrequests.config;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 
 @Data
-@RequiredArgsConstructor
+@NoArgsConstructor
 public class OutboundRequestsConfiguration {
     @NotBlank
     private String secret;

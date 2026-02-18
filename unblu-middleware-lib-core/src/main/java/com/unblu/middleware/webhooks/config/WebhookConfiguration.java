@@ -3,12 +3,12 @@ package com.unblu.middleware.webhooks.config;
 import com.unblu.middleware.webhooks.entity.EventName;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import java.util.Set;
 
 @Data
-@RequiredArgsConstructor
+@NoArgsConstructor
 public class WebhookConfiguration {
     @NotBlank
     private String apiPath = "/webhook";

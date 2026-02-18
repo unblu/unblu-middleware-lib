@@ -1,0 +1,23 @@
+unblu:
+  host:       # populate me
+  api-base-path: /app/rest/v4
+  user:       # populate me
+  password:   # populate me
+  middleware:
+    url:       # populate me
+    name:      # populate me
+    description: # populate me
+    auto-subscribe: true # set to true if you don't want to explicitly control subscriptions
+    auto-register: true # should always be true, only exists for testing purposes
+    self-healing-enabled: true # set to true to enable self-healing, false to disable
+    self-healing-check-interval-in-seconds: 60 # interval in seconds to check for self-healing, default is 60 seconds
+    ping-unblu-on-startup: true # set to true to verify Unblu connectivity on startup
+  outbound-requests:
+    api-path: /outbound
+    secret:
+  webhook:
+    api-path: /webhook
+    secret:          # populate me
+    event-names: []   # populate with event names you want to register, e.g. ["something.happened", "another.event"]
+#  external-messenger: {}
+

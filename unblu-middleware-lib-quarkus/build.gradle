@@ -23,13 +23,14 @@ dependencies {
     api project(':unblu-middleware-lib-core')
 
     // Quarkus specific dependencies
-    implementation enforcedPlatform("io.quarkus.platform:quarkus-bom:3.17.7")
-//    api "io.quarkus:quarkus-resteasy-reactive"
-//    api "io.quarkus:quarkus-resteasy-reactive-jackson"
+    implementation enforcedPlatform("io.quarkus.platform:quarkus-bom:3.31.2")
+    api "io.quarkus:quarkus-rest"
     api "io.quarkus:quarkus-arc"
     api "io.quarkus:quarkus-reactive-routes"
+    api "io.quarkus:quarkus-scheduler"
     api "io.quarkus:quarkus-micrometer"
     api "io.quarkus:quarkus-smallrye-health"
+    api "io.quarkus:quarkus-config-yaml"
 
     // Lombok
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
