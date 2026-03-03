@@ -46,8 +46,9 @@ dependencies {
 
     // Testing
     testImplementation "io.projectreactor:reactor-test:3.8.2"
-    testImplementation platform("org.junit:junit-bom:6.1.0-M1")
+    testImplementation platform("org.junit:junit-bom:5.10.2")
     testImplementation "org.junit.jupiter:junit-jupiter-api"
+    testImplementation "org.mockito:mockito-core:5.19.0"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
     testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 }
@@ -57,4 +58,3 @@ test {
     // use this to see the output of tests (e.g. Spring dependency problems)
     // testLogging.showStandardStreams = true
 }
-
