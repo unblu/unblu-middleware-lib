@@ -26,11 +26,16 @@ public class UnbluMiddlewareBuildStep {
                         "com.unblu.middleware.bootstrap.unbluapi.UnbluApiFactory",
                         "com.unblu.middleware.bootstrap.unbluapi.UnbluApiClientBootstrap",
                         "com.unblu.middleware.config.ConfigurationProducer",
-                        "com.unblu.middleware.config.DtoBinder"
+                        "com.unblu.middleware.config.DtoBinder",
+                        "com.unblu.middleware.quarkus.automation.AutomationBootstrap",
+                        "com.unblu.middleware.outboundrequests.OutboundRoute",
+                        "com.unblu.middleware.webhooks.WebhookRoute",
+                        "com.unblu.middleware.quarkus.error.QuarkusFatalStartupErrorHandler",
+                        "com.unblu.middleware.webhooks.controller.WebhookControllerService",
+                        "com.unblu.middleware.outboundrequests.controller.OutboundRequestsControllerService"
                 )
                 .setUnremovable()
                 .setDefaultScope(DotName.createSimple("jakarta.enterprise.context.ApplicationScoped"))
                 .build());
     }
 }
-

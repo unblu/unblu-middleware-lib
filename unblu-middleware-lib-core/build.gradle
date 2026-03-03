@@ -57,3 +57,4 @@ test {
     // use this to see the output of tests (e.g. Spring dependency problems)
     // testLogging.showStandardStreams = true
 }
+

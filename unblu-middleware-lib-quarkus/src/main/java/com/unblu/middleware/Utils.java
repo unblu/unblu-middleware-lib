@@ -3,11 +3,9 @@ package com.unblu.middleware;
 import com.unblu.middleware.common.entity.HttpResponse;
 import com.unblu.middleware.common.entity.RawRequest;
 import io.smallrye.mutiny.Uni;
-import io.vertx.core.buffer.Buffer;
 import jakarta.ws.rs.core.HttpHeaders;
-import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.Response;
 import lombok.experimental.UtilityClass;
-import org.jboss.resteasy.reactive.RestResponse;
 import org.jspecify.annotations.NonNull;
 import reactor.core.publisher.Mono;
 
@@ -20,21 +18,19 @@ public class Utils {
         return Uni.createFrom().completionStage(mono.toFuture());
     }
 
-    public static @NonNull RawRequest toLibHttpRequest(Buffer body, HttpHeaders headers) {
+    public static @NonNull RawRequest toLibHttpRequest(byte[] body, HttpHeaders headers) {
         return new RawRequest(
-                body.getBytes(),
+                body,
                 java.net.http.HttpHeaders.of(headers.getRequestHeaders().entrySet().stream()
                         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)), (a, b) -> true));
     }
 
-    public static RestResponse<Object> libHttpResponseToResponseEntity(HttpResponse<String> it) {
-        var headersMap = new MultivaluedHashMap<String, Object>();
-        it.headers().map().forEach((key, values) ->
-                values.forEach(v -> headersMap.add(key, v))
-        );
-        return RestResponse.ResponseBuilder.create(it.status())
-                .replaceAll(headersMap)
-                .status(it.status(), it.body())
-                .build();
+    public static Response libHttpResponseToResponseEntity(HttpResponse<String> it) {
+        Response.ResponseBuilder builder = Response.status(it.status());
+        it.headers().map().forEach((key, values) -> values.forEach(value -> builder.header(key, value)));
+        if (it.body() == null) {
+            return builder.build();
+        }
+        return builder.entity(it.body()).build();
     }
 }

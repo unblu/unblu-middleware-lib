@@ -37,8 +37,8 @@ subprojects {
 // Ensure deployment artifact is resolvable from project dependencies
 configurations.all {
     resolutionStrategy.dependencySubstitution {
-        substitute module("com.unblu.middleware:unblu-middleware-lib-quarkus-deployment") using project(":unblu-middleware-lib-quarkus-deployment") because "Quarkus extension deployment artifact must be resolved"
-        substitute module("com.unblu.middleware:unblu-middleware-lib-quarkus") using project(":unblu-middleware-lib-quarkus") because "Quarkus runtime artifact must be resolved"
+        substitute module("com.unblu.middleware:unblu-middleware-lib-quarkus-deployment") using project(":unblu-middleware-lib-quarkus-deployment")
+        substitute module("com.unblu.middleware:unblu-middleware-lib-quarkus") using project(":unblu-middleware-lib-quarkus")
     }
 }
 

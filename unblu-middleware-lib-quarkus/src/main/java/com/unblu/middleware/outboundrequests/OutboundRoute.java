@@ -2,18 +2,18 @@ package com.unblu.middleware.outboundrequests;
 
 import com.unblu.middleware.Utils;
 import com.unblu.middleware.outboundrequests.controller.OutboundRequestsControllerService;
-import io.quarkus.vertx.web.Body;
 import io.smallrye.mutiny.Uni;
-import io.vertx.core.buffer.Buffer;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jboss.resteasy.reactive.RestHeader;
-import org.jboss.resteasy.reactive.RestResponse;
 
 import static com.unblu.middleware.Utils.monoToUni;
 import static com.unblu.middleware.Utils.toLibHttpRequest;
@@ -23,16 +23,17 @@ import static com.unblu.middleware.Utils.toLibHttpRequest;
  */
 @ApplicationScoped
 @Slf4j
-@Path("${unblu.middleware.outbound-requests.api-path:/outbound}")
+@Path("/outbound")
 @RequiredArgsConstructor
 public class OutboundRoute {
 
     private final OutboundRequestsControllerService outboundRequestsControllerService;
 
     @POST
-    public Uni<RestResponse<Object>> outbound(
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Uni<Response> outbound(
             @RestHeader("x-unblu-service-name") String xUnbluServiceName,
-            @Body Buffer body,
+            byte[] body,
             @Context HttpHeaders headers
     ) {
         return monoToUni(
@@ -41,4 +42,3 @@ public class OutboundRoute {
         );
     }
 }
-

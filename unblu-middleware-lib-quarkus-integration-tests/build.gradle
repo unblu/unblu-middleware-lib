@@ -20,7 +20,6 @@ repositories {
 dependencies {
     // Depend on runtime module for runtime components
     implementation project(':unblu-middleware-lib-quarkus')
-    implementation project(':unblu-middleware-lib-quarkus-deployment')
 
     // Quarkus BOM
     implementation enforcedPlatform("io.quarkus.platform:quarkus-bom:3.31.2")
@@ -50,6 +49,10 @@ sourceSets {
         java.srcDirs = []
         resources.srcDirs = []
     }
+}
+
+tasks.withType(GenerateModuleMetadata).configureEach {
+    suppressedValidationErrors.add('enforced-platform')
 }
 
 // Quarkus configuration
