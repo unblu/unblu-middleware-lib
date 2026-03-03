@@ -34,7 +34,10 @@ dependencies {
     // Quarkus deployment dependencies
     implementation platform("io.quarkus.platform:quarkus-bom:3.31.2")
     implementation "io.quarkus:quarkus-arc-deployment"
-    implementation "io.quarkus:quarkus-scheduler-deployment"
+    implementation "io.quarkus:quarkus-jackson-deployment"
+    implementation "io.quarkus:quarkus-reactive-routes-deployment"
+    implementation "io.quarkus:quarkus-rest-deployment"
+    implementation "io.quarkus:quarkus-rest-jackson-deployment"
     implementation "io.quarkus:quarkus-config-yaml"
     implementation "io.smallrye.config:smallrye-config-core"
 
