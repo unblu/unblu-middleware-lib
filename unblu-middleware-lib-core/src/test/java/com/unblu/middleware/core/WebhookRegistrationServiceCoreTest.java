@@ -130,6 +130,21 @@ class WebhookRegistrationServiceCoreTest {
     }
 
     @Test
+    void givenCustomWebhookApiPath_registrationEndpointUsesConfiguredPath() throws ApiException {
+        var webhookRegistrationsApi = mock(WebhookRegistrationsApi.class);
+        var service = createService(webhookRegistrationsApi, false, eventNames("something.happened"), "/custom-webhook");
+        var createCaptor = ArgumentCaptor.forClass(WebhookRegistration.class);
+
+        when(webhookRegistrationsApi.webhookRegistrationsGetByName("middleware webhook"))
+                .thenThrow(new ApiException(404, "Not Found"));
+
+        service.autoRegister();
+
+        verify(webhookRegistrationsApi).webhookRegistrationsCreate(createCaptor.capture());
+        assertEquals("https://dummy-webhook/custom-webhook", createCaptor.getValue().getEndpoint());
+    }
+
+    @Test
     void givenRegistrationAutoDisabled_selfHealRestoresState() throws ApiException {
         var webhookRegistrationsApi = mock(WebhookRegistrationsApi.class);
         var service = createService(webhookRegistrationsApi, false, eventNames("something.happened", "another.event"));
@@ -205,6 +220,15 @@ class WebhookRegistrationServiceCoreTest {
             boolean cleanPrevious,
             Set<EventName> configuredEventNames
     ) {
+        return createService(webhookRegistrationsApi, cleanPrevious, configuredEventNames, "/webhook");
+    }
+
+    private static WebhookRegistrationServiceImpl createService(
+            WebhookRegistrationsApi webhookRegistrationsApi,
+            boolean cleanPrevious,
+            Set<EventName> configuredEventNames,
+            String apiPath
+    ) {
         var middlewareConfiguration = new MiddlewareConfiguration();
         middlewareConfiguration.setName("middleware");
         middlewareConfiguration.setUrl("https://dummy-webhook");
@@ -216,6 +240,7 @@ class WebhookRegistrationServiceCoreTest {
         webhookConfiguration.setSecret("test-secret");
         webhookConfiguration.setCleanPrevious(cleanPrevious);
         webhookConfiguration.setEventNames(configuredEventNames);
+        webhookConfiguration.setApiPath(apiPath);
 
         return new WebhookRegistrationServiceImpl(
                 webhookRegistrationsApi,

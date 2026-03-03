@@ -1,44 +1,72 @@
 package com.unblu.middleware.webhooks;
 
 import com.unblu.middleware.Utils;
+import com.unblu.middleware.common.entity.HttpResponse;
+import com.unblu.middleware.webhooks.config.WebhookConfiguration;
 import com.unblu.middleware.webhooks.controller.WebhookControllerService;
-import io.smallrye.mutiny.Uni;
+import io.quarkus.runtime.StartupEvent;
+import io.vertx.ext.web.Router;
+import io.vertx.ext.web.RoutingContext;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.HttpHeaders;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
+import jakarta.enterprise.event.Observes;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jboss.resteasy.reactive.RestHeader;
 
-import static com.unblu.middleware.Utils.monoToUni;
 import static com.unblu.middleware.Utils.toLibHttpRequest;
 
 /**
- * Quarkus reactive route for handling Unblu webhooks.
+ * Quarkus route registration for handling Unblu webhooks.
  */
 @ApplicationScoped
 @Slf4j
-@Path("/webhook")
 @RequiredArgsConstructor
 public class WebhookRoute {
 
+    private final Router router;
+    private final WebhookConfiguration webhookConfiguration;
     private final WebhookControllerService webhookControllerService;
 
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Uni<Response> webhook(
-            @RestHeader("x-unblu-event") String xUnbluEvent,
-            byte[] body,
-            @Context HttpHeaders headers
-    ) {
-        return monoToUni(
-                webhookControllerService.webhook(xUnbluEvent, toLibHttpRequest(body, headers))
-                        .map(Utils::libHttpResponseToResponseEntity)
-        );
+    void register(@Observes StartupEvent _event) {
+        var path = normalizedPath(webhookConfiguration.getApiPath());
+        log.info("Registering webhook route at {}", path);
+        router.post(path).handler(this::handleWebhook);
+    }
+
+    private void handleWebhook(RoutingContext context) {
+        var request = context.request();
+        var xUnbluEvent = request.getHeader("x-unblu-event");
+        request.exceptionHandler(context::fail);
+        request.bodyHandler(body -> Utils.monoToUni(
+                        webhookControllerService.webhook(xUnbluEvent, toLibHttpRequest(body == null ? new byte[0] : body.getBytes(), context.request().headers())))
+                .subscribe()
+                .with(
+                        response -> writeResponse(context, response),
+                        context::fail
+                ));
+        request.resume();
+    }
+
+    private static void writeResponse(RoutingContext context, HttpResponse<String> response) {
+        var vertxResponse = context.response().setStatusCode(response.status());
+        response.headers().map().forEach((name, values) -> values.forEach(value -> vertxResponse.putHeader(name, value)));
+        if (response.body() == null) {
+            vertxResponse.end();
+            return;
+        }
+        vertxResponse.end(response.body());
+    }
+
+    private static String normalizedPath(String configuredPath) {
+        var trimmed = configuredPath == null ? "" : configuredPath.trim();
+        if (trimmed.isEmpty()) {
+            return "/";
+        }
+        if (!trimmed.startsWith("/")) {
+            trimmed = "/" + trimmed;
+        }
+        if (trimmed.length() > 1 && trimmed.endsWith("/")) {
+            return trimmed.substring(0, trimmed.length() - 1);
+        }
+        return trimmed;
     }
 }

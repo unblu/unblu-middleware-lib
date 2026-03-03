@@ -3,6 +3,7 @@ package com.unblu.middleware;
 import com.unblu.middleware.common.entity.HttpResponse;
 import com.unblu.middleware.common.entity.RawRequest;
 import io.smallrye.mutiny.Uni;
+import io.vertx.core.MultiMap;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import lombok.experimental.UtilityClass;
@@ -23,6 +24,13 @@ public class Utils {
                 body,
                 java.net.http.HttpHeaders.of(headers.getRequestHeaders().entrySet().stream()
                         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)), (a, b) -> true));
+    }
+
+    public static @NonNull RawRequest toLibHttpRequest(byte[] body, MultiMap headers) {
+        return new RawRequest(
+                body,
+                java.net.http.HttpHeaders.of(headers.names().stream()
+                        .collect(Collectors.toMap(name -> name, headers::getAll)), (a, b) -> true));
     }
 
     public static Response libHttpResponseToResponseEntity(HttpResponse<String> it) {

@@ -9,6 +9,8 @@ import org.apache.commons.codec.digest.HmacAlgorithms;
 import org.apache.commons.codec.digest.HmacUtils;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
+
 import static io.restassured.RestAssured.given;
 
 @QuarkusTest
@@ -27,7 +29,7 @@ class OutboundRouteE2ETest {
                 .contentType("application/json")
                 .body(body)
                 .when()
-                .post("/outbound")
+                .post(outboundRequestsConfiguration.getApiPath())
                 .then()
                 .statusCode(400);
     }
@@ -43,7 +45,7 @@ class OutboundRouteE2ETest {
                 .contentType("application/json")
                 .body(body)
                 .when()
-                .post("/outbound")
+                .post(outboundRequestsConfiguration.getApiPath())
                 .then()
                 .statusCode(200);
     }
@@ -57,7 +59,7 @@ class OutboundRouteE2ETest {
                 .contentType("application/json")
                 .body("{\"type\":\"outbound.request\"}")
                 .when()
-                .post("/outbound")
+                .post(outboundRequestsConfiguration.getApiPath())
                 .then()
                 .statusCode(400);
     }
@@ -72,7 +74,7 @@ class OutboundRouteE2ETest {
                 .contentType("application/json")
                 .body(body)
                 .when()
-                .post("/outbound")
+                .post(outboundRequestsConfiguration.getApiPath())
                 .then()
                 .statusCode(400);
     }
@@ -83,5 +85,9 @@ class OutboundRouteE2ETest {
     }
 
     public static class Profile implements QuarkusTestProfile {
+        @Override
+        public Map<String, String> getConfigOverrides() {
+            return Map.of("unblu.outbound-requests.api-path", "/custom-outbound");
+        }
     }
 }

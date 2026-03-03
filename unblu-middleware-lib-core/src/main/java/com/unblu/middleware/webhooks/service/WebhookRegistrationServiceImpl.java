@@ -123,6 +123,20 @@ public class WebhookRegistrationServiceImpl extends RegistrationService<WebhookR
     }
 
     private String getWebhookUrl() {
-        return middlewareConfiguration.getUrl() + "/webhook";
+        return middlewareConfiguration.getUrl() + normalizedPath(webhookConfiguration.getApiPath());
+    }
+
+    private static String normalizedPath(String configuredPath) {
+        var trimmed = configuredPath == null ? "" : configuredPath.trim();
+        if (trimmed.isEmpty()) {
+            return "/webhook";
+        }
+        if (!trimmed.startsWith("/")) {
+            trimmed = "/" + trimmed;
+        }
+        if (trimmed.length() > 1 && trimmed.endsWith("/")) {
+            return trimmed.substring(0, trimmed.length() - 1);
+        }
+        return trimmed;
     }
 }

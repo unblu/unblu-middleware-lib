@@ -11,6 +11,8 @@ import org.apache.commons.codec.digest.HmacUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
+
 import static com.unblu.middleware.webhooks.entity.EventName.eventName;
 import static io.restassured.RestAssured.given;
 import static reactor.core.publisher.Mono.empty;
@@ -40,7 +42,7 @@ class WebhookRouteE2ETest {
                 .contentType("application/json")
                 .body(body)
                 .when()
-                .post("/webhook")
+                .post(webhookConfiguration.getApiPath())
                 .then()
                 .statusCode(400);
     }
@@ -56,7 +58,7 @@ class WebhookRouteE2ETest {
                 .contentType("application/json")
                 .body(body)
                 .when()
-                .post("/webhook")
+                .post(webhookConfiguration.getApiPath())
                 .then()
                 .statusCode(200);
     }
@@ -72,7 +74,7 @@ class WebhookRouteE2ETest {
                 .contentType("application/json")
                 .body(body)
                 .when()
-                .post("/webhook")
+                .post(webhookConfiguration.getApiPath())
                 .then()
                 .statusCode(200);
     }
@@ -86,7 +88,7 @@ class WebhookRouteE2ETest {
                 .contentType("application/json")
                 .body("{\"type\":\"event\"}")
                 .when()
-                .post("/webhook")
+                .post(webhookConfiguration.getApiPath())
                 .then()
                 .statusCode(400);
     }
@@ -101,7 +103,7 @@ class WebhookRouteE2ETest {
                 .contentType("application/json")
                 .body(body)
                 .when()
-                .post("/webhook")
+                .post(webhookConfiguration.getApiPath())
                 .then()
                 .statusCode(400);
     }
@@ -112,6 +114,9 @@ class WebhookRouteE2ETest {
     }
 
     public static class Profile implements QuarkusTestProfile {
+        @Override
+        public Map<String, String> getConfigOverrides() {
+            return Map.of("unblu.webhook.api-path", "/custom-webhook");
+        }
     }
 }
-
