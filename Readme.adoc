@@ -21,6 +21,30 @@ Main features:
 * Uses reactor to handle backpressure, supports options for asynchronous processing, as well as order guarantees where needed
 * Provides utility methods to define webhook handlers, declare conditions to accept boarding requests, or allowing you to react on different types of dialog bot outbound requests
 
+== Quarkus feature annotations
+
+In Quarkus applications, you can explicitly enable middleware features by annotating any application class (for example your startup/service class) with:
+
+* `@EnableUnbluMiddlewareLibCommon`
+* `@EnableUnbluOutboundRequests`
+* `@EnableUnbluWebhooks`
+* `@EnableUnbluDialogBot`
+* `@EnableUnbluConversationObservingBot`
+* `@EnableUnbluExternalMessenger`
+
+Example:
+
+[source,java]
+----
+import com.unblu.middleware.bots.annotation.EnableUnbluDialogBot;
+import jakarta.inject.Singleton;
+
+@Singleton
+@EnableUnbluDialogBot
+public class MyAwesomeMiddlewareService {
+}
+----
+
 == Quick start - webhooks (Spring Boot)
 
 Add a dependency to your `build.gradle` file:

@@ -1,6 +1,7 @@
 package com.unblu.middleware.integration;
 
 import com.unblu.middleware.bootstrap.unbluapi.UnbluApiFactory;
+import com.unblu.middleware.common.annotation.EnableUnbluMiddlewareLibCommon;
 import com.unblu.webapi.jersey.v4.api.AccountsApi;
 import com.unblu.webapi.jersey.v4.invoker.ApiClient;
 import io.quarkus.test.junit.QuarkusTest;
@@ -14,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Tests that the factory is properly injected in a Quarkus context.
  */
 @QuarkusTest
+@EnableUnbluMiddlewareLibCommon
 class UnbluApiFactoryIntegrationTest {
 
     @Inject
@@ -60,4 +62,3 @@ class UnbluApiFactoryIntegrationTest {
         assertNotNull(accountsApi.getApiClient().getBasePath(), "API should have configured base path");
     }
 }
-

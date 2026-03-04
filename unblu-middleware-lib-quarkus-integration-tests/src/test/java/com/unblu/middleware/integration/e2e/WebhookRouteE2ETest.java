@@ -1,5 +1,6 @@
 package com.unblu.middleware.integration.e2e;
 
+import com.unblu.middleware.webhooks.annotation.EnableUnbluWebhooks;
 import com.unblu.middleware.webhooks.config.WebhookConfiguration;
 import com.unblu.middleware.webhooks.service.WebhookHandler;
 import io.quarkus.test.junit.QuarkusTest;
@@ -18,6 +19,7 @@ import static io.restassured.RestAssured.given;
 import static reactor.core.publisher.Mono.empty;
 
 @QuarkusTest
+@EnableUnbluWebhooks
 @TestProfile(WebhookRouteE2ETest.Profile.class)
 class WebhookRouteE2ETest {
 
