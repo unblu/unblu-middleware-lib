@@ -27,7 +27,7 @@ public class OutboundRoute {
     private final OutboundRequestsControllerService outboundRequestsControllerService;
 
     void register(@Observes StartupEvent _event) {
-        var path = normalizedPath(outboundRequestsConfiguration.getApiPath());
+        var path = normalizedPath(outboundRequestsConfiguration.apiPath());
         log.info("Registering outbound route at {}", path);
         router.post(path).handler(this::handleOutbound);
     }

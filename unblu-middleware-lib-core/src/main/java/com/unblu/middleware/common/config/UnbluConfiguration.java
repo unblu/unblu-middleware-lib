@@ -1,20 +1,13 @@
 package com.unblu.middleware.common.config;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@Data
-@NoArgsConstructor
-public class UnbluConfiguration {
-    @NotBlank
-    private String host;
-    @NotBlank
-    private String apiBasePath;
-    @NotBlank
-    private String user;
-    @NotBlank
-    private String password;
-    private String idPropagationHeaderName;
-    private String idPropagationUserId;
+public record UnbluConfiguration(
+        @NotBlank String host,
+        @NotBlank String apiBasePath,
+        @NotBlank String user,
+        @NotBlank String password,
+        String idPropagationHeaderName,
+        String idPropagationUserId
+) {
 }

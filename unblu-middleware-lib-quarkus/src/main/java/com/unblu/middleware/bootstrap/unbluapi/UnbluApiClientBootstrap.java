@@ -16,12 +16,12 @@ public class UnbluApiClientBootstrap {
     @ApplicationScoped
     public ApiClient apiClient() {
         ApiClient apiClient = new ApiClient();
-        apiClient.setBasePath(configuration.getHost() + configuration.getApiBasePath());
-        apiClient.setUsername(configuration.getUser());
-        apiClient.setPassword(configuration.getPassword());
+        apiClient.setBasePath(configuration.host() + configuration.apiBasePath());
+        apiClient.setUsername(configuration.user());
+        apiClient.setPassword(configuration.password());
 
-        if (configuration.getIdPropagationHeaderName() != null && configuration.getIdPropagationUserId() != null) {
-            apiClient.addDefaultHeader(configuration.getIdPropagationHeaderName(), configuration.getIdPropagationUserId());
+        if (configuration.idPropagationHeaderName() != null && configuration.idPropagationUserId() != null) {
+            apiClient.addDefaultHeader(configuration.idPropagationHeaderName(), configuration.idPropagationUserId());
         }
 
         return apiClient;

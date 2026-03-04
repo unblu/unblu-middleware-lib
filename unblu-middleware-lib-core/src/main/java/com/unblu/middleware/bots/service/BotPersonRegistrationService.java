@@ -22,7 +22,7 @@ public class BotPersonRegistrationService {
 
     public PersonData assertBotPersonRegistered() {
         try {
-            return personsApi.personsGetBySource(EPersonSource.VIRTUAL, botConfiguration.getPerson().getSourceId(), List.of());
+            return personsApi.personsGetBySource(EPersonSource.VIRTUAL, botConfiguration.person().sourceId(), List.of());
         } catch (ApiException e) {
             if (e.getCode() == 404) {
                 return createBotPerson();
@@ -33,13 +33,13 @@ public class BotPersonRegistrationService {
     }
 
     private PersonData createBotPerson() {
-        var person = botConfiguration.getPerson();
+        var person = botConfiguration.person();
         try {
             return personsApi.personsCreateOrUpdateBot(
                     new PersonData()
-                            .firstName(person.getFirstName())
-                            .lastName(person.getLastName())
-                            .sourceId(person.getSourceId()),
+                            .firstName(person.firstName())
+                            .lastName(person.lastName())
+                            .sourceId(person.sourceId()),
                     List.of()
             );
         } catch (ApiException e) {

@@ -24,25 +24,24 @@ class ConfigurationIntegrationTest {
 
     @Test
     void testMiddlewareConfigurationIsPopulated() {
-        assertNotNull(middlewareConfiguration.getUrl(), "Middleware URL should be configured");
-        assertEquals("http://localhost:9090", middlewareConfiguration.getUrl(),
+        assertNotNull(middlewareConfiguration.url(), "Middleware URL should be configured");
+        assertEquals("http://localhost:9090", middlewareConfiguration.url(),
             "Middleware URL should match test configuration");
 
-        assertNotNull(middlewareConfiguration.getName(), "Middleware name should be configured");
-        assertEquals("test-middleware", middlewareConfiguration.getName(),
+        assertNotNull(middlewareConfiguration.name(), "Middleware name should be configured");
+        assertEquals("test-middleware", middlewareConfiguration.name(),
             "Middleware name should match test configuration");
     }
 
     @Test
     void testAutoConfigurationFlags() {
-        assertFalse(middlewareConfiguration.isAutoSubscribe(),
+        assertFalse(middlewareConfiguration.autoSubscribe(),
             "Auto-subscribe should be disabled in test configuration");
-        assertFalse(middlewareConfiguration.isAutoRegister(),
+        assertFalse(middlewareConfiguration.autoRegister(),
             "Auto-register should be disabled in test configuration");
-        assertFalse(middlewareConfiguration.isSelfHealingEnabled(),
+        assertFalse(middlewareConfiguration.selfHealingEnabled(),
             "Self-healing should be disabled in test configuration");
-        assertFalse(middlewareConfiguration.isPingUnbluOnStartup(),
+        assertFalse(middlewareConfiguration.pingUnbluOnStartup(),
             "Ping on startup should be disabled in test configuration");
     }
 }
-

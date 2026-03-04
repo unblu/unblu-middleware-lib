@@ -5,12 +5,14 @@ import com.unblu.middleware.externalmessenger.config.ExternalMessengerConfigurat
 import com.unblu.middleware.outboundrequests.config.OutboundRequestsConfiguration;
 import com.unblu.middleware.webhooks.config.WebhookConfiguration;
 import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-@Data
+@Getter
+@Setter
 @Configuration
 @ConfigurationProperties(prefix = "unblu")
 public class MiddlewareLibConfigurationProperties {
@@ -39,14 +41,7 @@ public class MiddlewareLibConfigurationProperties {
 
     @Bean
     public UnbluConfiguration unbluConfiguration() {
-        var unbluConfig = new UnbluConfiguration();
-        unbluConfig.setHost(host);
-        unbluConfig.setApiBasePath(apiBasePath);
-        unbluConfig.setUser(user);
-        unbluConfig.setPassword(password);
-        unbluConfig.setIdPropagationHeaderName(idPropagationHeaderName);
-        unbluConfig.setIdPropagationUserId(idPropagationUserId);
-        return unbluConfig;
+        return new UnbluConfiguration(host, apiBasePath, user, password, idPropagationHeaderName, idPropagationUserId);
     }
 
     @Bean

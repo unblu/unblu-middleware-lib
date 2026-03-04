@@ -42,7 +42,7 @@ class WebhookRouteE2ETest {
                 .contentType("application/json")
                 .body(body)
                 .when()
-                .post(webhookConfiguration.getApiPath())
+                .post(webhookConfiguration.apiPath())
                 .then()
                 .statusCode(400);
     }
@@ -58,7 +58,7 @@ class WebhookRouteE2ETest {
                 .contentType("application/json")
                 .body(body)
                 .when()
-                .post(webhookConfiguration.getApiPath())
+                .post(webhookConfiguration.apiPath())
                 .then()
                 .statusCode(200);
     }
@@ -74,7 +74,7 @@ class WebhookRouteE2ETest {
                 .contentType("application/json")
                 .body(body)
                 .when()
-                .post(webhookConfiguration.getApiPath())
+                .post(webhookConfiguration.apiPath())
                 .then()
                 .statusCode(200);
     }
@@ -88,7 +88,7 @@ class WebhookRouteE2ETest {
                 .contentType("application/json")
                 .body("{\"type\":\"event\"}")
                 .when()
-                .post(webhookConfiguration.getApiPath())
+                .post(webhookConfiguration.apiPath())
                 .then()
                 .statusCode(400);
     }
@@ -103,13 +103,13 @@ class WebhookRouteE2ETest {
                 .contentType("application/json")
                 .body(body)
                 .when()
-                .post(webhookConfiguration.getApiPath())
+                .post(webhookConfiguration.apiPath())
                 .then()
                 .statusCode(400);
     }
 
     private String sign(String body) {
-        return new HmacUtils(HmacAlgorithms.HMAC_SHA_1, webhookConfiguration.getSecret())
+        return new HmacUtils(HmacAlgorithms.HMAC_SHA_1, webhookConfiguration.secret())
                 .hmacHex(body.getBytes());
     }
 

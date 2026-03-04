@@ -62,7 +62,7 @@ public class WebhookRequestHandlerImpl extends RequestQueueServiceImpl implement
     }
 
     private void checkThatIsRegisteredFor(EventName eventName) {
-        if (middlewareConfiguration.isAutoRegister()) {
+        if (middlewareConfiguration.autoRegister()) {
             webhookRegistrationService.assertRegistered(eventName);
         } else if (!webhookRegistrationService.isRegisteredFor(eventName)) {
             log.warn("While registering a handler for webhook event {}, we detected that the event was not registered " +

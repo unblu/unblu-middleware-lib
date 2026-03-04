@@ -32,9 +32,9 @@ public class ExternalMessengerRegistrationService extends RegistrationService<Cu
 
     public ExternalMessengerRegistrationService(ExternalMessengersApi externalMessengersApi, ExternalMessengerConfiguration externalMessengerConfiguration, OutboundRequestsConfiguration outboundRequestsConfiguration, MiddlewareConfiguration middlewareConfiguration) {
         super(new RegistrationConfiguration(
-                middlewareConfiguration.getName() + " external messenger",
-                externalMessengerConfiguration.isCleanPrevious(),
-                outboundRequestsConfiguration.getSecret()
+                middlewareConfiguration.name() + " external messenger",
+                externalMessengerConfiguration.cleanPrevious(),
+                outboundRequestsConfiguration.secret()
         ));
         this.externalMessengersApi = externalMessengersApi;
         this.externalMessengerConfiguration = externalMessengerConfiguration;
@@ -79,11 +79,11 @@ public class ExternalMessengerRegistrationService extends RegistrationService<Cu
         }
         return Optional.of(channel
                         .name(getRegistrationName())
-                        .description(Strings.isNullOrEmpty(middlewareConfiguration.getDescription()) ? "Registered from Middleware: " + middlewareConfiguration.getName() : middlewareConfiguration.getDescription())
+                        .description(Strings.isNullOrEmpty(middlewareConfiguration.description()) ? "Registered from Middleware: " + middlewareConfiguration.name() : middlewareConfiguration.description())
                         .webhookApiVersion(EWebApiVersion.V4)
                         .outboundSupported(true)
                         .webhookEndpoint(getExternalMessengerUrl())
-                        .webhookSecret(outboundRequestsConfiguration.getSecret())
+                        .webhookSecret(outboundRequestsConfiguration.secret())
 
                         // TODO following should be configurable
                         .outboundTimeoutMillis(10000L)
@@ -97,6 +97,6 @@ public class ExternalMessengerRegistrationService extends RegistrationService<Cu
     }
 
     private String getExternalMessengerUrl() {
-        return middlewareConfiguration.getUrl() + outboundRequestsConfiguration.getApiPath();
+        return middlewareConfiguration.url() + outboundRequestsConfiguration.apiPath();
     }
 }

@@ -1,12 +1,13 @@
 package com.unblu.middleware.externalmessenger.config;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-public class ExternalMessengerConfiguration {
-    private long timeoutInMilliSeconds = 1000;
-    private boolean cleanPrevious = false;
-    private boolean messageStateHandledExternally = false;
+public record ExternalMessengerConfiguration(
+        Long timeoutInMilliSeconds,
+        Boolean cleanPrevious,
+        Boolean messageStateHandledExternally
+) {
+    public ExternalMessengerConfiguration {
+        timeoutInMilliSeconds = timeoutInMilliSeconds == null ? 1000L : timeoutInMilliSeconds;
+        cleanPrevious = cleanPrevious == null ? Boolean.FALSE : cleanPrevious;
+        messageStateHandledExternally = messageStateHandledExternally == null ? Boolean.FALSE : messageStateHandledExternally;
+    }
 }

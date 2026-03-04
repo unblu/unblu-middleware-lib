@@ -32,9 +32,9 @@ public class BotRegistrationService extends RegistrationService<CustomDialogBotD
 
     public BotRegistrationService(BotsApi botsApi, BotConfiguration botConfiguration, MiddlewareConfiguration middlewareConfiguration, OutboundRequestsConfiguration outboundRequestsConfiguration, BotPersonRegistrationService botPersonRegistrationService) {
         super(new RegistrationConfiguration(
-                middlewareConfiguration.getName() + " bot",
-                botConfiguration.isCleanPrevious(),
-                outboundRequestsConfiguration.getSecret()
+                middlewareConfiguration.name() + " bot",
+                botConfiguration.cleanPrevious(),
+                outboundRequestsConfiguration.secret()
         ));
         this.botsApi = botsApi;
         this.botConfiguration = botConfiguration;
@@ -94,24 +94,24 @@ public class BotRegistrationService extends RegistrationService<CustomDialogBotD
         return Optional.of(botData
                 .webhookApiVersion(EWebApiVersion.V4)
                 .name(getRegistrationName())
-                .description(Strings.isNullOrEmpty(middlewareConfiguration.getDescription()) ? "Registered from Middleware: " + middlewareConfiguration.getName() : middlewareConfiguration.getDescription())
+                .description(Strings.isNullOrEmpty(middlewareConfiguration.description()) ? "Registered from Middleware: " + middlewareConfiguration.name() : middlewareConfiguration.description())
                 .webhookEndpoint(getBotUrl())
-                .webhookSecret(outboundRequestsConfiguration.getSecret())
-                .outboundTimeoutMillis(botConfiguration.getTimeoutInMilliSeconds())
-                .onboardingOrder(botConfiguration.getOnboardingOrder())
-                .reboardingOrder(botConfiguration.getReboardingOrder())
-                .onboardingFilter(botConfiguration.getOnboardingFilter())
-                .offboardingOrder(botConfiguration.getOffboardingOrder())
-                .offboardingFilter(botConfiguration.getOffboardingFilter())
-                .onTimeoutBehavior(botConfiguration.getOnTimeoutBehavior())
-                .messageStateHandledExternally(botConfiguration.isMessageStateHandledExternally())
-                .automaticTypingStateHandlingEnabled(botConfiguration.isAutomaticTypingStateHandlingEnabled())
-                .needsCounterpartPresence(botConfiguration.isNeedsCounterpartPresence())
-                .retryCount(botConfiguration.getRetryCount())
-                .retryDelay(botConfiguration.getRetryDelayInMilliSeconds()));
+                .webhookSecret(outboundRequestsConfiguration.secret())
+                .outboundTimeoutMillis(botConfiguration.timeoutInMilliSeconds())
+                .onboardingOrder(botConfiguration.onboardingOrder())
+                .reboardingOrder(botConfiguration.reboardingOrder())
+                .onboardingFilter(botConfiguration.onboardingFilter())
+                .offboardingOrder(botConfiguration.offboardingOrder())
+                .offboardingFilter(botConfiguration.offboardingFilter())
+                .onTimeoutBehavior(botConfiguration.onTimeoutBehavior())
+                .messageStateHandledExternally(botConfiguration.messageStateHandledExternally())
+                .automaticTypingStateHandlingEnabled(botConfiguration.automaticTypingStateHandlingEnabled())
+                .needsCounterpartPresence(botConfiguration.needsCounterpartPresence())
+                .retryCount(botConfiguration.retryCount())
+                .retryDelay(botConfiguration.retryDelayInMilliSeconds()));
     }
 
     private String getBotUrl() {
-        return middlewareConfiguration.getUrl() + outboundRequestsConfiguration.getApiPath();
+        return middlewareConfiguration.url() + outboundRequestsConfiguration.apiPath();
     }
 }

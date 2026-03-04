@@ -12,8 +12,11 @@ import org.skyscreamer.jsonassert.JSONCompareResult;
 @UtilityClass
 public class ObjectUtils {
 
-    @Getter
     private static final ObjectMapper objectMapper = new JSON().getContext(Object.class).copy();
+
+    public static ObjectMapper getObjectMapper() {
+        return objectMapper;
+    }
 
     @SuppressWarnings("unchecked")
     public static <T> T copyOf(T object) {

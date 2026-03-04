@@ -1,20 +1,23 @@
 package com.unblu.middleware.common.config;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@Data
-@NoArgsConstructor
-public class MiddlewareConfiguration {
-    @NotBlank
-    private String name;
-    private String description = "";
-    @NotBlank
-    private String url;
-    private boolean autoRegister = true;
-    private boolean autoSubscribe = true;
-    private boolean selfHealingEnabled = true;
-    private long selfHealingCheckIntervalInSeconds = 60;
-    private boolean pingUnbluOnStartup = true;
+public record MiddlewareConfiguration(
+        @NotBlank String name,
+        String description,
+        @NotBlank String url,
+        Boolean autoRegister,
+        Boolean autoSubscribe,
+        Boolean selfHealingEnabled,
+        Long selfHealingCheckIntervalInSeconds,
+        Boolean pingUnbluOnStartup
+) {
+    public MiddlewareConfiguration {
+        description = description == null ? "" : description;
+        autoRegister = autoRegister == null ? Boolean.TRUE : autoRegister;
+        autoSubscribe = autoSubscribe == null ? Boolean.TRUE : autoSubscribe;
+        selfHealingEnabled = selfHealingEnabled == null ? Boolean.TRUE : selfHealingEnabled;
+        selfHealingCheckIntervalInSeconds = selfHealingCheckIntervalInSeconds == null ? 60L : selfHealingCheckIntervalInSeconds;
+        pingUnbluOnStartup = pingUnbluOnStartup == null ? Boolean.TRUE : pingUnbluOnStartup;
+    }
 }

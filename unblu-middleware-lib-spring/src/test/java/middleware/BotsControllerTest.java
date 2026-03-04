@@ -118,6 +118,6 @@ class BotsControllerTest {
     }
 
     private String calculateSignature(Object body) {
-        return new HmacUtils(HmacAlgorithms.HMAC_SHA_1, outboundRequestsConfiguration.getSecret()).hmacHex(body.toString().getBytes());
+        return new HmacUtils(HmacAlgorithms.HMAC_SHA_1, outboundRequestsConfiguration.secret()).hmacHex(body.toString().getBytes());
     }
 }

@@ -46,10 +46,16 @@ class ProcessingContinuesOnErrorCoreTest {
         var webhookRegistrationService = mock(WebhookRegistrationService.class);
         when(webhookRegistrationService.isRegisteredFor(any(EventName.class))).thenReturn(true);
 
-        var middlewareConfiguration = new MiddlewareConfiguration();
-        middlewareConfiguration.setAutoRegister(false);
-        middlewareConfiguration.setName("middleware");
-        middlewareConfiguration.setUrl("https://dummy");
+        var middlewareConfiguration = new MiddlewareConfiguration(
+                "middleware",
+                "",
+                "https://dummy",
+                false,
+                true,
+                true,
+                60L,
+                true
+        );
 
         var webhookRequestQueue = new WebhookRequestQueue(() -> {
         }, contextRegistryWrapper, queueErrorHandler);
@@ -135,4 +141,3 @@ class ProcessingContinuesOnErrorCoreTest {
         return HttpHeaders.of(Map.of(), (_k, _v) -> true);
     }
 }
-

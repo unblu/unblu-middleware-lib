@@ -9,6 +9,7 @@ import com.unblu.middleware.webhooks.config.WebhookConfiguration;
 import io.smallrye.config.SmallRyeConfig;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Singleton;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -23,37 +24,37 @@ public class ConfigurationProducer {
     private final DtoBinder binder;
 
     @Produces
-    @ApplicationScoped
+    @Singleton
     public UnbluConfiguration unbluConfiguration() {
         return binder.bindPrefix(config, "unblu", UnbluConfiguration.class);
     }
 
     @Produces
-    @ApplicationScoped
+    @Singleton
     public BotConfiguration botConfiguration() {
         return binder.bindPrefix(config, "unblu.bot", BotConfiguration.class);
     }
 
     @Produces
-    @ApplicationScoped
+    @Singleton
     public MiddlewareConfiguration middlewareConfiguration() {
         return binder.bindPrefix(config, "unblu.middleware", MiddlewareConfiguration.class);
     }
 
     @Produces
-    @ApplicationScoped
+    @Singleton
     public WebhookConfiguration webhookConfiguration() {
         return binder.bindPrefix(config, "unblu.webhook", WebhookConfiguration.class);
     }
 
     @Produces
-    @ApplicationScoped
+    @Singleton
     public OutboundRequestsConfiguration outboundRequestsConfiguration() {
         return binder.bindPrefix(config, "unblu.outbound-requests", OutboundRequestsConfiguration.class);
     }
 
     @Produces
-    @ApplicationScoped
+    @Singleton
     public ExternalMessengerConfiguration externalMessengerConfiguration() {
         return binder.bindPrefix(config, "unblu.external-messenger", ExternalMessengerConfiguration.class);
     }

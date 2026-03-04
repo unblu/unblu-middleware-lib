@@ -24,14 +24,14 @@ public class AutomationBootstrap {
     private final Instance<Subscribable> subscribableBeans;
 
     void onStart(@Observes @Priority(Interceptor.Priority.APPLICATION + 1000) StartupEvent event) {
-        if (middlewareConfiguration.isAutoRegister()) {
+        if (middlewareConfiguration.autoRegister()) {
             var autoRegistrables = StreamSupport.stream(autoRegistrableBeans.spliterator(), false).toList();
             log.info("Initializing auto-registration of {} bean(s)", autoRegistrables.size());
             autoRegistrables.forEach(AutoRegistrable::autoRegister);
             log.info("Auto-registration completed");
         }
 
-        if (middlewareConfiguration.isAutoSubscribe()) {
+        if (middlewareConfiguration.autoSubscribe()) {
             var subscribables = StreamSupport.stream(subscribableBeans.spliterator(), false).toList();
             log.info("Initializing auto-subscribe of {} bean(s)", subscribables.size());
             subscribables.forEach(Subscribable::assertSubscribed);

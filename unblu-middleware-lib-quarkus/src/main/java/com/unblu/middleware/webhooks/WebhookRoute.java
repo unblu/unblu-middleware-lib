@@ -27,7 +27,7 @@ public class WebhookRoute {
     private final WebhookControllerService webhookControllerService;
 
     void register(@Observes StartupEvent _event) {
-        var path = normalizedPath(webhookConfiguration.getApiPath());
+        var path = normalizedPath(webhookConfiguration.apiPath());
         log.info("Registering webhook route at {}", path);
         router.post(path).handler(this::handleWebhook);
     }

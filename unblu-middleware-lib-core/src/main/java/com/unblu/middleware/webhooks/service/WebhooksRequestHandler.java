@@ -14,6 +14,6 @@ import static com.unblu.middleware.webhooks.util.WebhookContextSpecUtil.webhookH
 @Singleton
 public class WebhooksRequestHandler extends RequestHandler {
     public WebhooksRequestHandler(WebhookConfiguration webhookConfiguration, ContextRegistryWrapper contextRegistryWrapper, ObjectMapper objectMapper) {
-        super(new RequestHandlerConfiguration(webhookConfiguration.getSecret()), contextRegistryWrapper, objectMapper, webhookHeadersContextSpec());
+        super(new RequestHandlerConfiguration(webhookConfiguration.secret()), contextRegistryWrapper, objectMapper, webhookHeadersContextSpec());
     }
 }

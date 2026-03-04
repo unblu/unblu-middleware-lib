@@ -34,14 +34,14 @@ public class WebhookRegistrationServiceImpl extends RegistrationService<WebhookR
 
     public WebhookRegistrationServiceImpl(WebhookRegistrationsApi webhookRegistrationsApi, WebhookConfiguration webhookConfiguration, MiddlewareConfiguration middlewareConfiguration) {
         super(new RegistrationConfiguration(
-                middlewareConfiguration.getName() + " webhook",
-                webhookConfiguration.isCleanPrevious(),
-                webhookConfiguration.getSecret()
+                middlewareConfiguration.name() + " webhook",
+                webhookConfiguration.cleanPrevious(),
+                webhookConfiguration.secret()
         ));
         this.webhookRegistrationsApi = webhookRegistrationsApi;
         this.webhookConfiguration = webhookConfiguration;
         this.middlewareConfiguration = middlewareConfiguration;
-        Optional.ofNullable(webhookConfiguration.getEventNames())
+        Optional.ofNullable(webhookConfiguration.eventNames())
                 .ifPresent(registeredEventNames::addAll);
     }
 
@@ -71,7 +71,7 @@ public class WebhookRegistrationServiceImpl extends RegistrationService<WebhookR
     // the initial registration will include all events from the configuration anyway.
     // This is to avoid calling registration updates when registering multiple webhooks using subsequent webhookHandlerService.on...() calls
     private boolean shouldReconcile() {
-        return !middlewareConfiguration.isAutoRegister() || hasAutoRegistered();
+        return !middlewareConfiguration.autoRegister() || hasAutoRegistered();
     }
 
     @Override
@@ -115,15 +115,15 @@ public class WebhookRegistrationServiceImpl extends RegistrationService<WebhookR
         }
         return Optional.of(webhookRegistration
                 .name(getRegistrationName())
-                .description(Strings.isNullOrEmpty(middlewareConfiguration.getDescription()) ? "Registered from Middleware: " + middlewareConfiguration.getName() : middlewareConfiguration.getDescription())
+                .description(Strings.isNullOrEmpty(middlewareConfiguration.description()) ? "Registered from Middleware: " + middlewareConfiguration.name() : middlewareConfiguration.description())
                 .events(registeredEventNames.stream().map(EventName::name).toList())
                 .apiVersion(EWebApiVersion.V4)
                 .endpoint(getWebhookUrl())
-                .secret(webhookConfiguration.getSecret()));
+                .secret(webhookConfiguration.secret()));
     }
 
     private String getWebhookUrl() {
-        return middlewareConfiguration.getUrl() + normalizedPath(webhookConfiguration.getApiPath());
+        return middlewareConfiguration.url() + normalizedPath(webhookConfiguration.apiPath());
     }
 
     private static String normalizedPath(String configuredPath) {

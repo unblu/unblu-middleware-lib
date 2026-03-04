@@ -139,6 +139,6 @@ class WebhookControllerTest {
     }
 
     private String calculateSignature(Object body) {
-        return new HmacUtils(HmacAlgorithms.HMAC_SHA_1, webhookConfiguration.getSecret()).hmacHex(body.toString().getBytes());
+        return new HmacUtils(HmacAlgorithms.HMAC_SHA_1, webhookConfiguration.secret()).hmacHex(body.toString().getBytes());
     }
 }

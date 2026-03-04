@@ -229,18 +229,23 @@ class WebhookRegistrationServiceCoreTest {
             Set<EventName> configuredEventNames,
             String apiPath
     ) {
-        var middlewareConfiguration = new MiddlewareConfiguration();
-        middlewareConfiguration.setName("middleware");
-        middlewareConfiguration.setUrl("https://dummy-webhook");
-        middlewareConfiguration.setDescription("");
-        middlewareConfiguration.setAutoRegister(false);
-        middlewareConfiguration.setAutoSubscribe(false);
+        var middlewareConfiguration = new MiddlewareConfiguration(
+                "middleware",
+                "",
+                "https://dummy-webhook",
+                false,
+                false,
+                true,
+                60L,
+                true
+        );
 
-        var webhookConfiguration = new WebhookConfiguration();
-        webhookConfiguration.setSecret("test-secret");
-        webhookConfiguration.setCleanPrevious(cleanPrevious);
-        webhookConfiguration.setEventNames(configuredEventNames);
-        webhookConfiguration.setApiPath(apiPath);
+        var webhookConfiguration = new WebhookConfiguration(
+                apiPath,
+                "test-secret",
+                cleanPrevious,
+                configuredEventNames
+        );
 
         return new WebhookRegistrationServiceImpl(
                 webhookRegistrationsApi,

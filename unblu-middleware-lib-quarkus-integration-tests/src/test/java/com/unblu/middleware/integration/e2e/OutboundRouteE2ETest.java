@@ -29,7 +29,7 @@ class OutboundRouteE2ETest {
                 .contentType("application/json")
                 .body(body)
                 .when()
-                .post(outboundRequestsConfiguration.getApiPath())
+                .post(outboundRequestsConfiguration.apiPath())
                 .then()
                 .statusCode(400);
     }
@@ -45,7 +45,7 @@ class OutboundRouteE2ETest {
                 .contentType("application/json")
                 .body(body)
                 .when()
-                .post(outboundRequestsConfiguration.getApiPath())
+                .post(outboundRequestsConfiguration.apiPath())
                 .then()
                 .statusCode(200);
     }
@@ -59,7 +59,7 @@ class OutboundRouteE2ETest {
                 .contentType("application/json")
                 .body("{\"type\":\"outbound.request\"}")
                 .when()
-                .post(outboundRequestsConfiguration.getApiPath())
+                .post(outboundRequestsConfiguration.apiPath())
                 .then()
                 .statusCode(400);
     }
@@ -74,13 +74,13 @@ class OutboundRouteE2ETest {
                 .contentType("application/json")
                 .body(body)
                 .when()
-                .post(outboundRequestsConfiguration.getApiPath())
+                .post(outboundRequestsConfiguration.apiPath())
                 .then()
                 .statusCode(400);
     }
 
     private String sign(String body) {
-        return new HmacUtils(HmacAlgorithms.HMAC_SHA_1, outboundRequestsConfiguration.getSecret())
+        return new HmacUtils(HmacAlgorithms.HMAC_SHA_1, outboundRequestsConfiguration.secret())
                 .hmacHex(body.getBytes());
     }
 

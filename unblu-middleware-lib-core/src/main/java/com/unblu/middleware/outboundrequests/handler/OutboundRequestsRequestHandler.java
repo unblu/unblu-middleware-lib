@@ -14,6 +14,6 @@ import static com.unblu.middleware.outboundrequests.util.OutboundRequestsContext
 @Singleton
 public class OutboundRequestsRequestHandler extends RequestHandler {
     public OutboundRequestsRequestHandler(OutboundRequestsConfiguration outboundRequestsConfiguration, ContextRegistryWrapper contextRegistryWrapper, ObjectMapper objectMapper) {
-        super(new RequestHandlerConfiguration(outboundRequestsConfiguration.getSecret()), contextRegistryWrapper, objectMapper, outboundRequestHeadersContextSpec());
+        super(new RequestHandlerConfiguration(outboundRequestsConfiguration.secret()), contextRegistryWrapper, objectMapper, outboundRequestHeadersContextSpec());
     }
 }
