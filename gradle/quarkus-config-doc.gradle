@@ -1,0 +1,145 @@
+import groovy.json.JsonOutput
+
+import java.lang.reflect.ParameterizedType
+
+def quarkusConfigDocSpecs = [
+        'unblu-middleware-lib-quarkus-common'                    : [
+                'unblu'           : 'com.unblu.middleware.common.config.UnbluConfiguration',
+                'unblu.middleware': 'com.unblu.middleware.common.config.MiddlewareConfiguration'
+        ],
+        'unblu-middleware-lib-quarkus-webhooks'                  : [
+                'unblu.webhook': 'com.unblu.middleware.webhooks.config.WebhookConfiguration'
+        ],
+        'unblu-middleware-lib-quarkus-outboundrequests'          : [
+                'unblu.outbound-requests': 'com.unblu.middleware.outboundrequests.config.OutboundRequestsConfiguration'
+        ],
+        'unblu-middleware-lib-quarkus-conversation-observing-bot': [
+                'unblu.bot': 'com.unblu.middleware.bots.config.BotConfiguration'
+        ],
+        'unblu-middleware-lib-quarkus-external-messenger'        : [
+                'unblu.external-messenger': 'com.unblu.middleware.externalmessenger.config.ExternalMessengerConfiguration'
+        ]
+]
+
+subprojects { subproject ->
+    def roots = quarkusConfigDocSpecs[subproject.name]
+    if (roots == null || !subproject.plugins.hasPlugin('java-library')) {
+        return
+    }
+
+    def generateQuarkusConfigDocTask = subproject.tasks.register('generateQuarkusConfigDoc') {
+        dependsOn subproject.tasks.named('compileJava')
+
+        def outputDirProvider = subproject.layout.buildDirectory.dir("generated/quarkus-config-doc")
+        outputs.dir(outputDirProvider)
+
+        doLast {
+            def outputDir = outputDirProvider.get().asFile
+            subproject.delete(outputDir)
+            def metaInfDir = new File(outputDir, "META-INF")
+            def configDocDir = new File(metaInfDir, "quarkus-config-doc")
+            configDocDir.mkdirs()
+
+            def classpathFiles = [] as Set<File>
+            classpathFiles.addAll(subproject.sourceSets.main.output.classesDirs.files)
+            classpathFiles.addAll(subproject.sourceSets.main.compileClasspath.files)
+            classpathFiles = classpathFiles.findAll { it.exists() } as Set<File>
+            URL[] urls = classpathFiles.collect { it.toURI().toURL() } as URL[]
+            URLClassLoader classLoader = new URLClassLoader(urls, this.class.classLoader)
+
+            def kebabCase = { String value ->
+                value.replaceAll(/([a-z0-9])([A-Z])/, '$1-$2').toLowerCase(Locale.ROOT)
+            }
+            def envVar = { String property ->
+                property.toUpperCase(Locale.ROOT).replace('-', '_').replace('.', '_')
+            }
+            def wrappers = [
+                    Boolean, Byte, Character, Short, Integer, Long, Float, Double, Void
+            ] as Set<Class<?>>
+            def simpleType = { Class<?> type ->
+                type.isPrimitive() || wrappers.contains(type) || type == String || Number.isAssignableFrom(type)
+            }
+            def normalizedTypeName = { Class<?> type, java.lang.reflect.Type genericType ->
+                if (Collection.isAssignableFrom(type)) {
+                    def genericName = "java.lang.String"
+                    if (genericType instanceof ParameterizedType) {
+                        def firstArg = genericType.actualTypeArguments[0]
+                        if (firstArg instanceof Class<?>) {
+                            def argClass = (Class<?>) firstArg
+                            if (simpleType(argClass)) {
+                                genericName = argClass.name
+                            }
+                        }
+                    }
+                    return "${type.name}<${genericName}>"
+                }
+                return type.name
+            }
+
+            Closure<List<Map<String, String>>> collectProperties
+            collectProperties = { Class<?> type, String prefix ->
+                if (!type.isRecord()) {
+                    return []
+                }
+                type.recordComponents.collectMany { component ->
+                    Class<?> componentType = component.type
+                    def property = "${prefix}.${kebabCase(component.name)}"
+                    if (componentType.isRecord()) {
+                        return collectProperties(componentType, property)
+                    }
+                    return [[
+                                    property      : property,
+                                    sourceType    : type.name,
+                                    sourceElement : component.name,
+                                    type          : normalizedTypeName(componentType, component.genericType)
+                            ]]
+                }
+            }
+
+            def configRoots = roots.collect { prefix, className ->
+                Class.forName(className, false, classLoader) // fail fast if classpath is wrong
+                def properties = collectProperties(Class.forName(className, false, classLoader), prefix)
+                [
+                        extension    : [
+                                artifactId: subproject.name,
+                                detected  : true,
+                                groupId   : String.valueOf(subproject.group),
+                                guideUrl  : "https://quarkus.io",
+                                name      : subproject.name,
+                                nameSource: "EXTENSION_METADATA"
+                        ],
+                        items        : properties.collect { property ->
+                            [
+                                    "@class"          : "io.quarkus.annotation.processor.documentation.config.model.ConfigProperty",
+                                    defaultValue      : null,
+                                    escapeDefaultValue: false,
+                                    path              : [
+                                            "@class"           : "io.quarkus.annotation.processor.documentation.config.model.ConfigProperty\$PropertyPath",
+                                            environmentVariable: envVar(property.property),
+                                            property           : property.property
+                                    ],
+                                    phase             : "RUN_TIME",
+                                    sourceElementName : property.sourceElement,
+                                    sourceElementType : "METHOD",
+                                    sourceType        : property.sourceType,
+                                    type              : property.type
+                            ]
+                        },
+                        prefix       : prefix,
+                        qualifiedNames: [className],
+                        topLevelPrefix: prefix
+                ]
+            }
+
+            new File(configDocDir, "quarkus-config-model-version").setText("1\n", "UTF-8")
+            new File(configDocDir, "quarkus-config-javadoc.json").setText("{}\n", "UTF-8")
+            new File(configDocDir, "quarkus-config-model.json")
+                    .setText(JsonOutput.prettyPrint(JsonOutput.toJson([configRoots: configRoots])) + "\n", "UTF-8")
+        }
+    }
+
+    subproject.tasks.named('processResources').configure {
+        dependsOn(generateQuarkusConfigDocTask)
+        from(subproject.layout.buildDirectory.dir("generated/quarkus-config-doc"))
+    }
+}

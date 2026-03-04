@@ -4,6 +4,7 @@ dependencies {
 
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
     annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor:${springBootVersion}"
 
     testImplementation "io.projectreactor:reactor-test:3.8.2"
     testImplementation project(':unblu-middleware-lib-core-dialog-bot')
