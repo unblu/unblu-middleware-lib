@@ -1,7 +1,7 @@
 package middleware;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.unblu.middleware.bots.service.DialogBotService;
+import com.unblu.middleware.bots.service.DialogBot;
 import com.unblu.middleware.common.utils.ThrowingRunnable;
 import com.unblu.middleware.outboundrequests.config.OutboundRequestsConfiguration;
 import com.unblu.middleware.outboundrequests.handler.OutboundRequestHandler;
@@ -43,7 +43,7 @@ class DialogBotServiceDifferentDialogsTest {
     OutboundRequestsConfiguration outboundRequestsConfiguration;
 
     @Autowired
-    DialogBotService dialogBotService;
+    DialogBot dialogBot;
 
     @Autowired
     OutboundRequestHandler outboundRequestHandler;
@@ -55,7 +55,7 @@ class DialogBotServiceDifferentDialogsTest {
 
     @PostConstruct
     public void init() {
-        dialogBotService.onDialogMessage(dialogMessage -> Mono.fromRunnable((ThrowingRunnable) () -> {
+        dialogBot.onDialogMessage(dialogMessage -> Mono.fromRunnable((ThrowingRunnable) () -> {
             Thread.sleep(200); // Simulate some processing delay
             log.info("Message Token: {} Thread: {}", dialogMessage.getDialogToken(), Thread.currentThread().getName());
             testQueue.add(dialogMessage.getConversationMessage().getFallbackText());

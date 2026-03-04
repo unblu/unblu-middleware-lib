@@ -443,6 +443,20 @@
       ]
     },
     {
+      "type": "com.unblu.middleware.bots.service.DialogBot"
+    },
+    {
+      "type": "com.unblu.middleware.bots.service.DialogBotImpl",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.unblu.middleware.outboundrequests.handler.OutboundRequestHandler"
+          ]
+        }
+      ]
+    },
+    {
       "type": "com.unblu.middleware.bots.service.DialogBotService"
     },
     {
@@ -1341,7 +1355,7 @@
           "name": "<init>",
           "parameterTypes": [
             "com.unblu.middleware.webhooks.service.WebhookHandler",
-            "com.unblu.middleware.bots.service.DialogBotService",
+            "com.unblu.middleware.bots.service.DialogBot",
             "com.unblu.webapi.jersey.v4.api.BotsApi"
           ]
         }
