@@ -50,11 +50,14 @@ public class OutboundRequestHandler extends RequestQueueServiceImpl {
     private void registerOutboundPingHandler() {
         on(outboundRequestType("outbound.ping"), PingRequest.class, PingResponse.class,
                 request -> Mono.just(new PingResponse().pingId(request.getPingId())),
-                request -> Mono.fromRunnable(() -> log.info("Received ping outbound request")),
+                _request -> {
+                    log.info("Received ping outbound request");
+                    return Mono.empty();
+                },
                 OutboundRequestHandlerOptions.defaults());
     }
 
-    public <T, R> void on(
+    public <T, R> void onMono(
             @NonNull OutboundRequestType requestType,
             @NonNull Class<T> requestClass,
             @NonNull Class<R> responseClass,
@@ -62,7 +65,7 @@ public class OutboundRequestHandler extends RequestQueueServiceImpl {
             Function<T, Mono<Void>> asyncHandler,
             @NonNull OutboundRequestHandlerOptions<T> outboundRequestHandlerOptions) {
         Function<Request<T>, Mono<Void>> wrappedAsyncHandler = asyncHandler == null ? null : wrapped(asyncHandler);
-        onWrapped(
+        onWrappedMono(
                 requestType,
                 requestClass,
                 responseClass,
@@ -73,7 +76,28 @@ public class OutboundRequestHandler extends RequestQueueServiceImpl {
     }
 
     /**
-     * @deprecated Use on(...) with OutboundRequestHandlerOptions
+     * @deprecated Use onMono(...) with OutboundRequestHandlerOptions
+     */
+    @Deprecated
+    public <T, R> void on(
+            @NonNull OutboundRequestType requestType,
+            @NonNull Class<T> requestClass,
+            @NonNull Class<R> responseClass,
+            @NonNull Function<T, Mono<R>> responseFunction,
+            Function<T, Mono<Void>> asyncHandler,
+            @NonNull OutboundRequestHandlerOptions<T> outboundRequestHandlerOptions) {
+        onMono(
+                requestType,
+                requestClass,
+                responseClass,
+                responseFunction,
+                asyncHandler,
+                outboundRequestHandlerOptions
+        );
+    }
+
+    /**
+     * @deprecated Use onMono(...) with OutboundRequestHandlerOptions
      */
     @Deprecated
     public <T, R> void on(
@@ -84,7 +108,7 @@ public class OutboundRequestHandler extends RequestQueueServiceImpl {
             Function<T, Mono<Void>> asyncHandler,
             RequestOrderSpec<T> requestOrderSpec,
             @NonNull ContextSpec<T> contextSpec) {
-        on(
+        onMono(
                 requestType,
                 requestClass,
                 responseClass,
@@ -96,6 +120,34 @@ public class OutboundRequestHandler extends RequestQueueServiceImpl {
         );
     }
 
+    public <T, R> void onWrappedMono(
+            @NonNull OutboundRequestType requestType,
+            @NonNull Class<T> requestClass,
+            @NonNull Class<R> responseClass,
+            @NonNull Function<Request<T>, Mono<R>> responseFunction,
+            Function<Request<T>, Mono<Void>> asyncHandler,
+            @NonNull OutboundRequestHandlerOptions<Request<T>> outboundRequestHandlerOptions) {
+        registerMonoHandler(requestType, requestClass, responseClass, responseFunction, asyncHandler, outboundRequestHandlerOptions);
+    }
+
+    /**
+     * @deprecated Renamed to onWrappedMono(...)
+     */
+    @Deprecated
+    public <T, R> void onMonoWrapped(
+            @NonNull OutboundRequestType requestType,
+            @NonNull Class<T> requestClass,
+            @NonNull Class<R> responseClass,
+            @NonNull Function<Request<T>, Mono<R>> responseFunction,
+            Function<Request<T>, Mono<Void>> asyncHandler,
+            @NonNull OutboundRequestHandlerOptions<Request<T>> outboundRequestHandlerOptions) {
+        onWrappedMono(requestType, requestClass, responseClass, responseFunction, asyncHandler, outboundRequestHandlerOptions);
+    }
+
+    /**
+     * @deprecated Use onWrappedMono(...) with OutboundRequestHandlerOptions
+     */
+    @Deprecated
     public <T, R> void onWrapped(
             @NonNull OutboundRequestType requestType,
             @NonNull Class<T> requestClass,
@@ -103,11 +155,11 @@ public class OutboundRequestHandler extends RequestQueueServiceImpl {
             @NonNull Function<Request<T>, Mono<R>> responseFunction,
             Function<Request<T>, Mono<Void>> asyncHandler,
             @NonNull OutboundRequestHandlerOptions<Request<T>> outboundRequestHandlerOptions) {
-        registerHandler(requestType, requestClass, responseClass, responseFunction, asyncHandler, outboundRequestHandlerOptions);
+        onWrappedMono(requestType, requestClass, responseClass, responseFunction, asyncHandler, outboundRequestHandlerOptions);
     }
 
     /**
-     * @deprecated Use onWrapped(...) with OutboundRequestHandlerOptions
+     * @deprecated Use onWrappedMono(...) with OutboundRequestHandlerOptions
      */
     @Deprecated
     public <T, R> void onWrapped(
@@ -118,7 +170,7 @@ public class OutboundRequestHandler extends RequestQueueServiceImpl {
             Function<Request<T>, Mono<Void>> asyncHandler,
             RequestOrderSpec<Request<T>> requestOrderSpec,
             @NonNull ContextSpec<Request<T>> contextSpec) {
-        onWrapped(
+        onWrappedMono(
                 requestType,
                 requestClass,
                 responseClass,
@@ -136,7 +188,7 @@ public class OutboundRequestHandler extends RequestQueueServiceImpl {
     // the recommendation would be to always use effectively the same responseFunction in every such call.
     // ResponseClass is only set for validation purposes (to validate return type of the responseFunction lambda)
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public <T, R> void registerHandler(
+    private <T, R> void registerMonoHandler(
             @NonNull OutboundRequestType requestType,
             @NonNull Class<T> requestClass,
             @NonNull Class<R> responseClass,
@@ -154,6 +206,21 @@ public class OutboundRequestHandler extends RequestQueueServiceImpl {
     }
 
     /**
+     * @deprecated Use onWrappedMono(...) with OutboundRequestHandlerOptions
+     */
+    @Deprecated
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public <T, R> void registerHandler(
+            @NonNull OutboundRequestType requestType,
+            @NonNull Class<T> requestClass,
+            @NonNull Class<R> responseClass,
+            @NonNull Function<Request<T>, Mono<R>> responseFunction,
+            Function<Request<T>, Mono<Void>> asyncHandler,
+            @NonNull OutboundRequestHandlerOptions<Request<T>> outboundRequestHandlerOptions) {
+        registerMonoHandler(requestType, requestClass, responseClass, responseFunction, asyncHandler, outboundRequestHandlerOptions);
+    }
+
+    /**
      * @deprecated Use registerHandler(...) with OutboundRequestHandlerOptions
      */
     @Deprecated
@@ -165,7 +232,7 @@ public class OutboundRequestHandler extends RequestQueueServiceImpl {
             Function<Request<T>, Mono<Void>> asyncHandler,
             RequestOrderSpec<Request<T>> requestOrderSpec,
             @NonNull ContextSpec<Request<T>> contextSpec) {
-        registerHandler(
+        onWrappedMono(
                 requestType,
                 requestClass,
                 responseClass,

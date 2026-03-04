@@ -46,7 +46,7 @@ class OutboundContextCoreTest {
                 contextRegistryWrapper
         );
 
-        outboundRequestHandler.onWrapped(
+        outboundRequestHandler.onWrappedMono(
                 outboundRequestType("outbound.bot.dialog.message"),
                 BotDialogMessageRequest.class,
                 BotDialogMessageResponse.class,

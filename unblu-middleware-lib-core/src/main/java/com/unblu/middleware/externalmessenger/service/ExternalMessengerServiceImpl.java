@@ -3,7 +3,7 @@ package com.unblu.middleware.externalmessenger.service;
 import com.unblu.middleware.common.entity.ContextSpec;
 import com.unblu.middleware.common.entity.Request;
 import com.unblu.middleware.outboundrequests.entity.OutboundRequestHandlerOptions;
-import com.unblu.middleware.outboundrequests.handler.OutboundRequestHandler;
+import com.unblu.middleware.outboundrequests.handler.OutboundHandler;
 import com.unblu.webapi.model.v4.ExternalMessengerNewMessageRequest;
 import com.unblu.webapi.model.v4.ExternalMessengerNewMessageResponse;
 import jakarta.inject.Named;
@@ -23,11 +23,11 @@ import static com.unblu.middleware.outboundrequests.entity.OutboundRequestType.o
 @RequiredArgsConstructor
 public class ExternalMessengerServiceImpl implements ExternalMessengerService {
 
-    private final OutboundRequestHandler outboundRequestHandler;
+    private final OutboundHandler outboundRequestHandler;
 
     @Override
     public void onWrappedNewMessage(Function<Request<ExternalMessengerNewMessageRequest>, Mono<Void>> action, ContextSpec<Request<ExternalMessengerNewMessageRequest>> contextSpec) {
-        outboundRequestHandler.registerHandler(
+        outboundRequestHandler.onWrappedMono(
                 outboundRequestType("outbound.external_messenger.new_message"),
                 ExternalMessengerNewMessageRequest.class,
                 ExternalMessengerNewMessageResponse.class,

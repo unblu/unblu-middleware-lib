@@ -2,6 +2,7 @@ package middleware;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unblu.middleware.bots.service.DialogBot;
+import com.unblu.middleware.common.utils.ThrowingConsumer;
 import com.unblu.middleware.common.utils.ThrowingRunnable;
 import com.unblu.middleware.outboundrequests.config.OutboundRequestsConfiguration;
 import com.unblu.middleware.outboundrequests.handler.OutboundRequestHandler;
@@ -58,20 +59,20 @@ class DialogBotServiceOnEventTest {
 
     @PostConstruct
     public void init() {
-        dialogBot.onDialogMessage(dialogMessage -> Mono.fromRunnable((ThrowingRunnable) () -> {
+        dialogBot.onDialogMessage((ThrowingConsumer<BotDialogMessageRequest>) dialogMessage -> {
             Thread.sleep(200); // Simulate some processing delay
             log.info("Message Token: {} Thread: {}", dialogMessage.getDialogToken(), Thread.currentThread().getName());
             testQueue.add(dialogMessage.getConversationMessage().getFallbackText());
-        }));
+        });
 
-        dialogBot.onDialogClosed(dialogClosed -> Mono.fromRunnable((ThrowingRunnable) () -> {
+        dialogBot.onDialogClosedMono(dialogClosed -> Mono.fromRunnable((ThrowingRunnable) () -> {
             Thread.sleep(100); // Simulate some processing delay
             log.info("Closed Token: {} Thread: {}", dialogClosed.getDialogToken(), Thread.currentThread().getName());
             testQueue.add(dialogClosed.getAccountId());
         }));
 
         // simulate dialog open event processed in parallel
-        dialogBot.onDialogOpen(dialogOpen -> Mono.fromRunnable((ThrowingRunnable) () -> {
+        dialogBot.onDialogOpenMono(dialogOpen -> Mono.fromRunnable((ThrowingRunnable) () -> {
             Thread.sleep(100);
             log.info("Open Token: {} Thread: {}", dialogOpen.getDialogToken(), Thread.currentThread().getName());
             testQueue.add(dialogOpen.getServiceName());

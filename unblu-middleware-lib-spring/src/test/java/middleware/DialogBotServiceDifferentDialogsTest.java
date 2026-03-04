@@ -55,7 +55,7 @@ class DialogBotServiceDifferentDialogsTest {
 
     @PostConstruct
     public void init() {
-        dialogBot.onDialogMessage(dialogMessage -> Mono.fromRunnable((ThrowingRunnable) () -> {
+        dialogBot.onDialogMessageMono(dialogMessage -> Mono.fromRunnable((ThrowingRunnable) () -> {
             Thread.sleep(200); // Simulate some processing delay
             log.info("Message Token: {} Thread: {}", dialogMessage.getDialogToken(), Thread.currentThread().getName());
             testQueue.add(dialogMessage.getConversationMessage().getFallbackText());

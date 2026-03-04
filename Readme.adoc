@@ -65,12 +65,12 @@ Use `webhookHandler.handleWebhook()` to process incoming webhooks.
 @Import(UnbluWebhooks.class)
 public class MyAwesomeMiddlewareService implements ApplicationRunner {
 
-    private final webhookHandler webhookHandler;
+    private final WebhookHandler webhookHandler;
 
     @Override
     public void run(ApplicationArguments args) {
         // log every message sent anywhere using a webhook handler
-        webhookHandler.onWebhook(eventName("conversation.new_message"), ConversationNewMessageEvent.class,
+        webhookHandler.onMono(eventName("conversation.new_message"), ConversationNewMessageEvent.class,
                 e -> Mono.fromRunnable(() -> log.info("Message received: {}", e.getConversationMessage().getFallbackText())));
     }
 }
@@ -84,7 +84,7 @@ Add a dependency to your `build.gradle` file:
 ----
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
-    implementation 'com.unblu.middleware:unblu-middleware-lib:1.11.0'
+    implementation 'com.unblu.middleware:unblu-middleware-lib-spring:1.11.1-SNAPSHOT'
     implementation 'com.unblu.openapi:jersey3-client-v4:8.24.0'
     implementation 'org.projectlombok:lombok:1.18.34'
     annotationProcessor 'org.projectlombok:lombok:1.18.34'
@@ -129,14 +129,14 @@ public class MyAwesomeMiddlewareService implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
         // accept every onboarding offer
-        dialogBot.acceptOnboardingOfferIf(_o -> Mono.just(true));
+        dialogBot.acceptOnboardingOfferIf(_o -> true);
 
         // greet the user when a dialog is opened
-        dialogBot.onDialogOpen(r ->
+        dialogBot.onDialogOpenMono(r ->
                 Mono.fromRunnable(() -> sendMessage(r.getDialogToken(), "Hello, I am a bot!")));
 
         // echo every message back to the user
-        dialogBot.onDialogMessage(r ->
+        dialogBot.onDialogMessageMono(r ->
                 Mono.fromRunnable(() -> echoIfSentByHuman(r)));
     }
 
@@ -182,7 +182,7 @@ unblu:
   webhook:
     secret: another-secure-secret  # mandatory if webhooks are used
     cleanPrevious: false # see below, this is the default
-    eventNames:    # useful to specify but not needed - event names passed to onWebhook are registered on the fly
+    eventNames:    # useful to specify but not needed - event names passed to handlers are registered on the fly
       - conversation.onboarding
       - conversation.new_message
 
@@ -219,7 +219,7 @@ This is useful when after a middleware restart, you don't want to receive webhoo
 `selfHealingEnabled: true` means that every `selfHealingCheckIntervalInSeconds` seconds, the middleware will check and perform repare actions if the webhook and bot registrations are still valid and correctly configured, in particular if they haven't been auto-disabled by Unblu.
 
 == Subscribe
-Note that you must subscribe to the fluxes in `webhookHandler` and `outboundRequestHandler` (used by `dialogBot`).
+Note that you must subscribe to the fluxes in `webhookHandler` and outbound handling (`outboundHandler` / `outboundRequestHandler`, used by `dialogBot`).
 
 You can do this by one of the following:
 
@@ -228,7 +228,10 @@ You can do this by one of the following:
 * Retrieving the fluxes (`.getFlux()`) and ensuring they are subscribed after registering your handlers.
 
 == Webhook handling
-All `webhookHandler` webhook handling methods (processActions) should return a `Mono<Void>`. This allows the method to be asynchronous and non-blocking, which is essential for performance in a middleware context.
+`webhookHandler` exposes both synchronous and asynchronous handler variants:
+
+* `.on(...)` and `.onWrapped(...)` accept `Consumer` handlers.
+* `.onMono(...)` and `.onWrappedMono(...)` accept handlers returning `Mono<Void>`.
 
 === Processing order guarantees
 Parameter `requestOrderSpec` determines what order guarantees the library should provide when processing webhooks. It can be one of the following:
@@ -238,14 +241,14 @@ Parameter `requestOrderSpec` determines what order guarantees the library should
 * `RequestOrderSpec.mustPreserveOrderForThoseWithTheSame(...)` - webhook handler functions will be called in the order the webhooks were received, but only for the webhook calls that have the same value for the specified key. This allows you to process webhooks related to different entities in parallel, while still preserving the order for the same entity (e.g., conversation ID, branch ID, etc.). The entity id/key can be extracted from the event object using the lambda function passed.
 
 === Wrapped (with headers)
-The processAction (but also other lambdas passed to the same `.onWebhook()` call) take the webhook event object as a parameter. In certain cases, headers of the request may be also important for processing (e.g. to propagate in the logback context - see below). For this purpose, the library provides a `.onWrappedWebhook()` method family, which allows you to access the headers of the request in your lambdas, in addition to the event object.
+The processAction (but also other lambdas passed to the same handler call) take the webhook event object as a parameter. In certain cases, headers of the request may be also important for processing (e.g. to propagate in the logback context - see below). For this purpose, the library provides `.onWrapped(...)` and `.onWrappedMono(...)` method families, which allow you to access the headers of the request in your lambdas, in addition to the event object.
 
 === With logback context entries
 As an optional last parameter, handling methods also allow you to pass a list of context entry specs, which allows you to populate the logback context with event-related information. Example usage:
 
 [source,java]
 ----
-webhookHandler.onWebhook(
+webhookHandler.onMono(
         eventName("branch.branch"),
         BranchModificationEvent.class,
         e -> processBranchModified(e),
@@ -287,18 +290,18 @@ Dialog bots are a special type of middleware that can interact with Unblu dialog
 `DialogBotService` is still available for compatibility, but deprecated in favor of `DialogBot`.
 
 === Accepting boarding offers
-DialogBot allows you to define which onboarding, offboarding, and reboarding offers the bot should accept. You can use the `acceptOnboardingOfferIf()`, `acceptOffboardingOfferIf()` and `acceptReboardingOfferIf()` methods to define conditions for accepting boarding offers. The methods take a function that returns a `Mono<Boolean>`, which determines whether the offer should be accepted or not. By default, no offers are accepted.
+DialogBot allows you to define which onboarding, offboarding, and reboarding offers the bot should accept. You can use the `acceptOnboardingOfferIf()`, `acceptOffboardingOfferIf()` and `acceptReboardingOfferIf()` methods with predicates. For async variants, use the `...Mono` methods (for example `acceptOnboardingOfferIfMono(...)`). By default, no offers are accepted.
 
 As an Unblu requirement, a bot needs to send a message after a dialog is open (after accepting an offer), before a configured timeout, otherwise it will be disabled by Unblu.
 
 === Reacting on dialog events
-DialogBot allows you to react to various dialog events, such as dialog opening, dialog messages, and dialog closing. The handlers take a function that gets the received request, passed as a parameter, and returns a `Mono<Void>`, which allows you to perform asynchronous operations in response to the event. As stated above, you need to implement at least `onDialogOpen()` and send a message in response (see the example app). You can call each function multiple times, e.g. to register handlers in different parts of your middleware application. Processing order of these handlers not guaranteed. Available methods are:
+DialogBot allows you to react to various dialog events, such as dialog opening, dialog messages, and dialog closing. Use `onDialog...()` / `onWrappedDialog...()` for synchronous handlers (Consumer), or `onDialog...Mono()` / `onWrappedDialog...Mono()` for reactive handlers returning `Mono<Void>`. As stated above, you need to implement at least `onDialogOpen...` and send a message in response (see the example app). You can call each function multiple times, e.g. to register handlers in different parts of your middleware application. Processing order of these handlers not guaranteed. Available methods are:
 
 * `onDialogOpen()` - called when a dialog is opened (after accepting an onboarding offer)
 * `onDialogMessage()` - called when a message is sent in a dialog
 * `onDialogMessageState()` - called when a message state is changed (e.g., when a message is read or delivered)
 * `onDialogCounterpartChanged()` - called when the counterpart of a dialog changes (e.g., when a user joins or leaves a dialog)
-* `onDialogClose()` - called when a dialog is closed
+* `onDialogClosed()` - called when a dialog is closed
 
 === Processing order guarantees
 Dialog bot handler guarantees the order of events for the same dialog token. This means that if you have multiple events for the same dialog, they will be processed in the order they were received. However, events for different dialogs can be processed in parallel.
@@ -320,17 +323,17 @@ The following logback context variables are available for webhooks out-of-the-bo
 Conversation observing bots are implemented using webhooks. You can also use BotPersonRegistrationService to register a bot person to interact with the conversations (write messages).
 
 == Outbound request handler API
-The library also exposes a lower-level api `OutboundRequestHandler`, primarily intended for cases which aren't yet explicitly covered by the library.
+The library exposes a lower-level api `OutboundHandler` (with `OutboundRequestHandler` still available for compatibility), primarily intended for cases which aren't yet explicitly covered by the library.
 
-Outbound requests are implicitly imported with `@Import(UnbluDialogBot.class)` but if you don't use that annotation, you can import them explicitly with `@Import(UnbluOutboundRequests.class)`. This exposes the `outboundRequestHandler` bean.
+Outbound requests are implicitly imported with `@Import(UnbluDialogBot.class)` but if you don't use that annotation, you can import them explicitly with `@Import(UnbluOutboundRequests.class)`. This exposes `outboundHandler` (new standard) and `outboundRequestHandler` (compatibility) beans.
 
-Outbound requests are handled similarly to webhooks, however require a proper response in the form of a class `<Xxx>Response` for each `<Xxx>Request`. Like with webhooks, the general practice is to respond as quickly as possible, and perform longer processing asynchronously. For outbound requests however, this may not always be possible, because an actual response with results of the handler operation is sometimes needed. For that reason, the `outboundRequestHandler.registerHandler()` provides a way to pass a synchronous lambda used to retrieve a `Mono<XxxResponse>`, and an asynchronous handler lambda which returns a `Mono<Void>`.
+Outbound requests are handled similarly to webhooks, however require a proper response in the form of a class `<Xxx>Response` for each `<Xxx>Request`. Like with webhooks, the general practice is to respond as quickly as possible, and perform longer processing asynchronously. For outbound requests however, this may not always be possible, because an actual response with results of the handler operation is sometimes needed. For that reason, `outboundRequestHandler.on(...)` supports synchronous response handlers, and `outboundRequestHandler.onWrappedMono(...)` supports reactive response/async handlers.
 
 Example usage - this is how the dialog bot service implements `onDialogOpen()`:
 
 [source,java]
 ----
-outboundRequestHandler.on(
+outboundRequestHandler.onWrappedMono(
         outboundRequestType("outbound.bot.dialog.opened"),
         BotDialogOpenRequest.class,
         BotDialogOpenResponse.class,
