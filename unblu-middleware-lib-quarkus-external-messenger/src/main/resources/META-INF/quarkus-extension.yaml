@@ -1,6 +1,0 @@
-name: unblu-middleware-lib-quarkus-external-messenger
-artifact: com.unblu.middleware:unblu-middleware-lib-quarkus-external-messenger:2.0.0-SNAPSHOT
-metadata:
-  short-name: unblu-external-messenger
-  guide: https://quarkus.io
-deployment-artifact: com.unblu.middleware:unblu-middleware-lib-quarkus-deployment:2.0.0-SNAPSHOT

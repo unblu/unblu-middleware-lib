@@ -1,6 +1,0 @@
-name: unblu-middleware-lib-quarkus-deployment
-artifact: com.unblu.middleware:unblu-middleware-lib-quarkus-deployment:2.0.0-SNAPSHOT
-metadata:
-  short-name: unblu-middleware-deployment
-  guide: https://quarkus.io
-

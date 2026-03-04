@@ -1,6 +1,0 @@
-name: unblu-middleware-lib-quarkus-conversation-observing-bot
-artifact: com.unblu.middleware:unblu-middleware-lib-quarkus-conversation-observing-bot:2.0.0-SNAPSHOT
-metadata:
-  short-name: unblu-conversation-observing-bot
-  guide: https://quarkus.io
-deployment-artifact: com.unblu.middleware:unblu-middleware-lib-quarkus-deployment:2.0.0-SNAPSHOT
