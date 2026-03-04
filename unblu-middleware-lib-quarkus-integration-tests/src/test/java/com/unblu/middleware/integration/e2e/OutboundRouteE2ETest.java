@@ -1,6 +1,5 @@
 package com.unblu.middleware.integration.e2e;
 
-import com.unblu.middleware.outboundrequests.annotation.EnableUnbluOutboundRequests;
 import com.unblu.middleware.outboundrequests.config.OutboundRequestsConfiguration;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.QuarkusTestProfile;
@@ -15,7 +14,6 @@ import java.util.Map;
 import static io.restassured.RestAssured.given;
 
 @QuarkusTest
-@EnableUnbluOutboundRequests
 @TestProfile(OutboundRouteE2ETest.Profile.class)
 class OutboundRouteE2ETest {
 

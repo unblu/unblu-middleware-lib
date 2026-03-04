@@ -21,63 +21,72 @@ allprojects {
 }
 
 subprojects {
-    apply plugin: 'java-library'
     apply plugin: 'maven-publish'
 
-    java {
-        withJavadocJar()
-        withSourcesJar()
-        compileJava.options.encoding = "UTF-8"
+    if (project.name != 'unblu-middleware-lib-bom') {
+        apply plugin: 'java-library'
 
-        toolchain {
-            languageVersion = JavaLanguageVersion.of(21)
-        }
-    }
+        java {
+            withJavadocJar()
+            withSourcesJar()
+            compileJava.options.encoding = "UTF-8"
 
-// Ensure deployment artifact is resolvable from project dependencies
-configurations.all {
-    resolutionStrategy.dependencySubstitution {
-        substitute module("com.unblu.middleware:unblu-middleware-lib-quarkus-deployment") using project(":unblu-middleware-lib-quarkus-deployment")
-        substitute module("com.unblu.middleware:unblu-middleware-lib-quarkus") using project(":unblu-middleware-lib-quarkus")
-    }
-}
-
-repositories {
-    mavenCentral()
-}
-
-    publishing {
-        publications {
-            mavenJava(MavenPublication) {
-                pom {
-                    name = project.name
-                    description = "Part of Unblu middleware lib - ${project.name}"
-                    packaging = 'jar'
-                    url = 'https://' + "$githubRepositoryOwner" + '.github.io/' + "$githubRepositoryName" + '/'
-                    licenses {
-                        license {
-                            name = 'Apache 2.0 License'
-                            url = 'http://www.apache.org/licenses/LICENSE-2.0'
-                        }
-                    }
-                    developers {
-                        developer {
-                            id = 'unblu'
-                            url = 'https://github.com/orgs/' + "$githubRepositoryOwner" + '/people'
-                        }
-                    }
-                    scm {
-                        connection = 'scm:git:https://github.com/' + "$githubRepositoryOwner" + '/' + "$githubRepositoryName" + '.git'
-                        developerConnection = 'scm:git:https://github.com/' + "$githubRepositoryOwner" + '/' + "$githubRepositoryName" + '.git'
-                        url = 'https://github.com/' + "$githubRepositoryOwner" + '/' + "$githubRepositoryName" + '/'
-                    }
-                }
-                from components.java
+            toolchain {
+                languageVersion = JavaLanguageVersion.of(21)
             }
         }
-        repositories {
-            maven {
-                url = rootProject.file('build/staging-deploy')
+    }
+
+    // Ensure deployment artifacts are resolvable from project dependencies.
+    configurations.all {
+        resolutionStrategy.dependencySubstitution {
+            substitute module("com.unblu.middleware:unblu-middleware-lib-quarkus-deployment") using project(":unblu-middleware-lib-quarkus-deployment")
+        }
+    }
+
+    repositories {
+        mavenCentral()
+    }
+
+    afterEvaluate {
+        publishing {
+            publications {
+                mavenJava(MavenPublication) {
+                    pom {
+                        name = project.name
+                        description = "Part of Unblu middleware lib - ${project.name}"
+                        packaging = plugins.hasPlugin('java-platform') ? 'pom' : 'jar'
+                        url = 'https://' + "$githubRepositoryOwner" + '.github.io/' + "$githubRepositoryName" + '/'
+                        licenses {
+                            license {
+                                name = 'Apache 2.0 License'
+                                url = 'http://www.apache.org/licenses/LICENSE-2.0'
+                            }
+                        }
+                        developers {
+                            developer {
+                                id = 'unblu'
+                                url = 'https://github.com/orgs/' + "$githubRepositoryOwner" + '/people'
+                            }
+                        }
+                        scm {
+                            connection = 'scm:git:https://github.com/' + "$githubRepositoryOwner" + '/' + "$githubRepositoryName" + '.git'
+                            developerConnection = 'scm:git:https://github.com/' + "$githubRepositoryOwner" + '/' + "$githubRepositoryName" + '.git'
+                            url = 'https://github.com/' + "$githubRepositoryOwner" + '/' + "$githubRepositoryName" + '/'
+                        }
+                    }
+
+                    if (plugins.hasPlugin('java-platform')) {
+                        from components.javaPlatform
+                    } else {
+                        from components.java
+                    }
+                }
+            }
+            repositories {
+                maven {
+                    url = rootProject.file('build/staging-deploy')
+                }
             }
         }
     }

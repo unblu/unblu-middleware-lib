@@ -18,8 +18,12 @@ repositories {
 }
 
 dependencies {
-    // Depend on runtime module for runtime components
-    implementation project(':unblu-middleware-lib-quarkus')
+    implementation project(':unblu-middleware-lib-quarkus-common')
+    implementation project(':unblu-middleware-lib-quarkus-webhooks')
+    implementation project(':unblu-middleware-lib-quarkus-outboundrequests')
+    implementation project(':unblu-middleware-lib-quarkus-conversation-observing-bot')
+    implementation project(':unblu-middleware-lib-quarkus-dialog-bot')
+    implementation project(':unblu-middleware-lib-quarkus-external-messenger')
 
     // Quarkus BOM
     implementation enforcedPlatform("io.quarkus.platform:quarkus-bom:3.31.2")
@@ -62,4 +66,3 @@ quarkus {
         nativeEnabled = false
     }
 }
-

@@ -1,0 +1,6 @@
+name: unblu-middleware-lib-quarkus-webhooks
+artifact: com.unblu.middleware:unblu-middleware-lib-quarkus-webhooks:2.0.0-SNAPSHOT
+metadata:
+  short-name: unblu-webhooks
+  guide: https://quarkus.io
+deployment-artifact: com.unblu.middleware:unblu-middleware-lib-quarkus-deployment:2.0.0-SNAPSHOT

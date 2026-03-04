@@ -1,183 +1,217 @@
 = Unblu middleware lib
 :toc:
 
-This library is used to create a middleware for the Unblu v8 platform (API v4). It provides a set of tools and utilities to facilitate the integration with Unblu services.
+This library is used to create middleware for the Unblu v8 platform (API v4). It provides integrations for Spring Boot and Quarkus.
 
-*NOTE:* This project is now structured as a multi-module library. See link:MIGRATION_GUIDE.md[Migration Guide] for details.
+*NOTE:* The legacy aggregate artifacts (`unblu-middleware-lib-core`, `unblu-middleware-lib-spring`, `unblu-middleware-lib-quarkus`) were removed. Use feature modules instead.
 
 == Modules
 
-* *unblu-middleware-lib-core* - Framework-agnostic core library (contains domain logic)
-* *unblu-middleware-lib-spring* - Spring Boot integration (use this for Spring Boot projects)
-* *unblu-middleware-lib-quarkus* - Quarkus integration (use this for Quarkus projects)
+Recommended:
+
+* `com.unblu.middleware:unblu-middleware-lib-bom` - dependency version alignment for all feature modules
+
+Core feature modules (framework-agnostic):
+
+* `unblu-middleware-lib-core-common`
+* `unblu-middleware-lib-core-webhooks`
+* `unblu-middleware-lib-core-outboundrequests`
+* `unblu-middleware-lib-core-dialog-bot`
+* `unblu-middleware-lib-core-conversation-observing-bot`
+* `unblu-middleware-lib-core-external-messenger`
+
+Spring Boot feature modules:
+
+* `unblu-middleware-lib-spring-webhooks`
+* `unblu-middleware-lib-spring-outboundrequests`
+* `unblu-middleware-lib-spring-dialog-bot`
+* `unblu-middleware-lib-spring-conversation-observing-bot`
+* `unblu-middleware-lib-spring-external-messenger`
+
+Quarkus feature modules:
+
+* `unblu-middleware-lib-quarkus-webhooks`
+* `unblu-middleware-lib-quarkus-outboundrequests`
+* `unblu-middleware-lib-quarkus-dialog-bot`
+* `unblu-middleware-lib-quarkus-conversation-observing-bot`
+* `unblu-middleware-lib-quarkus-external-messenger`
 
 Usage example: https://github.com/unblu/example-middleware[example-middleware]
 
 Main features:
 
-* Provides beans for Unblu API clients - you can simply just inject conversationApi, webhooksApi, botsApi, etc. where needed. These are conditionally created only if bean with the same name doesn't already exist, so you can override them if needed.
-* Automatically creates, manages and heals bot and/or webhook registrations
-* Correctly handles all registered webhooks, bot outbound requests and pings
-* Uses reactor to handle backpressure, supports options for asynchronous processing, as well as order guarantees where needed
-* Provides utility methods to define webhook handlers, declare conditions to accept boarding requests, or allowing you to react on different types of dialog bot outbound requests
+* Provides beans for Unblu API clients (`conversationApi`, `webhooksApi`, `botsApi`, etc.)
+* Automatically creates, manages, and heals bot/webhook registrations
+* Handles registered webhooks, bot outbound requests, and pings
+* Supports synchronous handlers and reactive handlers (`Mono`) with order/context options
 
-== Quarkus feature annotations
+== Quarkus feature modules
 
-In Quarkus applications, you can explicitly enable middleware features by annotating any application class (for example your startup/service class) with:
+In Quarkus applications, features are enabled by classpath. Add only the modules you need:
 
-* `@EnableUnbluMiddlewareLibCommon`
-* `@EnableUnbluOutboundRequests`
-* `@EnableUnbluWebhooks`
-* `@EnableUnbluDialogBot`
-* `@EnableUnbluConversationObservingBot`
-* `@EnableUnbluExternalMessenger`
-
-Example:
-
-[source,java]
-----
-import com.unblu.middleware.bots.annotation.EnableUnbluDialogBot;
-import jakarta.inject.Singleton;
-
-@Singleton
-@EnableUnbluDialogBot
-public class MyAwesomeMiddlewareService {
-}
-----
+* `unblu-middleware-lib-quarkus-webhooks`
+* `unblu-middleware-lib-quarkus-outboundrequests`
+* `unblu-middleware-lib-quarkus-dialog-bot`
+* `unblu-middleware-lib-quarkus-conversation-observing-bot`
+* `unblu-middleware-lib-quarkus-external-messenger`
 
 == Quick start - webhooks (Spring Boot)
 
-Add a dependency to your `build.gradle` file:
+Add dependencies to `build.gradle`:
 
 [source,gradle]
 ----
+def unbluMiddlewareVersion = '2.0.0-SNAPSHOT'
+
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-webflux'
-    implementation 'com.unblu.middleware:unblu-middleware-lib-spring:1.11.1-SNAPSHOT'
+    implementation platform("com.unblu.middleware:unblu-middleware-lib-bom:${unbluMiddlewareVersion}")
+    implementation 'com.unblu.middleware:unblu-middleware-lib-spring-webhooks'
     implementation 'com.unblu.openapi:jersey3-client-v4:8.24.0'
-    implementation 'org.projectlombok:lombok:1.18.34'
-    annotationProcessor 'org.projectlombok:lombok:1.18.34'
 }
 ----
 
-NOTE: For existing users, the artifact name has changed from `unblu-middleware-lib` to `unblu-middleware-lib-spring`.
-
-Configure the Unblu connection in your `application.yml` file. (You can also include unblu.bot settings, if you want to handle bots in the same middleware app.)
+Configure `application.yml`:
 
 [source,yaml]
 ----
 unblu:
   host: https://some-installation.unblu.com
+  api-base-path: /app/rest/v4
   user: some-unblu-admin-user
   password: hello-im-some-unblu-admin-user-password
   middleware:
     url: https://where.my.middleware.is.running
     name: Test middleware
-    description: Does stuff
   webhook:
+    api-path: /webhook
     secret: hello-im-secure
 ----
 
-Annotate your service (or middleware app) with `@Import(UnbluWebhooks.class)`. This brings all necessary beans into your application context. (You can also use `UnbluDialogBot.class`: `@Import({UnbluWebhooks.class, UnbluDialogBot.class})` if you want to handle bots in the same middleware app).
-
-Use `webhookHandler.handleWebhook()` to process incoming webhooks.
+Register handlers in a Spring bean:
 
 [source,java]
 ----
 @Service
-@RequiredArgsConstructor
-@Import(UnbluWebhooks.class)
-public class MyAwesomeMiddlewareService implements ApplicationRunner {
+public class MyWebhookMiddleware implements ApplicationRunner {
 
     private final WebhookHandler webhookHandler;
 
+    public MyWebhookMiddleware(WebhookHandler webhookHandler) {
+        this.webhookHandler = webhookHandler;
+    }
+
     @Override
     public void run(ApplicationArguments args) {
-        // log every message sent anywhere using a webhook handler
-        webhookHandler.onMono(eventName("conversation.new_message"), ConversationNewMessageEvent.class,
-                e -> Mono.fromRunnable(() -> log.info("Message received: {}", e.getConversationMessage().getFallbackText())));
+        webhookHandler.on(
+                eventName("conversation.new_message"),
+                ConversationNewMessageEvent.class,
+                event -> System.out.println("Message received: " + event.getConversationMessage().getFallbackText())
+        );
+        webhookHandler.assertSubscribed();
     }
 }
 ----
 
-== Quick start -  dialog bots
+== Quick start - dialog bots (Spring Boot)
 
-Add a dependency to your `build.gradle` file:
+Add dependencies to `build.gradle`:
 
 [source,gradle]
 ----
+def unbluMiddlewareVersion = '2.0.0-SNAPSHOT'
+
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-webflux'
-    implementation 'com.unblu.middleware:unblu-middleware-lib-spring:1.11.1-SNAPSHOT'
+    implementation platform("com.unblu.middleware:unblu-middleware-lib-bom:${unbluMiddlewareVersion}")
+    implementation 'com.unblu.middleware:unblu-middleware-lib-spring-dialog-bot'
     implementation 'com.unblu.openapi:jersey3-client-v4:8.24.0'
-    implementation 'org.projectlombok:lombok:1.18.34'
-    annotationProcessor 'org.projectlombok:lombok:1.18.34'
 }
 ----
 
-Configure the Unblu connection in your `application.yml` file.
+Configure `application.yml`:
 
 [source,yaml]
 ----
 unblu:
   host: https://some-installation.unblu.com
+  api-base-path: /app/rest/v4
   user: some-unblu-admin-user
   password: hello-im-some-unblu-admin-user-password
   middleware:
     url: https://where.my.middleware.is.running
     name: Test middleware
-    description: Does stuff
-  outboundRequests:
+  outbound-requests:
+    api-path: /outbound
     secret: hello-im-secure
   bot:
-    onboardingFilter: VISITORS
+    onboarding-filter: VISITORS
     person:
-      firstName: Test
-      lastName: Bot
-      sourceId: Test middleware
+      first-name: Test
+      last-name: Bot
+      source-id: Test middleware
 ----
 
-Annotate your service (or middleware app) with `@Import(UnbluDialogBot.class)`.
-
-Use `dialogBot.accept...OfferIf()` to define conditions for accepting dialog offers. Every offer is rejected by default. Use `dialogBot.onDialog...()` methods to react on dialog events.
+Register dialog bot handlers:
 
 [source,java]
 ----
 @Service
-@RequiredArgsConstructor
-@Import(UnbluDialogBot.class)
-public class MyAwesomeMiddlewareService implements ApplicationRunner {
+public class MyDialogBotMiddleware implements ApplicationRunner {
 
     private final DialogBot dialogBot;
 
-    @Override
-    public void run(ApplicationArguments args) {
-        // accept every onboarding offer
-        dialogBot.acceptOnboardingOfferIf(_o -> true);
-
-        // greet the user when a dialog is opened
-        dialogBot.onDialogOpenMono(r ->
-                Mono.fromRunnable(() -> sendMessage(r.getDialogToken(), "Hello, I am a bot!")));
-
-        // echo every message back to the user
-        dialogBot.onDialogMessageMono(r ->
-                Mono.fromRunnable(() -> echoIfSentByHuman(r)));
+    public MyDialogBotMiddleware(DialogBot dialogBot) {
+        this.dialogBot = dialogBot;
     }
 
-    private void echoIfSentByHuman(BotDialogMessageRequest r) {
-        if (r.getConversationMessage().getSenderPerson().getPersonType() == EPersonType.VISITOR) {
-            sendMessage(r.getDialogToken(), "You wrote: " + r.getConversationMessage().getFallbackText());
+    @Override
+    public void run(ApplicationArguments args) {
+        dialogBot.acceptOnboardingOfferIf(_offer -> true);
+        dialogBot.onDialogOpen(request -> sendMessage(request.getDialogToken(), "Hello, I am a bot!"));
+        dialogBot.onDialogMessage(this::echoIfSentByHuman);
+        dialogBot.assertSubscribed();
+    }
+
+    private void echoIfSentByHuman(BotDialogMessageRequest request) {
+        if (request.getConversationMessage().getSenderPerson().getPersonType() == EPersonType.VISITOR) {
+            sendMessage(request.getDialogToken(), "You wrote: " + request.getConversationMessage().getFallbackText());
         }
     }
 
     private void sendMessage(String dialogToken, String text) {
-        try {
-            botsApi.botsSendDialogMessage(new BotDialogPostMessage()
-                    .dialogToken(dialogToken)
-                    .messageData(new TextPostMessageData().text(text)));
-        } catch (ApiException e) {
-            throw new RuntimeException(e);
-        }
+        System.out.println("Send '" + text + "' to " + dialogToken);
+    }
+}
+----
+
+== Quick start - dialog bots (Quarkus)
+
+Add dependencies to `build.gradle`:
+
+[source,gradle]
+----
+def unbluMiddlewareVersion = '2.0.0-SNAPSHOT'
+
+dependencies {
+    implementation platform("com.unblu.middleware:unblu-middleware-lib-bom:${unbluMiddlewareVersion}")
+    implementation 'com.unblu.middleware:unblu-middleware-lib-quarkus-dialog-bot'
+    implementation 'com.unblu.openapi:jersey3-client-v4:8.24.0'
+}
+----
+
+Register handlers in a CDI bean:
+
+[source,java]
+----
+@ApplicationScoped
+public class MyDialogBotMiddleware {
+
+    @Inject
+    DialogBot dialogBot;
+
+    void onStart(@Observes StartupEvent event) {
+        dialogBot.acceptOnboardingOfferIf(_offer -> true);
+        dialogBot.onDialogOpen(request -> System.out.println("Dialog opened: " + request.getDialogToken()));
+        dialogBot.assertSubscribed();
     }
 }
 ----
@@ -190,64 +224,64 @@ unblu:
   host: https://some-installation.unblu.com # mandatory, set me
   user: superadmin                  # mandatory, set me
   password: hello-im-superadmin-password  # mandatory, set me
-  apiBasePath: /app/rest/v4   # this is the default
-  idPropagationHeaderName:
-  idPropagationUserId:       # content of the id propagation header
+  api-base-path: /app/rest/v4   # this is the default
+  id-propagation-header-name:
+  id-propagation-user-id:       # content of the id propagation header
 
   middleware:
     url: https://where.my.middleware.is.running
     name: Test middleware
     description: This is a test middleware # optional, but recommended
-    selfHealingEnabled: true  # see below, this is the default
-    selfHealingCheckIntervalInSeconds: 60 # see below, this is the default
-    autoSubscribe: true # if true, the middleware will automatically subscribe to webhooks and bots after startup, otherwise you need to call webhookHandler.subscribe() and dialogBot.subscribe() manually or retrieve the Flux and subscribe to it yourself
-    pingUnbluOnStartup: true # if true, the middleware will send a ping to Unblu after startup to verify connectivity; app dies if ping fails
+    self-healing-enabled: true  # see below, this is the default
+    self-healing-check-interval-in-seconds: 60 # see below, this is the default
+    auto-subscribe: true # if true, the middleware will automatically subscribe to webhooks and bots after startup, otherwise you need to call webhookHandler.subscribe() and dialogBot.subscribe() manually or retrieve the Flux and subscribe to it yourself
+    ping-unblu-on-startup: true # if true, the middleware will send a ping to Unblu after startup to verify connectivity; app dies if ping fails
 
   webhook:
     secret: another-secure-secret  # mandatory if webhooks are used
-    cleanPrevious: false # see below, this is the default
-    eventNames:    # useful to specify but not needed - event names passed to handlers are registered on the fly
+    clean-previous: false # see below, this is the default
+    event-names:    # useful to specify but not needed - event names passed to handlers are registered on the fly
       - conversation.onboarding
       - conversation.new_message
 
-  outboundRequests:
+  outbound-requests:
     secret: a-secure-secret  # mandatory if services requiring outbound requests (e.g. dialog bots) are used
-    apiPath: /outbound   # api path used by the middleware outbound controller, e.g. https://where.my.middleware.is.running/outbound. /outbound this is the default
+    api-path: /outbound   # api path used by the middleware outbound controller, e.g. https://where.my.middleware.is.running/outbound. /outbound this is the default
 
   bot:
     person:
-      sourceId: concierge-bot-person-id    # concierge is used as the default bot
-      firstName: Unblu
-      lastName: Concierge
+      source-id: concierge-bot-person-id    # concierge is used as the default bot
+      first-name: Unblu
+      last-name: Concierge
 
-    cleanPrevious: false       # see below, this is the default
-    onboardingFilter: VISITORS # can be VISITORS, AGENTS, BOTH, or NONE (default)
-    onboardingOrder: 100       # this is the default
-    offboardingFilter: NONE                # can be VISITORS, AGENTS, BOTH, or NONE (default)
-    offboardingOrder: 100                  # this is the default
-    reboardingEnabled: false               # this is the default
-    reboardingOrder: 100                   # this is the default
-    automaticTypingStateHandlingEnabled: true  # this is the default
-    messageStateHandledExternally: false  # this is the default
-    needsCounterpartPresence: true        # this is the default
-    timeoutInMilliSeconds: 1000           # this is the default
-    onTimeoutBehavior: ABORT              # can be HAND_OFF or ABORT (default)
-    retryCount: 3                         # 0-5
-    retryDelayInMilliSeconds: 1000        # 0-10000
+    clean-previous: false       # see below, this is the default
+    onboarding-filter: VISITORS # can be VISITORS, AGENTS, BOTH, or NONE (default)
+    onboarding-order: 100       # this is the default
+    offboarding-filter: NONE                # can be VISITORS, AGENTS, BOTH, or NONE (default)
+    offboarding-order: 100                  # this is the default
+    reboarding-enabled: false               # this is the default
+    reboarding-order: 100                   # this is the default
+    automatic-typing-state-handling-enabled: true  # this is the default
+    message-state-handled-externally: false  # this is the default
+    needs-counterpart-presence: true        # this is the default
+    timeout-in-milli-seconds: 10000         # this is the default
+    on-timeout-behavior: ABORT              # can be HAND_OFF or ABORT (default)
+    retry-count: 3                          # 0-5
+    retry-delay-in-milli-seconds: 1000      # 0-10000
 ----
 
-`cleanPrevious: false` means that the registration will update the existing webhook registration, if it exists (register for given event names and activate). If you want to remove the previous registration and create a new one, set it to `true`.
+`clean-previous: false` means that the registration will update the existing webhook registration, if it exists (register for given event names and activate). If you want to remove the previous registration and create a new one, set it to `true`.
 
 This is useful when after a middleware restart, you don't want to receive webhook events sent during the middleware downtime. Since Unblu hasn't received a response to those webhooks, it will try to send them again.
 
-`selfHealingEnabled: true` means that every `selfHealingCheckIntervalInSeconds` seconds, the middleware will check and perform repare actions if the webhook and bot registrations are still valid and correctly configured, in particular if they haven't been auto-disabled by Unblu.
+`self-healing-enabled: true` means that every `self-healing-check-interval-in-seconds` seconds, the middleware will check and perform repair actions if the webhook and bot registrations are still valid and correctly configured, in particular if they haven't been auto-disabled by Unblu.
 
 == Subscribe
 Note that you must subscribe to the fluxes in `webhookHandler` and outbound handling (`outboundHandler` / `outboundRequestHandler`, used by `dialogBot`).
 
 You can do this by one of the following:
 
-* Setting `unblu.middleware.autoSubscribe=true` (default). Library then subscribes on `ApplicationReadyEvent`, so you must register your handlers before, e.g. in `@PostConstruct` or `@Bean` methods or in `ApplicationRunner.run()` method.
+* Setting `unblu.middleware.auto-subscribe=true` (default). Library then subscribes on `ApplicationReadyEvent`, so you must register your handlers before, e.g. in `@PostConstruct` or `@Bean` methods or in `ApplicationRunner.run()` method.
 * Calling `.assertSubscribed()` methods on the beans, e.g. `webhookHandler.assertSubscribed()` and `dialogBot.assertSubscribed()` after registering your handlers. `.assertSubscribed()` guarantees you're subscribed exactly once. You can also use explicit `.subscribe()`, then however you need to take care of double subscriptions.
 * Retrieving the fluxes (`.getFlux()`) and ensuring they are subscribed after registering your handlers.
 
@@ -303,7 +337,7 @@ logback.xml:
 </configuration>
 ----
 
-The following logback context variables are available for webhooks out-of-the-box (are always populated by the library):
+The following logback context variables are available for dialog bot events and outbound requests out-of-the-box (are always populated by the library):
 
 * `eventId`
 * `deliveryId`
@@ -335,7 +369,7 @@ Like the webhook handler, the dialog bot handler also provides a `.onWrapped...(
 
 Also like the webhook handler, the dialog bot handler allows you to pass a list of context entry specs, which allows you to populate the logback context with event-related information. The usage is the same as for the webhook handler.
 
-The following logback context variables are available for webhooks out-of-the-box (are always populated by the library):
+The following logback context variables are available for outbound requests out-of-the-box (are always populated by the library):
 
 * `dialogToken`
 * `conversationId`
@@ -349,22 +383,22 @@ Conversation observing bots are implemented using webhooks. You can also use Bot
 == Outbound request handler API
 The library exposes a lower-level api `OutboundHandler` (with `OutboundRequestHandler` still available for compatibility), primarily intended for cases which aren't yet explicitly covered by the library.
 
-Outbound requests are implicitly imported with `@Import(UnbluDialogBot.class)` but if you don't use that annotation, you can import them explicitly with `@Import(UnbluOutboundRequests.class)`. This exposes `outboundHandler` (new standard) and `outboundRequestHandler` (compatibility) beans.
+In Spring, outbound requests are available transitively with `unblu-middleware-lib-spring-dialog-bot`, or directly with `unblu-middleware-lib-spring-outboundrequests`. This exposes `outboundHandler` (new standard) and `outboundRequestHandler` (compatibility) beans.
 
-Outbound requests are handled similarly to webhooks, however require a proper response in the form of a class `<Xxx>Response` for each `<Xxx>Request`. Like with webhooks, the general practice is to respond as quickly as possible, and perform longer processing asynchronously. For outbound requests however, this may not always be possible, because an actual response with results of the handler operation is sometimes needed. For that reason, `outboundRequestHandler.on(...)` supports synchronous response handlers, and `outboundRequestHandler.onWrappedMono(...)` supports reactive response/async handlers.
+Outbound requests are handled similarly to webhooks, however require a proper response in the form of a class `<Xxx>Response` for each `<Xxx>Request`. Like with webhooks, the general practice is to respond as quickly as possible, and perform longer processing asynchronously. For outbound requests however, this may not always be possible, because an actual response with results of the handler operation is sometimes needed. For that reason, `outboundHandler.on(...)` supports synchronous response/async handlers, and `outboundHandler.onWrappedMono(...)` supports reactive response/async handlers.
 
 Example usage - this is how the dialog bot service implements `onDialogOpen()`:
 
 [source,java]
 ----
-outboundRequestHandler.onWrappedMono(
+outboundHandler.onWrappedMono(
         outboundRequestType("outbound.bot.dialog.opened"),
         BotDialogOpenRequest.class,
         BotDialogOpenResponse.class,
         _request -> Mono.just(new BotDialogOpenResponse())
                 .doOnNext(_response -> log.debug("Responding to bot dialog open")),
         request -> Mono.fromRunnable(() -> sendMessage(request.getDialogToken(), "Hello, I am a bot!")),
-        OutboundRequestHandlerOptions.<BotDialogOpenRequest>requestOrderSpec(
+        OutboundRequestHandlerOptions.requestOrderSpec(
                         mustPreserveOrderForThoseWithTheSame(request -> request.getDialogToken()))
                 .withContextSpec(ContextSpec.of(
                         "dialogToken", request -> request.getDialogToken()
@@ -389,10 +423,10 @@ The following logback context variables are available for webhooks out-of-the-bo
 
 The service https://jitpack.io/ is able to build any commit from any open source repo.
 
-WARNING: Jars on the jitpack repositories are not immutable (like on a SNAPSHOT respository) and the build of the jar is delegated to an external service.
+WARNING: Jars on the jitpack repositories are not immutable (like on a SNAPSHOT repository) and the build of the jar is delegated to an external service.
 It is not recommended to use them in a middleware application that goes to production.
 
-An additional repository has to be declared in the `respositories` section:
+An additional repository has to be declared in the `repositories` section:
 
 [source,gradle]
 ----
@@ -407,42 +441,8 @@ maven {
 The coordinates are different:
 
 * *GroupId*: `com.github.unblu`
-* *ArtifactId*: `unblu-middleware-lib` (same as on maven central)
-* *Version* can be a commit (like `e8f15d5ef4`), a tag (like `1.8.1`) or a branch name (like `main-SNAPSHOT`)
-
-Example diff:
-
-[source,diff]
-----
-diff --git a/build.gradle b/build.gradle
-index 3efa35a..87d9ceb 100644
---- a/build.gradle
-+++ b/build.gradle
-@@ -16,8 +16,13 @@ java {
- }
- 
- repositories {
-+    maven {
-+        url "https://jitpack.io"
-+        content {
-+            includeGroup "com.github.unblu"
-+        }
-+    }
-     mavenCentral()
--    mavenLocal()
- }
- 
- wrapper {
-@@ -27,7 +32,7 @@ wrapper {
- 
- dependencies {
-     implementation 'org.springframework.boot:spring-boot-starter-webflux'
--    implementation 'com.unblu.middleware:unblu-middleware-lib:1.8.0'
-+    implementation 'com.github.unblu:unblu-middleware-lib:e8f15d5ef47da08724d806d5be5e08f18728095c'
-     implementation 'com.unblu.openapi:jersey3-client-v4:8.24.0'
-     implementation 'org.projectlombok:lombok:1.18.34'
-     annotationProcessor 'org.projectlombok:lombok:1.18.34'
-----
+* *ArtifactId*: one module artifact, for example `unblu-middleware-lib-bom`, `unblu-middleware-lib-spring-webhooks`, or `unblu-middleware-lib-quarkus-dialog-bot`
+* *Version*: a commit (for example `e8f15d5ef4`), a tag (for example `1.8.1`) or a branch name (for example `main-SNAPSHOT`)
 
 Troubleshoot a build on jitpack:
 
@@ -453,7 +453,7 @@ https://jitpack.io/com/github/unblu/unblu-middleware-lib/e8f15d5ef4/build.log
 == Troubleshooting
 
 === Configuration issues
-Property must not be blank - you must populate required properties in your `application.yml` file, such as `unblu.host`, `unblu.user`, `unblu.password`, `unblu.middleware.url`, `unblu.middleware.name`, and either `unblu.webhook.secret` or `unblu.bot.secret`.
+Property must not be blank - you must populate required properties in your `application.yml` file, such as `unblu.host`, `unblu.user`, `unblu.password`, `unblu.middleware.url`, `unblu.middleware.name`, and either `unblu.webhook.secret` or `unblu.outbound-requests.secret`.
 
 === Errors during registration management
 Errors during webhook registration management (typically 403 forbidden) are usually caused either by wrong Unblu credentials, or by using a non-admin Unblu user.

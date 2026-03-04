@@ -1,0 +1,16 @@
+dependencies {
+    api project(':unblu-middleware-lib-core-common')
+
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+    testImplementation platform("org.junit:junit-bom:5.10.2")
+    testImplementation "org.junit.jupiter:junit-jupiter-api"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+    testImplementation "org.mockito:mockito-core:5.19.0"
+    testImplementation project(':unblu-middleware-lib-core-outboundrequests')
+}
+
+test {
+    useJUnitPlatform()
+}

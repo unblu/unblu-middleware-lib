@@ -1,6 +1,5 @@
 package com.unblu.middleware.integration;
 
-import com.unblu.middleware.common.annotation.EnableUnbluMiddlewareLibCommon;
 import com.unblu.middleware.common.config.MiddlewareConfiguration;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -13,7 +12,6 @@ import static org.junit.jupiter.api.Assertions.*;
  * Tests that Quarkus configuration is properly bound to configuration objects.
  */
 @QuarkusTest
-@EnableUnbluMiddlewareLibCommon
 class ConfigurationIntegrationTest {
 
     @Inject

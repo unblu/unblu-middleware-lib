@@ -7,31 +7,9 @@ buildscript {
     }
 }
 
-plugins {
-    id 'java-library'
-}
-
-group "com.unblu.middleware"
-
-java {
-    withJavadocJar()
-    withSourcesJar()
-    compileJava.options.encoding = "UTF-8"
-
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
-}
-
-repositories {
-    mavenCentral()
-}
-
 dependencies {
-    // Depend on runtime module
-    implementation project(':unblu-middleware-lib-quarkus')
+    implementation project(':unblu-middleware-lib-quarkus-common')
 
-    // Quarkus deployment dependencies
     implementation platform("io.quarkus.platform:quarkus-bom:3.31.2")
     implementation "io.quarkus:quarkus-arc-deployment"
     implementation "io.quarkus:quarkus-jackson-deployment"
@@ -41,10 +19,8 @@ dependencies {
     implementation "io.quarkus:quarkus-config-yaml"
     implementation "io.smallrye.config:smallrye-config-core"
 
-    // For Jackson in DtoBinder
     implementation "com.fasterxml.jackson.core:jackson-databind"
 
-    // Lombok
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
     annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 }

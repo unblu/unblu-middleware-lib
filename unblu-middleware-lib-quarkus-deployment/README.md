@@ -1,61 +1,33 @@
 # Unblu Middleware Lib - Quarkus Deployment
 
-This module contains the Quarkus deployment-time components for the Unblu Middleware Library.
+This module contains deployment-time build steps shared by all Quarkus feature modules.
 
 ## Purpose
 
-This module provides auto-configuration and bootstrapping functionality for Quarkus applications. It includes:
-
-- **Bootstrap Components**: Configuration producers, API client setup, Unblu pinger
-- **Automation**: Auto-registration, auto-subscription, and self-healing capabilities
-- **Error Handling**: Fatal startup error handlers
-- **Dependency Injection**: CDI producers for Unblu APIs and configuration beans
+It wires build-time integration for runtime modules and dynamic Unblu API bean registration.
 
 ## Usage
 
-This module is typically a transitive dependency when you include the runtime module in your Quarkus application. The deployment module is automatically used during build time by Quarkus.
+You usually **do not** add this module directly.
 
-### For End Users
+Depend on one or more Quarkus feature runtime modules instead, for example:
 
-End users should depend on the **runtime** module `unblu-middleware-lib-quarkus`:
+- `unblu-middleware-lib-quarkus-webhooks`
+- `unblu-middleware-lib-quarkus-outboundrequests`
+- `unblu-middleware-lib-quarkus-dialog-bot`
+- `unblu-middleware-lib-quarkus-conversation-observing-bot`
+- `unblu-middleware-lib-quarkus-external-messenger`
 
-```xml
-<dependency>
-    <groupId>com.unblu.middleware</groupId>
-    <artifactId>unblu-middleware-lib-quarkus</artifactId>
-    <version>${unblu.middleware.version}</version>
-</dependency>
-```
+Each feature runtime module points to this deployment module internally through Quarkus extension metadata.
 
-### For Extension Developers
+## For Extension Developers
 
-If you're developing Quarkus extensions that integrate with Unblu middleware, you may need to depend on this deployment module:
+If you are integrating these features in another Quarkus extension, you may depend on:
 
 ```xml
 <dependency>
-    <groupId>com.unblu.middleware</groupId>
-    <artifactId>unblu-middleware-lib-quarkus-deployment</artifactId>
-    <version>${unblu.middleware.version}</version>
+  <groupId>com.unblu.middleware</groupId>
+  <artifactId>unblu-middleware-lib-quarkus-deployment</artifactId>
+  <version>${unblu.middleware.version}</version>
 </dependency>
 ```
-
-## Components
-
-### Bootstrap
-
-- **ConfigurationProducer**: Produces configuration beans from Quarkus config
-- **UnbluApis**: Produces all Unblu API client beans
-- **UnbluPinger**: Verifies connectivity to Unblu server on startup
-- **DtoBinder**: Utility for binding configuration to POJOs
-
-### Automation
-
-- **AutoRegister**: Handles automatic registration of components
-- **AutoSubscribe**: Handles automatic subscription setup
-- **SelfHealingBootstrap**: Periodic self-healing for components
-
-### Error Handling
-
-- **QuarkusFatalStartupErrorHandler**: Handles fatal errors by shutting down Quarkus
-- **RequestQueueErrorHandlerBootstrap**: Provides error handlers for request queues
-

@@ -4,7 +4,7 @@ This module contains integration tests for the Quarkus implementation of the Unb
 
 ## Purpose
 
-This module provides comprehensive integration tests that verify the runtime and deployment modules work correctly together in a real Quarkus application context. Integration tests validate:
+This module provides comprehensive integration tests that verify Quarkus feature modules and deployment integration in a real Quarkus application context. Integration tests validate:
 
 - CDI bean injection and lifecycle
 - API client configuration and bootstrapping
@@ -15,7 +15,7 @@ This module provides comprehensive integration tests that verify the runtime and
 
 ## Structure
 
-This is a test-only module with no main sources. It depends on the deployment module, which transitively includes the runtime module.
+This is a test-only module with no main sources. It depends on Quarkus feature modules and the shared deployment module.
 
 ## Running Tests
 
@@ -37,7 +37,7 @@ Test configuration is provided in `src/test/resources/application.properties`. T
 
 Integration tests are kept in a separate module for several reasons:
 
-1. **Clean separation**: Runtime and deployment modules remain focused on production code
+1. **Clean separation**: Feature/deployment modules remain focused on production code
 2. **Faster builds**: Main modules can be built and tested quickly without heavy integration tests
 3. **Test dependencies**: Integration tests may require additional dependencies not needed in production
 4. **CI/CD flexibility**: Integration tests can be run separately in CI pipelines
@@ -48,4 +48,3 @@ Integration tests are kept in a separate module for several reasons:
 - Quarkus 3.31.2 or higher
 - Java 21 or higher
 - JUnit 5
-

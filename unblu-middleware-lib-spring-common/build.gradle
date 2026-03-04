@@ -1,0 +1,19 @@
+dependencies {
+    api project(':unblu-middleware-lib-core-common')
+
+    api "org.springframework.boot:spring-boot-starter-webflux:${springBootVersion}"
+    api "org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}"
+
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor:${springBootVersion}"
+
+    testImplementation "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
+    testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher:6.0.2"
+    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+}
+
+test {
+    useJUnitPlatform()
+}
