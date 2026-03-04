@@ -32,7 +32,11 @@ public class UnbluMiddlewareBuildStep {
                         "com.unblu.middleware.webhooks.WebhookRoute",
                         "com.unblu.middleware.quarkus.error.QuarkusFatalStartupErrorHandler",
                         "com.unblu.middleware.webhooks.controller.WebhookControllerService",
-                        "com.unblu.middleware.outboundrequests.controller.OutboundRequestsControllerService"
+                        "com.unblu.middleware.outboundrequests.controller.OutboundRequestsControllerService",
+                        "com.unblu.middleware.outboundrequests.handler.OutboundHandlerImpl",
+                        "com.unblu.middleware.outboundrequests.handler.OutboundRequestHandler",
+                        "com.unblu.middleware.bots.service.DialogBotImpl",
+                        "com.unblu.middleware.bots.service.DialogBotServiceImpl"
                 )
                 .setUnremovable()
                 .setDefaultScope(DotName.createSimple("jakarta.enterprise.context.ApplicationScoped"))
