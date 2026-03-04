@@ -3,6 +3,7 @@ package com.unblu.middleware.common.utils;
 import com.unblu.middleware.common.entity.ContextSpec;
 import com.unblu.middleware.common.entity.Request;
 import com.unblu.middleware.common.registry.RequestOrderSpec;
+import com.unblu.middleware.outboundrequests.entity.OutboundRequestHandlerOptions;
 import com.unblu.middleware.webhooks.entity.WebhookHandlerOptions;
 import lombok.experimental.UtilityClass;
 
@@ -46,6 +47,13 @@ public class RequestWrapperUtils {
                 wrapped(options.requestOrderSpec()),
                 wrapped(options.contextSpec()),
                 options.shouldAssertRegistered()
+        );
+    }
+
+    public static <T> OutboundRequestHandlerOptions<Request<T>> wrapped(OutboundRequestHandlerOptions<T> options) {
+        return new OutboundRequestHandlerOptions<>(
+                wrapped(options.requestOrderSpec()),
+                wrapped(options.contextSpec())
         );
     }
 }

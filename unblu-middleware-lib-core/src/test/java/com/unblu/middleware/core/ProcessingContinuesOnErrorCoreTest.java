@@ -6,6 +6,7 @@ import com.unblu.middleware.common.entity.Request;
 import com.unblu.middleware.common.registry.ContextRegistryWrapper;
 import com.unblu.middleware.common.registry.RequestOrderSpec;
 import com.unblu.middleware.common.registry.RequestQueueErrorHandler;
+import com.unblu.middleware.outboundrequests.entity.OutboundRequestHandlerOptions;
 import com.unblu.middleware.outboundrequests.handler.OutboundRequestHandler;
 import com.unblu.middleware.outboundrequests.handler.OutboundRequestQueue;
 import com.unblu.middleware.webhooks.entity.EventName;
@@ -114,8 +115,8 @@ class ProcessingContinuesOnErrorCoreTest {
                     okLatch.countDown();
                     return just("ok").then();
                 },
-                RequestOrderSpec.canIgnoreOrder(),
-                ContextSpec.empty()
+                OutboundRequestHandlerOptions.<BotDialogMessageRequest>requestOrderSpec(RequestOrderSpec.canIgnoreOrder())
+                        .withContextSpec(ContextSpec.empty())
         );
         outboundRequestHandler.assertSubscribed();
 

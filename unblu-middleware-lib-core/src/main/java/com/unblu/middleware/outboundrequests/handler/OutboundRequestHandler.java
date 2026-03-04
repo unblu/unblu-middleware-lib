@@ -9,6 +9,7 @@ import com.unblu.middleware.common.registry.ContextRegistryWrapper;
 import com.unblu.middleware.common.registry.RequestOrderSpec;
 import com.unblu.middleware.common.registry.RequestQueueServiceImpl;
 import com.unblu.middleware.common.utils.ThrowingFunction;
+import com.unblu.middleware.outboundrequests.entity.OutboundRequestHandlerOptions;
 import com.unblu.middleware.outboundrequests.entity.OutboundRequestType;
 import com.unblu.webapi.model.v4.PingRequest;
 import com.unblu.webapi.model.v4.PingResponse;
@@ -50,8 +51,7 @@ public class OutboundRequestHandler extends RequestQueueServiceImpl {
         on(outboundRequestType("outbound.ping"), PingRequest.class, PingResponse.class,
                 request -> Mono.just(new PingResponse().pingId(request.getPingId())),
                 request -> Mono.fromRunnable(() -> log.info("Received ping outbound request")),
-                RequestOrderSpec.canIgnoreOrder(),
-                ContextSpec.empty());
+                OutboundRequestHandlerOptions.defaults());
     }
 
     public <T, R> void on(
@@ -60,9 +60,40 @@ public class OutboundRequestHandler extends RequestQueueServiceImpl {
             @NonNull Class<R> responseClass,
             @NonNull Function<T, Mono<R>> responseFunction,
             Function<T, Mono<Void>> asyncHandler,
+            @NonNull OutboundRequestHandlerOptions<T> outboundRequestHandlerOptions) {
+        Function<Request<T>, Mono<Void>> wrappedAsyncHandler = asyncHandler == null ? null : wrapped(asyncHandler);
+        onWrapped(
+                requestType,
+                requestClass,
+                responseClass,
+                wrapped(responseFunction),
+                wrappedAsyncHandler,
+                wrapped(outboundRequestHandlerOptions)
+        );
+    }
+
+    /**
+     * @deprecated Use on(...) with OutboundRequestHandlerOptions
+     */
+    @Deprecated
+    public <T, R> void on(
+            @NonNull OutboundRequestType requestType,
+            @NonNull Class<T> requestClass,
+            @NonNull Class<R> responseClass,
+            @NonNull Function<T, Mono<R>> responseFunction,
+            Function<T, Mono<Void>> asyncHandler,
             RequestOrderSpec<T> requestOrderSpec,
             @NonNull ContextSpec<T> contextSpec) {
-        onWrapped(requestType, requestClass, responseClass, wrapped(responseFunction), wrapped(asyncHandler), wrapped(requestOrderSpec), wrapped(contextSpec));
+        on(
+                requestType,
+                requestClass,
+                responseClass,
+                responseFunction,
+                asyncHandler,
+                OutboundRequestHandlerOptions.<T>defaults()
+                        .withRequestOrderSpec(requestOrderSpec == null ? RequestOrderSpec.canIgnoreOrder() : requestOrderSpec)
+                        .withContextSpec(contextSpec)
+        );
     }
 
     public <T, R> void onWrapped(
@@ -71,9 +102,32 @@ public class OutboundRequestHandler extends RequestQueueServiceImpl {
             @NonNull Class<R> responseClass,
             @NonNull Function<Request<T>, Mono<R>> responseFunction,
             Function<Request<T>, Mono<Void>> asyncHandler,
+            @NonNull OutboundRequestHandlerOptions<Request<T>> outboundRequestHandlerOptions) {
+        registerHandler(requestType, requestClass, responseClass, responseFunction, asyncHandler, outboundRequestHandlerOptions);
+    }
+
+    /**
+     * @deprecated Use onWrapped(...) with OutboundRequestHandlerOptions
+     */
+    @Deprecated
+    public <T, R> void onWrapped(
+            @NonNull OutboundRequestType requestType,
+            @NonNull Class<T> requestClass,
+            @NonNull Class<R> responseClass,
+            @NonNull Function<Request<T>, Mono<R>> responseFunction,
+            Function<Request<T>, Mono<Void>> asyncHandler,
             RequestOrderSpec<Request<T>> requestOrderSpec,
             @NonNull ContextSpec<Request<T>> contextSpec) {
-        registerHandler(requestType, requestClass, responseClass, responseFunction, asyncHandler, requestOrderSpec, contextSpec);
+        onWrapped(
+                requestType,
+                requestClass,
+                responseClass,
+                responseFunction,
+                asyncHandler,
+                OutboundRequestHandlerOptions.<Request<T>>defaults()
+                        .withRequestOrderSpec(requestOrderSpec == null ? RequestOrderSpec.canIgnoreOrder() : requestOrderSpec)
+                        .withContextSpec(contextSpec)
+        );
     }
 
     // Combination of requestType, requestClass and responseClass is given and is 1:1:1, just unknown to the lib :(
@@ -88,16 +142,39 @@ public class OutboundRequestHandler extends RequestQueueServiceImpl {
             @NonNull Class<R> responseClass,
             @NonNull Function<Request<T>, Mono<R>> responseFunction,
             Function<Request<T>, Mono<Void>> asyncHandler,
-            RequestOrderSpec<Request<T>> requestOrderSpec,
-            @NonNull ContextSpec<Request<T>> contextSpec) {
-        var updatedContextSpec = contextSpec.with(wrappedHeaderSpec(outboundRequestHeadersContextSpec()));
+            @NonNull OutboundRequestHandlerOptions<Request<T>> outboundRequestHandlerOptions) {
+        var updatedContextSpec = outboundRequestHandlerOptions.contextSpec().with(wrappedHeaderSpec(outboundRequestHeadersContextSpec()));
         if (asyncHandler != null) {
-            requestQueue.onWrapped(requestClass, asyncHandler, requestOrderSpec, updatedContextSpec);
+            requestQueue.onWrapped(requestClass, asyncHandler, outboundRequestHandlerOptions.requestOrderSpec(), updatedContextSpec);
         }
         contextRegistryWrapper.registerContextSpec(updatedContextSpec);
         contextEntriesByRequestType.put(requestClass, updatedContextSpec);
         responseByRequestType.put(requestClass, (Function) responseFunction);
         requestClassByRequestType.put(requestType, requestClass);
+    }
+
+    /**
+     * @deprecated Use registerHandler(...) with OutboundRequestHandlerOptions
+     */
+    @Deprecated
+    public <T, R> void registerHandler(
+            @NonNull OutboundRequestType requestType,
+            @NonNull Class<T> requestClass,
+            @NonNull Class<R> responseClass,
+            @NonNull Function<Request<T>, Mono<R>> responseFunction,
+            Function<Request<T>, Mono<Void>> asyncHandler,
+            RequestOrderSpec<Request<T>> requestOrderSpec,
+            @NonNull ContextSpec<Request<T>> contextSpec) {
+        registerHandler(
+                requestType,
+                requestClass,
+                responseClass,
+                responseFunction,
+                asyncHandler,
+                OutboundRequestHandlerOptions.<Request<T>>defaults()
+                        .withRequestOrderSpec(requestOrderSpec == null ? RequestOrderSpec.canIgnoreOrder() : requestOrderSpec)
+                        .withContextSpec(contextSpec)
+        );
     }
 
     @SuppressWarnings("unchecked")

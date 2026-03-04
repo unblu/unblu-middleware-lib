@@ -2,6 +2,7 @@ package com.unblu.middleware.bots.service;
 
 import com.unblu.middleware.common.entity.ContextSpec;
 import com.unblu.middleware.common.entity.Request;
+import com.unblu.middleware.outboundrequests.entity.OutboundRequestHandlerOptions;
 import com.unblu.middleware.outboundrequests.handler.OutboundRequestHandler;
 import com.unblu.webapi.model.v4.*;
 import jakarta.inject.Named;
@@ -44,11 +45,11 @@ public class DialogBotImpl implements DialogBot {
                         .doOnNext(shouldAccept -> log.debug(shouldAccept ? "Accepting onboarding dialog offer" : "Rejecting onboarding dialog offer"))
                         .map(shouldAccept -> new BotBoardingOfferResponse().offerAccepted(shouldAccept)),
                 null,
-                null,
-                contextSpec.with(ContextSpec.of(
-                        "dialogToken", it -> it.body().getDialogToken(),
-                        "conversationId", it -> Optional.ofNullable(it.body().getConversation()).map(ConversationData::getId).orElse(null)
-                )));
+                OutboundRequestHandlerOptions.contextSpec(
+                        contextSpec.with(ContextSpec.of(
+                                "dialogToken", it -> it.body().getDialogToken(),
+                                "conversationId", it -> Optional.ofNullable(it.body().getConversation()).map(ConversationData::getId).orElse(null)
+                        ))));
     }
 
     @Override
@@ -61,11 +62,11 @@ public class DialogBotImpl implements DialogBot {
                         .doOnNext(shouldAccept -> log.debug(shouldAccept ? "Accepting reboarding dialog offer" : "Rejecting reboarding dialog offer"))
                         .map(shouldAccept -> new BotBoardingOfferResponse().offerAccepted(shouldAccept)),
                 null,
-                null,
-                contextSpec.with(ContextSpec.of(
-                        "dialogToken", it -> it.body().getDialogToken(),
-                        "conversationId", it -> Optional.ofNullable(it.body().getConversation()).map(ConversationData::getId).orElse(null)
-                )));
+                OutboundRequestHandlerOptions.contextSpec(
+                        contextSpec.with(ContextSpec.of(
+                                "dialogToken", it -> it.body().getDialogToken(),
+                                "conversationId", it -> Optional.ofNullable(it.body().getConversation()).map(ConversationData::getId).orElse(null)
+                        ))));
     }
 
     @Override
@@ -78,11 +79,11 @@ public class DialogBotImpl implements DialogBot {
                         .doOnNext(shouldAccept -> log.debug(shouldAccept ? "Accepting offboarding dialog offer" : "Rejecting offboarding dialog offer"))
                         .map(shouldAccept -> new BotBoardingOfferResponse().offerAccepted(shouldAccept)),
                 null,
-                null,
-                contextSpec.with(ContextSpec.of(
-                        "dialogToken", it -> it.body().getDialogToken(),
-                        "conversationId", it -> Optional.ofNullable(it.body().getConversation()).map(ConversationData::getId).orElse(null)
-                )));
+                OutboundRequestHandlerOptions.contextSpec(
+                        contextSpec.with(ContextSpec.of(
+                                "dialogToken", it -> it.body().getDialogToken(),
+                                "conversationId", it -> Optional.ofNullable(it.body().getConversation()).map(ConversationData::getId).orElse(null)
+                        ))));
     }
 
     @Override
@@ -94,11 +95,12 @@ public class DialogBotImpl implements DialogBot {
                 _request -> Mono.just(new BotDialogOpenResponse())
                         .doOnNext(_response -> log.debug("Responding to bot dialog open")),
                 action,
-                mustPreserveOrderForThoseWithTheSame(it -> it.body().getDialogToken()),
-                contextSpec.with(ContextSpec.of(
-                        "dialogToken", it -> it.body().getDialogToken(),
-                        "conversationId", it -> Optional.ofNullable(it.body().getConversation()).map(ConversationData::getId).orElse(null)
-                )));
+                OutboundRequestHandlerOptions.<Request<BotDialogOpenRequest>>requestOrderSpec(
+                                mustPreserveOrderForThoseWithTheSame(it -> it.body().getDialogToken()))
+                        .withContextSpec(contextSpec.with(ContextSpec.of(
+                                "dialogToken", it -> it.body().getDialogToken(),
+                                "conversationId", it -> Optional.ofNullable(it.body().getConversation()).map(ConversationData::getId).orElse(null)
+                        ))));
     }
 
     @Override
@@ -110,11 +112,12 @@ public class DialogBotImpl implements DialogBot {
                 _request -> Mono.just(new BotDialogMessageResponse())
                         .doOnNext(_response -> log.debug("Responding to bot dialog message")),
                 action,
-                mustPreserveOrderForThoseWithTheSame(it -> it.body().getDialogToken()),
-                contextSpec.with(ContextSpec.of(
-                        "dialogToken", it -> it.body().getDialogToken(),
-                        "conversationId", it -> it.body().getConversationId()
-                )));
+                OutboundRequestHandlerOptions.<Request<BotDialogMessageRequest>>requestOrderSpec(
+                                mustPreserveOrderForThoseWithTheSame(it -> it.body().getDialogToken()))
+                        .withContextSpec(contextSpec.with(ContextSpec.of(
+                                "dialogToken", it -> it.body().getDialogToken(),
+                                "conversationId", it -> it.body().getConversationId()
+                        ))));
     }
 
     @Override
@@ -126,11 +129,12 @@ public class DialogBotImpl implements DialogBot {
                 _request -> Mono.just(new BotDialogMessageStateResponse())
                         .doOnNext(_response -> log.debug("Responding to bot dialog message state")),
                 action,
-                mustPreserveOrderForThoseWithTheSame(it -> it.body().getDialogToken()),
-                contextSpec.with(ContextSpec.of(
-                        "dialogToken", it -> it.body().getDialogToken(),
-                        "conversationId", it -> it.body().getConversationId()
-                )));
+                OutboundRequestHandlerOptions.<Request<BotDialogMessageStateRequest>>requestOrderSpec(
+                                mustPreserveOrderForThoseWithTheSame(it -> it.body().getDialogToken()))
+                        .withContextSpec(contextSpec.with(ContextSpec.of(
+                                "dialogToken", it -> it.body().getDialogToken(),
+                                "conversationId", it -> it.body().getConversationId()
+                        ))));
     }
 
     @Override
@@ -142,11 +146,12 @@ public class DialogBotImpl implements DialogBot {
                 _request -> Mono.just(new BotDialogCounterpartChangedResponse())
                         .doOnNext(_response -> log.debug("Responding to bot dialog counterpart changed")),
                 action,
-                mustPreserveOrderForThoseWithTheSame(it -> it.body().getDialogToken()),
-                contextSpec.with(ContextSpec.of(
-                        "dialogToken", it -> it.body().getDialogToken(),
-                        "conversationId", it -> it.body().getConversationId()
-                )));
+                OutboundRequestHandlerOptions.<Request<BotDialogCounterpartChangedRequest>>requestOrderSpec(
+                                mustPreserveOrderForThoseWithTheSame(it -> it.body().getDialogToken()))
+                        .withContextSpec(contextSpec.with(ContextSpec.of(
+                                "dialogToken", it -> it.body().getDialogToken(),
+                                "conversationId", it -> it.body().getConversationId()
+                        ))));
     }
 
     @Override
@@ -158,11 +163,12 @@ public class DialogBotImpl implements DialogBot {
                 _request -> Mono.just(new BotDialogClosedResponse())
                         .doOnNext(_response -> log.debug("Responding to bot dialog closed")),
                 action,
-                mustPreserveOrderForThoseWithTheSame(it -> it.body().getDialogToken()),
-                contextSpec.with(ContextSpec.of(
-                        "dialogToken", it -> it.body().getDialogToken(),
-                        "conversationId", it -> it.body().getConversationId()
-                )));
+                OutboundRequestHandlerOptions.<Request<BotDialogClosedRequest>>requestOrderSpec(
+                                mustPreserveOrderForThoseWithTheSame(it -> it.body().getDialogToken()))
+                        .withContextSpec(contextSpec.with(ContextSpec.of(
+                                "dialogToken", it -> it.body().getDialogToken(),
+                                "conversationId", it -> it.body().getConversationId()
+                        ))));
     }
 
     @Override

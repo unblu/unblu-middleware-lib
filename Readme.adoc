@@ -336,11 +336,12 @@ outboundRequestHandler.on(
         BotDialogOpenResponse.class,
         _request -> Mono.just(new BotDialogOpenResponse())
                 .doOnNext(_response -> log.debug("Responding to bot dialog open")),
-        request -> Mono.fromRunnable(() -> sendMessage(request.getDialogToken(), "Hello, I am a bot!")));,
-        mustPreserveOrderForThoseWithTheSame(request -> request.getDialogToken()),
-        ContextSpec.of(
-                "dialogToken", request -> request.getDialogToken()
-        ));
+        request -> Mono.fromRunnable(() -> sendMessage(request.getDialogToken(), "Hello, I am a bot!")),
+        OutboundRequestHandlerOptions.<BotDialogOpenRequest>requestOrderSpec(
+                        mustPreserveOrderForThoseWithTheSame(request -> request.getDialogToken()))
+                .withContextSpec(ContextSpec.of(
+                        "dialogToken", request -> request.getDialogToken()
+                )));
 ----
 
 `sendMessage()` here is an expensive asynchronous operation, so it is performed in the asynchronous handler lambda, while the synchronous lambda just returns an empty `BotDialogOpenResponse` as quickly as possible.
@@ -349,6 +350,7 @@ outboundRequestHandler.on(
 Like the webhook handler, the outbound request handler also provides a `.onWrapped...()` method family, which allows you to access the headers of the request in your lambdas, in addition to the event object.
 
 Also like the webhook handler, the dialog bot handler allows you to pass a list of context entry specs, which allows you to populate the logback context with event-related information. The usage is the same as for the webhook handler.
+Deprecated overloads with explicit `requestOrderSpec` and `contextSpec` parameters are still available for backward compatibility.
 
 The following logback context variables are available for webhooks out-of-the-box (are always populated by the library):
 

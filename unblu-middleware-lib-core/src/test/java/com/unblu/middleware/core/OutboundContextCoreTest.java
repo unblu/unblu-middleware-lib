@@ -5,6 +5,7 @@ import com.unblu.middleware.common.entity.Request;
 import com.unblu.middleware.common.registry.ContextRegistryWrapper;
 import com.unblu.middleware.common.registry.DefaultRequestQueueErrorHandler;
 import com.unblu.middleware.common.registry.RequestOrderSpec;
+import com.unblu.middleware.outboundrequests.entity.OutboundRequestHandlerOptions;
 import com.unblu.middleware.outboundrequests.handler.OutboundRequestHandler;
 import com.unblu.middleware.outboundrequests.handler.OutboundRequestQueue;
 import com.unblu.webapi.model.v4.BotDialogMessageRequest;
@@ -61,12 +62,12 @@ class OutboundContextCoreTest {
                     asyncLatch.countDown();
                     return empty();
                 },
-                RequestOrderSpec.canIgnoreOrder(),
-                ContextSpec.of(
-                        "text", e -> e.body().getConversationMessage().getFallbackText(),
-                        "conversationId", e -> e.body().getConversationMessage().getConversationId(),
-                        "accountId", e -> e.body().getConversationMessage().getAccountId()
-                )
+                OutboundRequestHandlerOptions.<Request<BotDialogMessageRequest>>requestOrderSpec(RequestOrderSpec.canIgnoreOrder())
+                        .withContextSpec(ContextSpec.of(
+                                "text", e -> e.body().getConversationMessage().getFallbackText(),
+                                "conversationId", e -> e.body().getConversationMessage().getConversationId(),
+                                "accountId", e -> e.body().getConversationMessage().getAccountId()
+                        ))
         );
         outboundRequestHandler.assertSubscribed();
 

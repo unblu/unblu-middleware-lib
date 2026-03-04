@@ -2,6 +2,7 @@ package com.unblu.middleware.externalmessenger.service;
 
 import com.unblu.middleware.common.entity.ContextSpec;
 import com.unblu.middleware.common.entity.Request;
+import com.unblu.middleware.outboundrequests.entity.OutboundRequestHandlerOptions;
 import com.unblu.middleware.outboundrequests.handler.OutboundRequestHandler;
 import com.unblu.webapi.model.v4.ExternalMessengerNewMessageRequest;
 import com.unblu.webapi.model.v4.ExternalMessengerNewMessageResponse;
@@ -32,8 +33,9 @@ public class ExternalMessengerServiceImpl implements ExternalMessengerService {
                 ExternalMessengerNewMessageResponse.class,
                 _request -> Mono.just(new ExternalMessengerNewMessageResponse()),
                 action,
-                mustPreserveOrderForThoseWithTheSame(it -> it.body().getConversationMessage().getId()),
-                contextSpec
+                OutboundRequestHandlerOptions.<Request<ExternalMessengerNewMessageRequest>>requestOrderSpec(
+                                mustPreserveOrderForThoseWithTheSame(it -> it.body().getConversationMessage().getId()))
+                        .withContextSpec(contextSpec)
         );
     }
 
