@@ -48,6 +48,12 @@ subprojects {
         mavenCentral()
     }
 
+    tasks.withType(ProcessResources).configureEach {
+        filesMatching(['META-INF/quarkus-extension.yaml', 'META-INF/quarkus-extension.properties']) {
+            expand(projectVersion: project.version)
+        }
+    }
+
     afterEvaluate {
         publishing {
             publications {
