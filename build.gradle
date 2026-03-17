@@ -51,11 +51,12 @@ subprojects {
     if (project.name.startsWith('unblu-middleware-lib-quarkus-')
             && project.name != 'unblu-middleware-lib-quarkus-deployment'
             && project.name != 'unblu-middleware-lib-quarkus-integration-tests') {
+        def effectiveProjectVersion = project.findProperty('release.releaseVersion') ?: project.version
         def generatedExtensionResourcesDir = file("$buildDir/generated/quarkus-extension-resources")
         def generatedMetaInfDir = new File(generatedExtensionResourcesDir, "META-INF")
         generatedMetaInfDir.mkdirs()
         new File(generatedMetaInfDir, "quarkus-extension.properties").text =
-                "deployment-artifact=${project.group}\\:unblu-middleware-lib-quarkus-deployment\\:${project.version}\n"
+                "deployment-artifact=${project.group}\\:unblu-middleware-lib-quarkus-deployment\\:${effectiveProjectVersion}\n"
 
         sourceSets.main.resources.srcDir(generatedExtensionResourcesDir)
 
@@ -64,7 +65,7 @@ subprojects {
                 expand(
                         projectGroup: project.group,
                         projectArtifactId: project.name,
-                        projectVersion: project.version
+                        projectVersion: effectiveProjectVersion
                 )
             }
         }
