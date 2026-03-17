@@ -1,0 +1,61 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'io.smallrye:jandex:3.1.6'
+    }
+}
+
+dependencies {
+    api project(':unblu-middleware-lib-core-common')
+
+    api platform("io.quarkus.platform:quarkus-bom:3.31.2")
+    api "io.quarkus:quarkus-arc"
+    api "io.quarkus:quarkus-rest"
+    api "io.quarkus:quarkus-rest-jackson"
+    api "io.quarkus:quarkus-reactive-routes"
+
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+    testImplementation "io.quarkus:quarkus-junit5"
+    testImplementation "io.rest-assured:rest-assured"
+    testImplementation "org.junit.jupiter:junit-jupiter-api"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+}
+
+test {
+    useJUnitPlatform()
+    systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
+}
+
+tasks.register('indexUtf8') {
+    def destinationDir = file("build/resources/main/META-INF")
+    dependsOn compileJava
+    doLast {
+        def indexer = new org.jboss.jandex.Indexer()
+        sourceSets.main.output.classesDirs.each { dir ->
+            if (dir.exists()) {
+                fileTree(dir).visit { details ->
+                    if (!details.isDirectory() && details.name.endsWith(".class")) {
+                        try (def stream = new FileInputStream(details.file)) {
+                            indexer.index(stream)
+                        }
+                    }
+                }
+            }
+        }
+        def index = indexer.complete()
+        if (!destinationDir.exists()) {
+            destinationDir.mkdirs()
+        }
+        try (def stream = new FileOutputStream(new File(destinationDir, "jandex.idx"))) {
+            def writer = new org.jboss.jandex.IndexWriter(stream)
+            writer.write(index)
+        }
+    }
+}
+
+processResources.dependsOn indexUtf8

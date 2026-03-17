@@ -1,0 +1,6 @@
+dependencies {
+    api project(':unblu-middleware-lib-spring-outboundrequests')
+    api project(':unblu-middleware-lib-core-external-messenger')
+
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor:${springBootVersion}"
+}

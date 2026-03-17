@@ -1,0 +1,34 @@
+plugins {
+    id 'java-platform'
+}
+
+group "com.unblu.middleware"
+
+javaPlatform {
+    allowDependencies()
+}
+
+dependencies {
+    constraints {
+        api project(':unblu-middleware-lib-core-common')
+        api project(':unblu-middleware-lib-core-webhooks')
+        api project(':unblu-middleware-lib-core-outboundrequests')
+        api project(':unblu-middleware-lib-core-dialog-bot')
+        api project(':unblu-middleware-lib-core-conversation-observing-bot')
+        api project(':unblu-middleware-lib-core-external-messenger')
+
+        api project(':unblu-middleware-lib-spring-common')
+        api project(':unblu-middleware-lib-spring-webhooks')
+        api project(':unblu-middleware-lib-spring-outboundrequests')
+        api project(':unblu-middleware-lib-spring-dialog-bot')
+        api project(':unblu-middleware-lib-spring-conversation-observing-bot')
+        api project(':unblu-middleware-lib-spring-external-messenger')
+
+        api project(':unblu-middleware-lib-quarkus-common')
+        api project(':unblu-middleware-lib-quarkus-webhooks')
+        api project(':unblu-middleware-lib-quarkus-outboundrequests')
+        api project(':unblu-middleware-lib-quarkus-dialog-bot')
+        api project(':unblu-middleware-lib-quarkus-conversation-observing-bot')
+        api project(':unblu-middleware-lib-quarkus-external-messenger')
+    }
+}

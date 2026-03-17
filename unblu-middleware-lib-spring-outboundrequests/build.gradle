@@ -1,0 +1,19 @@
+dependencies {
+    api project(':unblu-middleware-lib-spring-common')
+    api project(':unblu-middleware-lib-core-outboundrequests')
+
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor:${springBootVersion}"
+
+    testImplementation project(':unblu-middleware-lib-spring-dialog-bot')
+    testImplementation "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
+    testImplementation "org.springframework.boot:spring-boot-webtestclient:${springBootVersion}"
+    testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher:6.0.2"
+    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+}
+
+test {
+    useJUnitPlatform()
+}

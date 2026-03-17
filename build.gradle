@@ -3,117 +3,91 @@ plugins {
     id "maven-publish"
     id "org.jreleaser" version '1.19.0'
     id "net.researchgate.release" version '3.1.0'
-    id "org.springframework.boot" version "${springBootVersion}"
 }
 
 wrapper {
-    gradleVersion = '8.13'
+    gradleVersion = '8.14'
     distributionType = 'all'
 }
 
-group "com.unblu.middleware"
+allprojects {
+    group "com.unblu.middleware"
+    version rootProject.version
 
-java {
-    withJavadocJar()
-    withSourcesJar()
-    compileJava.options.encoding = "UTF-8"
-    
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+    repositories {
+        mavenLocal()
+        mavenCentral()
     }
 }
 
-repositories {
-    mavenCentral()
-}
+subprojects {
+    apply plugin: 'maven-publish'
 
-dependencies {
-    implementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+    if (project.name != 'unblu-middleware-lib-bom') {
+        apply plugin: 'java-library'
 
-    implementation "org.springframework.boot:spring-boot-starter-actuator"
-    implementation "org.springframework.boot:spring-boot-starter-webflux"
-    implementation "org.springframework.boot:spring-boot-starter-validation"
-    implementation "org.springframework:spring-messaging"
-    implementation "io.micrometer:context-propagation"
-    implementation "org.projectlombok:lombok:${lombokVersion}"
-    implementation "com.google.guava:guava:[32.1.2-jre,)"
-    implementation "org.skyscreamer:jsonassert:2.0-rc1"
+        java {
+            withJavadocJar()
+            withSourcesJar()
+            compileJava.options.encoding = "UTF-8"
 
-    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor:${springBootVersion}"
-
-    implementation "net.logstash.logback:logstash-logback-encoder:[7.4,)"
-
-    implementation "com.unblu.openapi:jersey3-client-v4:[8.0.0,)"
-
-    compileOnly "org.projectlombok:lombok:${lombokVersion}"
-    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
-
-    // various
-    implementation "commons-codec:commons-codec"
-    implementation "io.projectreactor.addons:reactor-extra"
-
-    // (unit) testing
-    testImplementation "org.springframework.boot:spring-boot-starter-test"
-    testImplementation "io.projectreactor:reactor-test"
-
-    testImplementation platform("org.junit:junit-bom")
-    testImplementation "org.junit.jupiter:junit-jupiter-api"
-    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
-    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
-
-}
-
-test {
-    apply plugin: "org.springframework.boot"
-    // use this to see the output of tests (e.g. Spring dependency problems)
-    // testLogging.showStandardStreams = true
-}
-
-// We do not want the 'plain' classifier for the jar, see https://docs.spring.io/spring-boot/gradle-plugin/packaging.html#packaging-executable.and-plain-archives
-tasks.named("jar") {
-	archiveClassifier = ''
-}
-
-tasks.named("bootJar") {
-    enabled = false
-}
-
-tasks.named("test") {
-    useJUnitPlatform()
-}
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            pom {
-                name = 'Unblu middleware lib'
-                description = 'This library is used to create a middleware for the Unblu v8 platform (API v4), based on Spring Boot. It provides a set of tools and utilities to facilitate the integration with Unblu services.'
-                packaging = 'jar'
-                url = 'https://' + "$githubRepositoryOwner" + '.github.io/' + "$githubRepositoryName" + '/'
-                licenses {
-                    license {
-                        name = 'Apache 2.0 License'
-                        url = 'http://www.apache.org/licenses/LICENSE-2.0'
-                    }
-                }
-                developers {
-                    developer {
-                        id = 'unblu'
-                        url = 'https://github.com/orgs/' + "$githubRepositoryOwner" + '/people'
-                    }
-                }
-                scm {
-                    connection = 'scm:git:https://github.com/' + "$githubRepositoryOwner" + '/' + "$githubRepositoryName" + '.git'
-                    developerConnection = 'scm:git:https://github.com/' + "$githubRepositoryOwner" + '/' + "$githubRepositoryName" + '.git'
-                    url = 'https://github.com/' + "$githubRepositoryOwner" + '/' + "$githubRepositoryName" + '/'
-                }
+            toolchain {
+                languageVersion = JavaLanguageVersion.of(21)
             }
-            from components.java
         }
     }
+
+    // Ensure deployment artifacts are resolvable from project dependencies.
+    configurations.all {
+        resolutionStrategy.dependencySubstitution {
+            substitute module("com.unblu.middleware:unblu-middleware-lib-quarkus-deployment") using project(":unblu-middleware-lib-quarkus-deployment")
+        }
+    }
+
     repositories {
-        maven {
-            url = rootProject.file('build/staging-deploy')
+        mavenCentral()
+    }
+
+    afterEvaluate {
+        publishing {
+            publications {
+                mavenJava(MavenPublication) {
+                    pom {
+                        name = project.name
+                        description = "Part of Unblu middleware lib - ${project.name}"
+                        packaging = plugins.hasPlugin('java-platform') ? 'pom' : 'jar'
+                        url = 'https://' + "$githubRepositoryOwner" + '.github.io/' + "$githubRepositoryName" + '/'
+                        licenses {
+                            license {
+                                name = 'Apache 2.0 License'
+                                url = 'http://www.apache.org/licenses/LICENSE-2.0'
+                            }
+                        }
+                        developers {
+                            developer {
+                                id = 'unblu'
+                                url = 'https://github.com/orgs/' + "$githubRepositoryOwner" + '/people'
+                            }
+                        }
+                        scm {
+                            connection = 'scm:git:https://github.com/' + "$githubRepositoryOwner" + '/' + "$githubRepositoryName" + '.git'
+                            developerConnection = 'scm:git:https://github.com/' + "$githubRepositoryOwner" + '/' + "$githubRepositoryName" + '.git'
+                            url = 'https://github.com/' + "$githubRepositoryOwner" + '/' + "$githubRepositoryName" + '/'
+                        }
+                    }
+
+                    if (plugins.hasPlugin('java-platform')) {
+                        from components.javaPlatform
+                    } else {
+                        from components.java
+                    }
+                }
+            }
+            repositories {
+                maven {
+                    url = rootProject.file('build/staging-deploy')
+                }
+            }
         }
     }
 }

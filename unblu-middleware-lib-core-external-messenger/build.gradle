@@ -1,0 +1,7 @@
+dependencies {
+    api project(':unblu-middleware-lib-core-common')
+    api project(':unblu-middleware-lib-core-outboundrequests')
+
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+}

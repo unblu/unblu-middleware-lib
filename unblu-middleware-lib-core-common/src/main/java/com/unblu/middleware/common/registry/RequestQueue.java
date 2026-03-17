@@ -1,0 +1,130 @@
+package com.unblu.middleware.common.registry;
+
+import com.unblu.middleware.common.entity.ContextSpec;
+import com.unblu.middleware.common.entity.Request;
+import com.unblu.middleware.common.error.FatalStartupErrorHandler;
+import jakarta.annotation.PreDestroy;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.publisher.SignalType;
+import reactor.core.publisher.Sinks;
+import reactor.core.scheduler.Schedulers;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.locks.LockSupport;
+import java.util.function.Function;
+
+import static com.unblu.middleware.common.utils.RequestWrapperUtils.wrapped;
+
+@Slf4j
+public class RequestQueue {
+    private final ContextRegistryWrapper contextRegistryWrapper;
+    private final Sinks.Many<Request<?>> sink = Sinks.many().replay().all();
+    private final Sinks.One<Integer> shutDownSink = Sinks.one();
+
+    private final Map<Class<?>, Function<?, Object>> subjectKeysByRequestType = new ConcurrentHashMap<>();
+    private final Map<Class<?>, Actions<?>> actionsByRequestType = new ConcurrentHashMap<>();
+    private final Map<Class<?>, ContextSpec<?>> contextEntriesByRequestType = new ConcurrentHashMap<>();
+
+    private final RequestQueueErrorHandler requestQueueErrorHandler;
+
+    @Getter
+    private final Flux<Void> flux;
+
+    public RequestQueue(FatalStartupErrorHandler fatalStartupErrorHandler, ContextRegistryWrapper contextRegistryWrapper, RequestQueueErrorHandler requestQueueErrorHandler) {
+        this.contextRegistryWrapper = contextRegistryWrapper;
+        this.requestQueueErrorHandler = requestQueueErrorHandler;
+        this.flux = sink.asFlux()
+                .publishOn(Schedulers.boundedElastic())
+                .doOnError(_e -> fatalStartupErrorHandler.shutdown())
+                .takeUntilOther(shutDownSink.asMono())
+                .groupBy(it -> subjectKeyHash(it) % 100) // max 100 parallel
+                .flatMap(f -> f
+                        .publishOn(Schedulers.boundedElastic())
+                        .flatMap(this::processRequest));
+    }
+
+    public <T> void queueRequest(Request<T> request) {
+        sink.emitNext(request, this::emitFailureHandler);
+    }
+
+    public <T> void on(Class<T> requestType, Function<T, Mono<Void>> action, RequestOrderSpec<T> requestOrderSpec, ContextSpec<T> contextSpec) {
+        onWrapped(requestType, wrapped(action), wrapped(requestOrderSpec), wrapped(contextSpec));
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> void onWrapped(Class<T> requestType, Function<Request<T>, Mono<Void>> action, RequestOrderSpec<Request<T>> requestOrderSpec, ContextSpec<Request<T>> contextSpec) {
+        contextRegistryWrapper.registerContextSpec(contextSpec);
+        ((Actions<T>) actionsByRequestType.computeIfAbsent(requestType, _k -> Actions.empty())).add(action);
+        subjectKeysByRequestType.put(requestType, requestOrderSpec.keyExtractor());
+        contextEntriesByRequestType.put(requestType, contextSpec);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> Mono<Void> processRequest(Request<T> request) {
+        var requestType = request.body().getClass();
+        var actions = (Actions<T>) actionsByRequestType.getOrDefault(requestType, Actions.empty());
+        var contextSpec = (ContextSpec<Request<T>>) contextEntriesByRequestType.getOrDefault(requestType, ContextSpec.empty());
+
+        return Flux.fromIterable(actions.actions())
+                .flatMap(action ->
+                        action.apply(request)
+                                .doOnError(e -> log.error(e.getMessage()))
+                                .onErrorResume(requestQueueErrorHandler::handleError))
+                .contextWrite(contextSpec.applyTo(request))
+                .then();
+    }
+
+    private <T> int subjectKeyHash(Request<T> request) {
+        @SuppressWarnings("unchecked")
+        var subjectKeyHashFunction = (Function<Request<T>, Object>) subjectKeysByRequestType.getOrDefault(request.body().getClass(), Object::hashCode);
+        return Optional.ofNullable(subjectKeyHashFunction.apply(request))
+                .map(Object::hashCode)
+                .orElse(0); // guarantee order of all if no subject key is provided
+    }
+
+    private record Actions<T>(
+            List<Function<Request<T>, Mono<Void>>> actions
+    ) {
+        public static <T> Actions<T> of(Collection<Function<Request<T>, Mono<Void>>> actions) {
+            return new Actions<>(new CopyOnWriteArrayList<>(actions));
+        }
+
+        public static <T> Actions<T> empty() {
+            return of(List.of());
+        }
+
+        public void add(Function<Request<T>, Mono<Void>> action) {
+            actions.add(action);
+        }
+    }
+
+    private boolean emitFailureHandler(SignalType signalType, Sinks.EmitResult emitResult) {
+        if (emitResult == Sinks.EmitResult.FAIL_NON_SERIALIZED) {
+            LockSupport.parkNanos(10);
+            return true;
+        }
+
+        if (emitResult.isFailure()) {
+            log.error("Failed to handle request: {}", emitResult.name());
+        }
+
+        return false;
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        if (!shutDownSink.tryEmitValue(0).isSuccess()) {
+            log.error("Failed to emit shutdown signal for RequestQueue");
+        }
+        sink.tryEmitComplete();
+        log.info("RequestQueue has been shut down successfully");
+    }
+}

@@ -1,0 +1,5 @@
+dependencies {
+    api project(':unblu-middleware-lib-quarkus-outboundrequests')
+    api project(':unblu-middleware-lib-quarkus-conversation-observing-bot')
+    api project(':unblu-middleware-lib-core-dialog-bot')
+}

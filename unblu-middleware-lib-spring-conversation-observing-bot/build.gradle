@@ -1,0 +1,6 @@
+dependencies {
+    api project(':unblu-middleware-lib-spring-common')
+    api project(':unblu-middleware-lib-core-conversation-observing-bot')
+
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor:${springBootVersion}"
+}

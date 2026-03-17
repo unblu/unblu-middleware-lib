@@ -1,0 +1,21 @@
+dependencies {
+    api project(':unblu-middleware-lib-spring-common')
+    api project(':unblu-middleware-lib-core-webhooks')
+
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor:${springBootVersion}"
+
+    testImplementation "io.projectreactor:reactor-test:3.8.2"
+    testImplementation project(':unblu-middleware-lib-core-dialog-bot')
+    testImplementation project(':unblu-middleware-lib-core-external-messenger')
+    testImplementation "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
+    testImplementation "org.springframework.boot:spring-boot-webtestclient:${springBootVersion}"
+    testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher:6.0.2"
+    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+}
+
+test {
+    useJUnitPlatform()
+}
