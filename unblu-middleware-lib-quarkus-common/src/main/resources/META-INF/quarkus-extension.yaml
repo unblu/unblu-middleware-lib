@@ -1,6 +1,6 @@
 name: unblu-middleware-lib-quarkus-common
-artifact: com.unblu.middleware:unblu-middleware-lib-quarkus-common:${projectVersion}
+artifact: ${projectGroup}:${projectArtifactId}:${projectVersion}
 metadata:
   short-name: unblu-middleware-common
   guide: https://quarkus.io
-deployment-artifact: com.unblu.middleware:unblu-middleware-lib-quarkus-deployment:${projectVersion}
+deployment-artifact: ${projectGroup}:unblu-middleware-lib-quarkus-deployment:${projectVersion}

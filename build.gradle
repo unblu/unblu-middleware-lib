@@ -48,9 +48,25 @@ subprojects {
         mavenCentral()
     }
 
-    tasks.withType(ProcessResources).configureEach {
-        filesMatching(['META-INF/quarkus-extension.yaml', 'META-INF/quarkus-extension.properties']) {
-            expand(projectVersion: project.version)
+    if (project.name.startsWith('unblu-middleware-lib-quarkus-')
+            && project.name != 'unblu-middleware-lib-quarkus-deployment'
+            && project.name != 'unblu-middleware-lib-quarkus-integration-tests') {
+        def generatedExtensionResourcesDir = file("$buildDir/generated/quarkus-extension-resources")
+        def generatedMetaInfDir = new File(generatedExtensionResourcesDir, "META-INF")
+        generatedMetaInfDir.mkdirs()
+        new File(generatedMetaInfDir, "quarkus-extension.properties").text =
+                "deployment-artifact=${project.group}\\:unblu-middleware-lib-quarkus-deployment\\:${project.version}\n"
+
+        sourceSets.main.resources.srcDir(generatedExtensionResourcesDir)
+
+        tasks.named('processResources') {
+            filesMatching('META-INF/quarkus-extension.yaml') {
+                expand(
+                        projectGroup: project.group,
+                        projectArtifactId: project.name,
+                        projectVersion: project.version
+                )
+            }
         }
     }
 

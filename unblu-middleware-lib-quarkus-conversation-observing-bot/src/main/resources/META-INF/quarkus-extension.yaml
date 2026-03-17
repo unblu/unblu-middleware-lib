@@ -1,6 +1,6 @@
 name: unblu-middleware-lib-quarkus-conversation-observing-bot
-artifact: com.unblu.middleware:unblu-middleware-lib-quarkus-conversation-observing-bot:${projectVersion}
+artifact: ${projectGroup}:${projectArtifactId}:${projectVersion}
 metadata:
   short-name: unblu-conversation-observing-bot
   guide: https://quarkus.io
-deployment-artifact: com.unblu.middleware:unblu-middleware-lib-quarkus-deployment:${projectVersion}
+deployment-artifact: ${projectGroup}:unblu-middleware-lib-quarkus-deployment:${projectVersion}

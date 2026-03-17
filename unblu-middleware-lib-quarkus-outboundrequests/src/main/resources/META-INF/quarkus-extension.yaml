@@ -1,6 +1,6 @@
 name: unblu-middleware-lib-quarkus-outboundrequests
-artifact: com.unblu.middleware:unblu-middleware-lib-quarkus-outboundrequests:${projectVersion}
+artifact: ${projectGroup}:${projectArtifactId}:${projectVersion}
 metadata:
   short-name: unblu-outbound
   guide: https://quarkus.io
-deployment-artifact: com.unblu.middleware:unblu-middleware-lib-quarkus-deployment:${projectVersion}
+deployment-artifact: ${projectGroup}:unblu-middleware-lib-quarkus-deployment:${projectVersion}
