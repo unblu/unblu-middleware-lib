@@ -51,22 +51,37 @@ subprojects {
     if (project.name.startsWith('unblu-middleware-lib-quarkus-')
             && project.name != 'unblu-middleware-lib-quarkus-deployment'
             && project.name != 'unblu-middleware-lib-quarkus-integration-tests') {
-        def effectiveProjectVersion = project.findProperty('release.releaseVersion') ?: project.version
+        def isReleaseBuild = gradle.startParameter.taskNames.any { it == 'release' || it.endsWith(':release') }
+        def configurationProjectVersion = project.version.toString()
+        def packagingProjectVersion = project.findProperty('release.releaseVersion')
+                ?: (isReleaseBuild ? project.version.toString().replace('-SNAPSHOT', '') : project.version)
         def generatedExtensionResourcesDir = file("$buildDir/generated/quarkus-extension-resources")
         def generatedMetaInfDir = new File(generatedExtensionResourcesDir, "META-INF")
-        generatedMetaInfDir.mkdirs()
-        new File(generatedMetaInfDir, "quarkus-extension.properties").text =
-                "deployment-artifact=${project.group}\\:unblu-middleware-lib-quarkus-deployment\\:${effectiveProjectVersion}\n"
+        def extensionTemplateFile = file("src/main/resources/META-INF/quarkus-extension.yaml.template")
+        def extensionYamlFile = new File(generatedMetaInfDir, "quarkus-extension.yaml")
+        def extensionPropertiesFile = new File(generatedMetaInfDir, "quarkus-extension.properties")
 
-        sourceSets.main.resources.srcDir(generatedExtensionResourcesDir)
+        def writeExtensionMetadata = { String version ->
+            generatedMetaInfDir.mkdirs()
+            extensionYamlFile.text = extensionTemplateFile.text
+                    .replace('${projectGroup}', project.group.toString())
+                    .replace('${projectArtifactId}', project.name)
+                    .replace('${projectVersion}', version)
+            extensionPropertiesFile.text =
+                    "deployment-artifact=${project.group}\\:unblu-middleware-lib-quarkus-deployment\\:${version}\n"
+        }
+
+        writeExtensionMetadata(configurationProjectVersion)
+
+        sourceSets.main.resources {
+            srcDir(generatedExtensionResourcesDir)
+            exclude('META-INF/quarkus-extension.yaml')
+            exclude('META-INF/quarkus-extension.properties')
+        }
 
         tasks.named('processResources') {
-            filesMatching('META-INF/quarkus-extension.yaml') {
-                expand(
-                        projectGroup: project.group,
-                        projectArtifactId: project.name,
-                        projectVersion: effectiveProjectVersion
-                )
+            doFirst {
+                writeExtensionMetadata(packagingProjectVersion.toString())
             }
         }
     }
