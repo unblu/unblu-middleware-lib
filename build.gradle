@@ -150,9 +150,9 @@ tasks.register('checkNoSnapshotDependencies') {
     doLast {
         def snapshotDependencies = [] as Set
 
-        allprojects.each { currentProject ->
-            currentProject.configurations.each { configuration ->
-                configuration.dependencies.each { dependency ->
+        allprojects.toList().each { currentProject ->
+            currentProject.configurations.toList().each { configuration ->
+                configuration.dependencies.toList().each { dependency ->
                     if (dependency instanceof ExternalModuleDependency && dependency.version?.contains('SNAPSHOT')) {
                         snapshotDependencies << "${currentProject.path}:${configuration.name} -> ${dependency.group}:${dependency.name}:${dependency.version}"
                     }
