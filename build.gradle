@@ -92,8 +92,6 @@ subprojects {
     }
 }
 
-apply from: "$rootDir/gradle/quarkus-config-doc.gradle"
-
 tasks.register('checkLastVersionValue') {
     doLast {
         if(version.endsWith('SNAPSHOT')) {
