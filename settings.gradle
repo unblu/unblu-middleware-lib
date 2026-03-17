@@ -1,5 +1,7 @@
 rootProject.name = 'unblu-middleware-lib'
 
+def isReleaseBuild = gradle.startParameter.taskNames.any { it == 'release' || it.endsWith(':release') }
+
 include 'unblu-middleware-lib-bom'
 include 'unblu-middleware-lib-core-common'
 include 'unblu-middleware-lib-core-webhooks'
@@ -20,4 +22,7 @@ include 'unblu-middleware-lib-quarkus-dialog-bot'
 include 'unblu-middleware-lib-quarkus-conversation-observing-bot'
 include 'unblu-middleware-lib-quarkus-external-messenger'
 include 'unblu-middleware-lib-quarkus-deployment'
-include 'unblu-middleware-lib-quarkus-integration-tests'
+
+if (!isReleaseBuild) {
+    include 'unblu-middleware-lib-quarkus-integration-tests'
+}

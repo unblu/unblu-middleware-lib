@@ -141,6 +141,11 @@ tasks.register('checkLastVersionValue') {
     }
 }
 
+tasks.register('verifyForRelease', GradleBuild) {
+    dir = rootDir
+    tasks = ['check']
+}
+
 def updateLastVersionValueTask = tasks.register('updateLastVersionValue') {
     doLast {
         def propertiesFile = file('gradle.properties')
@@ -199,4 +204,8 @@ release {
     git {
         requireBranch.set('main')
     }
+}
+
+tasks.named('beforeReleaseBuild') {
+    dependsOn tasks.named('verifyForRelease')
 }
