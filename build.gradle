@@ -146,6 +146,26 @@ tasks.register('verifyForRelease', GradleBuild) {
     tasks = ['check']
 }
 
+tasks.register('checkNoSnapshotDependencies') {
+    doLast {
+        def snapshotDependencies = [] as Set
+
+        allprojects.each { currentProject ->
+            currentProject.configurations.each { configuration ->
+                configuration.dependencies.each { dependency ->
+                    if (dependency instanceof ExternalModuleDependency && dependency.version?.contains('SNAPSHOT')) {
+                        snapshotDependencies << "${currentProject.path}:${configuration.name} -> ${dependency.group}:${dependency.name}:${dependency.version}"
+                    }
+                }
+            }
+        }
+
+        if (!snapshotDependencies.isEmpty()) {
+            throw new GradleException("Snapshot dependencies found:\n" + snapshotDependencies.sort().join('\n'))
+        }
+    }
+}
+
 def updateLastVersionValueTask = tasks.register('updateLastVersionValue') {
     doLast {
         def propertiesFile = file('gradle.properties')
@@ -195,6 +215,7 @@ model {
 }
 
 release {
+    failOnSnapshotDependencies = false
     buildTasks = [
             'checkLastVersionValue',
             'clean',
@@ -208,4 +229,9 @@ release {
 
 tasks.named('beforeReleaseBuild') {
     dependsOn tasks.named('verifyForRelease')
+    dependsOn tasks.named('checkNoSnapshotDependencies')
+}
+
+tasks.matching { it.name == 'checkSnapshotDependencies' }.configureEach {
+    enabled = false
 }
