@@ -1,5 +1,6 @@
 package com.unblu.middleware.common.bootstrap;
 
+import com.unblu.middleware.common.config.ApiClientConfigurer;
 import com.unblu.middleware.common.config.UnbluConfiguration;
 import com.unblu.webapi.jersey.v4.api.*;
 import com.unblu.webapi.jersey.v4.invoker.ApiClient;
@@ -17,14 +18,7 @@ public class UnbluApis {
     @ConditionalOnMissingBean
     public ApiClient apiClient(UnbluConfiguration configuration) {
         ApiClient apiClient = new ApiClient();
-        apiClient.setBasePath(configuration.host() + configuration.apiBasePath());
-        apiClient.setUsername(configuration.user());
-        apiClient.setPassword(configuration.password());
-
-        if (configuration.idPropagationHeaderName() != null && configuration.idPropagationUserId() != null) {
-            apiClient.addDefaultHeader(configuration.idPropagationHeaderName(), configuration.idPropagationUserId());
-        }
-
+        ApiClientConfigurer.configure(apiClient, configuration);
         return apiClient;
     }
 

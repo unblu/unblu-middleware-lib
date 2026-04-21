@@ -16,15 +16,14 @@ public class MiddlewareLibConfigurationProperties {
     @NestedConfigurationProperty
     private MiddlewareConfiguration middleware;
 
-    // must unwrap & copy for compatibility :-(( 
+    // must unwrap & copy for compatibility :-((
     @NotBlank
     private String host;
     @NotBlank
     private String apiBasePath;
-    @NotBlank
     private String user;
-    @NotBlank
     private String password;
+    private String bearerToken;
     private String idPropagationHeaderName;
     private String idPropagationUserId;
 
@@ -35,6 +34,6 @@ public class MiddlewareLibConfigurationProperties {
 
     @Bean
     public UnbluConfiguration unbluConfiguration() {
-        return new UnbluConfiguration(host, apiBasePath, user, password, idPropagationHeaderName, idPropagationUserId);
+        return new UnbluConfiguration(host, apiBasePath, user, password, bearerToken, idPropagationHeaderName, idPropagationUserId);
     }
 }
