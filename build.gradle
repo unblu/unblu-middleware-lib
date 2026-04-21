@@ -176,7 +176,7 @@ def updateLastVersionValueTask = tasks.register('updateLastVersionValue') {
 
         def readmeFile = file('Readme.adoc')
         def readme = readmeFile.text
-        readme = readme.replace('com.unblu.middleware:unblu-middleware-lib:' + lastVersion, 'com.unblu.middleware:unblu-middleware-lib:' + newVersion)
+        readme = readme.replace('def unbluMiddlewareVersion = \'' + lastVersion + '\'', 'def unbluMiddlewareVersion = \'' + newVersion + '\'')
         readmeFile.text = readme
     }
 }

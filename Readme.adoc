@@ -61,7 +61,7 @@ Add dependencies to `build.gradle`:
 
 [source,gradle]
 ----
-def unbluMiddlewareVersion = '2.0.0-SNAPSHOT'
+def unbluMiddlewareVersion = '2.0.0'
 
 dependencies {
     implementation platform("com.unblu.middleware:unblu-middleware-lib-bom:${unbluMiddlewareVersion}")
@@ -118,7 +118,7 @@ Add dependencies to `build.gradle`:
 
 [source,gradle]
 ----
-def unbluMiddlewareVersion = '2.0.0-SNAPSHOT'
+def unbluMiddlewareVersion = '2.0.0'
 
 dependencies {
     implementation platform("com.unblu.middleware:unblu-middleware-lib-bom:${unbluMiddlewareVersion}")
@@ -189,7 +189,7 @@ Add dependencies to `build.gradle`:
 
 [source,gradle]
 ----
-def unbluMiddlewareVersion = '2.0.0-SNAPSHOT'
+def unbluMiddlewareVersion = '2.0.0'
 
 dependencies {
     implementation platform("com.unblu.middleware:unblu-middleware-lib-bom:${unbluMiddlewareVersion}")
@@ -222,8 +222,11 @@ public class MyDialogBotMiddleware {
 ----
 unblu:
   host: https://some-installation.unblu.com # mandatory, set me
-  user: superadmin                  # mandatory, set me
-  password: hello-im-superadmin-password  # mandatory, set me
+  # authenticate against the Unblu API either with basic auth (user + password) or with a bearer token.
+  # exactly one of the two must be configured.
+  user: superadmin                  # basic auth user
+  password: hello-im-superadmin-password  # basic auth password
+  bearer-token:                     # bearer token, used instead of user + password
   api-base-path: /app/rest/v4   # this is the default
   id-propagation-header-name:
   id-propagation-user-id:       # content of the id propagation header
@@ -453,7 +456,7 @@ https://jitpack.io/com/github/unblu/unblu-middleware-lib/e8f15d5ef4/build.log
 == Troubleshooting
 
 === Configuration issues
-Property must not be blank - you must populate required properties in your `application.yml` file, such as `unblu.host`, `unblu.user`, `unblu.password`, `unblu.middleware.url`, `unblu.middleware.name`, and either `unblu.webhook.secret` or `unblu.outbound-requests.secret`.
+Property must not be blank - you must populate required properties in your `application.yml` file, such as `unblu.host`, either `unblu.user` + `unblu.password` or `unblu.bearer-token` (mutually exclusive), `unblu.middleware.url`, `unblu.middleware.name`, and either `unblu.webhook.secret` or `unblu.outbound-requests.secret`.
 
 === Errors during registration management
 Errors during webhook registration management (typically 403 forbidden) are usually caused either by wrong Unblu credentials, or by using a non-admin Unblu user.
