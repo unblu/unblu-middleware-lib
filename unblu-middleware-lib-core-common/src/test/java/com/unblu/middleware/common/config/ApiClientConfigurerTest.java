@@ -6,6 +6,7 @@ import com.unblu.webapi.jersey.v4.invoker.auth.HttpBasicAuth;
 import com.unblu.webapi.jersey.v4.invoker.auth.HttpBearerAuth;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 class ApiClientConfigurerTest {
