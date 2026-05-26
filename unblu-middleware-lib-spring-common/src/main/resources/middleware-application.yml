@@ -1,8 +1,10 @@
 unblu:
   host:       # populate me
   apiBasePath: /app/rest/v4
+  # either set user + password for basic auth, or bearerToken for bearer token auth (mutually exclusive)
   user:       # populate me
   password:   # populate me
+  bearerToken:
   middleware:
     url:       # populate me
     name:      # populate me
