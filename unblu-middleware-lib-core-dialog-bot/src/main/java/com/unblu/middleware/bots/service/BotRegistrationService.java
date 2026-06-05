@@ -18,6 +18,7 @@ import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -46,12 +47,12 @@ public class BotRegistrationService extends RegistrationService<CustomDialogBotD
 
     @Override
     protected void callCreateNewRegistration(CustomDialogBotData registration) throws ApiException {
-        botsApi.botsCreate(withBotPerson(registration));
+        botsApi.botsCreate(withBotPerson(registration), List.of());
     }
 
     @Override
     protected void callUpdateRegistration(CustomDialogBotData registration) throws ApiException {
-        botsApi.botsUpdate(withBotPerson(registration));
+        botsApi.botsUpdate(withBotPerson(registration), List.of());
     }
 
     @Override
@@ -61,7 +62,7 @@ public class BotRegistrationService extends RegistrationService<CustomDialogBotD
 
     @Override
     protected CustomDialogBotData callGetRegistration(String registrationName) throws ApiException {
-        var botData = botsApi.botsGetByName(registrationName);
+        var botData = botsApi.botsGetByName(registrationName, List.of());
         if (botData instanceof CustomDialogBotData customDialogBotData) {
             return customDialogBotData;
         } else {

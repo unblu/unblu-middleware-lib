@@ -12,7 +12,7 @@ dependencies {
     api "ch.qos.logback:logback-classic:1.5.27"
     api "net.logstash.logback:logstash-logback-encoder:[7.4,)"
 
-    api "com.unblu.openapi:jersey3-client-v4:[8.0.0,)"
+    api "com.unblu.openapi:jersey3-client-v4:[8.37.0, 9.0.0)"
 
     api "com.google.guava:guava:[32.1.2-jre,)"
     api "org.skyscreamer:jsonassert:2.0-rc1"
