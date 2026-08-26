@@ -18,7 +18,6 @@ import java.io.InputStream;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static io.netty.util.ReferenceCountUtil.release;
 import static org.springframework.util.StreamUtils.copyToByteArray;
 
 @UtilityClass
@@ -36,12 +35,16 @@ public class Utils {
     public @NonNull Mono<RawRequest> toLibHttpRequest(Flux<DataBuffer> bodyBuffer, HttpHeaders headers) {
         return DataBufferUtils
                 .join(bodyBuffer)
-                .switchIfEmpty(Mono.just(emptyBuffer(headers.getContentLength())))
+                .switchIfEmpty(Mono.fromSupplier(() -> emptyBuffer(headers.getContentLength())))
+                // covers buffers dropped on cancel/error before map() takes ownership
+                .doOnDiscard(DataBuffer.class, DataBufferUtils::release)
                 .map((ThrowingFunction<DataBuffer, byte[]>) dataBuffer -> {
                     try (InputStream bodyStream = dataBuffer.asInputStream()) {
                         return copyToByteArray(bodyStream);
                     } finally {
-                        release(dataBuffer);
+                        // must be DataBufferUtils.release: Netty's ReferenceCountUtil.release
+                        // is a silent no-op on Spring DataBuffers (not ReferenceCounted)
+                        DataBufferUtils.release(dataBuffer);
                     }
                 })
                 .map(body -> new RawRequest(body, toJavaNetHeaders(headers)));
