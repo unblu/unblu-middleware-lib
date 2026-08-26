@@ -87,7 +87,9 @@ public class WebhookRequestHandlerImpl extends RequestQueueServiceImpl implement
 
     @Override
     public void subscribe() {
-        getFlux().subscribe();
+        // super also records the subscription, keeping isSubscribed()/assertSubscribed() truthful
+        // so repeated assertSubscribed() calls don't stack additional subscriptions
+        super.subscribe();
     }
 
     @Override

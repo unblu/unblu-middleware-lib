@@ -26,7 +26,10 @@ import static com.unblu.middleware.common.utils.RequestWrapperUtils.wrapped;
 @Slf4j
 public class RequestQueue {
     private final ContextRegistryWrapper contextRegistryWrapper;
-    private final Sinks.Many<Request<?>> sink = Sinks.many().replay().all();
+    // multicast with an unbounded buffer: requests queued before the first subscriber attaches are
+    // buffered, delivered requests are not retained (replay().all() kept every request for the
+    // process lifetime), and additional subscribers remain permitted
+    private final Sinks.Many<Request<?>> sink = Sinks.many().multicast().onBackpressureBuffer(Integer.MAX_VALUE, false);
     private final Sinks.One<Integer> shutDownSink = Sinks.one();
 
     private final Map<Class<?>, Function<?, Object>> subjectKeysByRequestType = new ConcurrentHashMap<>();
