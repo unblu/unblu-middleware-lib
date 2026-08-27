@@ -48,10 +48,19 @@ public class RequestQueue {
                 .publishOn(Schedulers.boundedElastic())
                 .doOnError(_e -> fatalStartupErrorHandler.shutdown())
                 .takeUntilOther(shutDownSink.asMono())
-                .groupBy(it -> subjectKeyHash(it) % 100) // max 100 parallel
+                .groupBy(it -> Math.floorMod(subjectKeyHash(it), 100)) // max 100 parallel (floorMod: % would double the group count via negative keys)
                 .flatMap(f -> f
                         .publishOn(Schedulers.boundedElastic())
-                        .flatMap(this::processRequest));
+                        // Mono.defer + onErrorResume: a synchronous throw from user code
+                        // (context spec, handler lambda) must skip this request, never
+                        // terminate the shared pipeline. Note: flatMap guarantees same-key
+                        // requests START in arrival order, not that they complete in order.
+                        .flatMap(request -> Mono.defer(() -> processRequest(request))
+                                .onErrorResume(e -> {
+                                    log.error("Unexpected error while processing request of type {}; skipping it",
+                                            request.body().getClass().getSimpleName(), e);
+                                    return Mono.empty();
+                                })));
     }
 
     public <T> void queueRequest(Request<T> request) {
@@ -78,8 +87,10 @@ public class RequestQueue {
 
         return Flux.fromIterable(actions.actions())
                 .flatMap(action ->
-                        action.apply(request)
-                                .doOnError(e -> log.error(e.getMessage()))
+                        // defer: a synchronous throw from the handler must reach the error
+                        // handler the same way as a returned Mono.error
+                        Mono.defer(() -> action.apply(request))
+                                .doOnError(e -> log.error(e.getMessage(), e))
                                 .onErrorResume(requestQueueErrorHandler::handleError))
                 .contextWrite(contextSpec.applyTo(request))
                 .then();
@@ -88,9 +99,17 @@ public class RequestQueue {
     private <T> int subjectKeyHash(Request<T> request) {
         @SuppressWarnings("unchecked")
         var subjectKeyHashFunction = (Function<Request<T>, Object>) subjectKeysByRequestType.getOrDefault(request.body().getClass(), Object::hashCode);
-        return Optional.ofNullable(subjectKeyHashFunction.apply(request))
-                .map(Object::hashCode)
-                .orElse(0); // guarantee order of all if no subject key is provided
+        try {
+            return Optional.ofNullable(subjectKeyHashFunction.apply(request))
+                    .map(Object::hashCode)
+                    .orElse(0); // guarantee order of all if no subject key is provided
+        } catch (RuntimeException e) {
+            // a throwing key extractor runs inside the groupBy selector and would otherwise
+            // terminate the shared pipeline for every handler
+            log.warn("Subject key extractor threw for request type {}; falling back to the shared key",
+                    request.body().getClass().getSimpleName(), e);
+            return 0;
+        }
     }
 
     private record Actions<T>(
