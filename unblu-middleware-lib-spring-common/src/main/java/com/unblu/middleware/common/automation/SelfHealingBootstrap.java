@@ -19,9 +19,20 @@ class SelfHealingBootstrap {
 
     private final List<SelfHealing> selfHealingBeans;
 
-    @Scheduled(initialDelayString = "${unblu.middleware.selfHealingCheckIntervalInSeconds}", fixedRateString = "${unblu.middleware.selfHealingCheckIntervalInSeconds}", timeUnit = TimeUnit.SECONDS)
+    // the documented kebab-case key wins; the camelCase key (supplied by the bundled
+    // middleware-application.yml) remains as fallback so existing setups keep working
+    private static final String INTERVAL = "${unblu.middleware.self-healing-check-interval-in-seconds:${unblu.middleware.selfHealingCheckIntervalInSeconds:60}}";
+
+    @Scheduled(initialDelayString = INTERVAL, fixedRateString = INTERVAL, timeUnit = TimeUnit.SECONDS)
     public void selfHealing() {
         log.debug("Launched self-healing");
-        selfHealingBeans.forEach(SelfHealing::selfHeal);
+        selfHealingBeans.forEach(bean -> {
+            try {
+                bean.selfHeal();
+            } catch (RuntimeException e) {
+                // one failing bean must not starve self-healing for the remaining beans
+                log.error("Self-healing failed for {}", bean.getClass().getSimpleName(), e);
+            }
+        });
     }
 }

@@ -34,7 +34,8 @@ public class ExternalMessengerServiceImpl implements ExternalMessengerService {
                 _request -> Mono.just(new ExternalMessengerNewMessageResponse()),
                 action,
                 OutboundRequestHandlerOptions.<Request<ExternalMessengerNewMessageRequest>>requestOrderSpec(
-                                mustPreserveOrderForThoseWithTheSame(it -> it.body().getConversationMessage().getId()))
+                                // conversationMessage may be absent on the wire; a null key falls back to the shared ordering key
+                                mustPreserveOrderForThoseWithTheSame(it -> it.body().getConversationMessage() == null ? null : it.body().getConversationMessage().getId()))
                         .withContextSpec(contextSpec)
         );
     }
