@@ -22,16 +22,24 @@ import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 public class RequestHandler {
 
     private final ObjectMapper objectMapper;
-    private final HmacUtils hmacSha1;
-    private final HmacUtils hmacSha256;
+    private final String secretKey;
     private final ContextSpec<HttpHeaders> contextSpec;
 
     public RequestHandler(RequestHandlerConfiguration requestHandlerConfiguration, ContextRegistryWrapper contextRegistryWrapper, ObjectMapper objectMapper, ContextSpec<HttpHeaders> contextSpec) {
         this.objectMapper = objectMapper;
         this.contextSpec = contextSpec;
         contextRegistryWrapper.registerContextSpec(contextSpec);
-        this.hmacSha1 = new HmacUtils(HmacAlgorithms.HMAC_SHA_1, requestHandlerConfiguration.secretKey());
-        this.hmacSha256 = new HmacUtils(HmacAlgorithms.HMAC_SHA_256, requestHandlerConfiguration.secretKey());
+        this.secretKey = requestHandlerConfiguration.secretKey();
+    }
+
+    // HmacUtils wraps a stateful javax.crypto.Mac, so a shared instance corrupts under
+    // concurrent requests — construct per use
+    private HmacUtils hmacSha1() {
+        return new HmacUtils(HmacAlgorithms.HMAC_SHA_1, secretKey);
+    }
+
+    private HmacUtils hmacSha256() {
+        return new HmacUtils(HmacAlgorithms.HMAC_SHA_256, secretKey);
     }
 
 
@@ -80,14 +88,14 @@ public class RequestHandler {
         }
 
         receivedSignature256.ifPresent(it -> {
-            var calculatedSignature = hmacSha256.hmacHex(body);
+            var calculatedSignature = hmacSha256().hmacHex(body);
             if (!it.equals(calculatedSignature)) {
                 throw new InvalidRequestException("Webhook signature mismatch for SHA256");
             }
         });
 
         receivedSignature.ifPresent(it -> {
-            var calculatedSignature = hmacSha1.hmacHex(body);
+            var calculatedSignature = hmacSha1().hmacHex(body);
             if (!it.equals(calculatedSignature)) {
                 throw new InvalidRequestException("Webhook signature mismatch for SHA1");
             }
@@ -102,6 +110,6 @@ public class RequestHandler {
     }
 
     private HttpResponse<String> signed(HttpResponse<String> responseEntity) {
-        return responseEntity.withHeader("x-unblu-signature-256", hmacSha256.hmacHex(responseEntity.body()));
+        return responseEntity.withHeader("x-unblu-signature-256", hmacSha256().hmacHex(responseEntity.body()));
     }
 }
