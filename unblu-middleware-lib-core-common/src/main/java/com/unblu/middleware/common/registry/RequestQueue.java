@@ -18,6 +18,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.Function;
 
@@ -38,6 +41,11 @@ public class RequestQueue {
 
     private final RequestQueueErrorHandler requestQueueErrorHandler;
 
+    private static final long DRAIN_TIMEOUT_SECONDS = 30;
+    private final AtomicBoolean shutdownInitiated = new AtomicBoolean(false);
+    private final CountDownLatch drained = new CountDownLatch(1);
+    private volatile boolean everSubscribed = false;
+
     @Getter
     private final Flux<Void> flux;
 
@@ -51,16 +59,19 @@ public class RequestQueue {
                 .groupBy(it -> Math.floorMod(subjectKeyHash(it), 100)) // max 100 parallel (floorMod: % would double the group count via negative keys)
                 .flatMap(f -> f
                         .publishOn(Schedulers.boundedElastic())
+                        // concatMap: requests with the same subject key are processed strictly
+                        // one after another, in arrival order — also for async handlers.
                         // Mono.defer + onErrorResume: a synchronous throw from user code
                         // (context spec, handler lambda) must skip this request, never
-                        // terminate the shared pipeline. Note: flatMap guarantees same-key
-                        // requests START in arrival order, not that they complete in order.
-                        .flatMap(request -> Mono.defer(() -> processRequest(request))
+                        // terminate the shared pipeline.
+                        .concatMap(request -> Mono.defer(() -> processRequest(request))
                                 .onErrorResume(e -> {
                                     log.error("Unexpected error while processing request of type {}; skipping it",
                                             request.body().getClass().getSimpleName(), e);
                                     return Mono.empty();
-                                })));
+                                })))
+                .doOnSubscribe(_s -> everSubscribed = true)
+                .doOnComplete(drained::countDown);
     }
 
     public <T> void queueRequest(Request<T> request) {
@@ -143,10 +154,22 @@ public class RequestQueue {
 
     @PreDestroy
     public void shutdown() {
-        if (!shutDownSink.tryEmitValue(0).isSuccess()) {
-            log.error("Failed to emit shutdown signal for RequestQueue");
+        // idempotent: apps legitimately call shutdown() themselves before @PreDestroy runs
+        if (!shutdownInitiated.compareAndSet(false, true)) {
+            log.debug("RequestQueue shutdown already initiated");
+            return;
         }
+        // completing the sink stops intake while already-queued requests still drain to the
+        // subscriber; requests dropped here were HTTP-acknowledged and would be lost silently
         sink.tryEmitComplete();
-        log.info("RequestQueue has been shut down successfully");
+        try {
+            if (everSubscribed && !drained.await(DRAIN_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                log.warn("RequestQueue did not drain within {} seconds; remaining queued requests are dropped", DRAIN_TIMEOUT_SECONDS);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        shutDownSink.tryEmitValue(0); // hard stop for anything still in flight
+        log.info("RequestQueue has been shut down");
     }
 }
