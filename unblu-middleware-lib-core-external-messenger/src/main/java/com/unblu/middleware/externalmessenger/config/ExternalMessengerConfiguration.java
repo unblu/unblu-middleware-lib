@@ -5,6 +5,10 @@ public record ExternalMessengerConfiguration(
         Boolean cleanPrevious,
         Boolean messageStateHandledExternally
 ) {
+    public static ExternalMessengerConfiguration withDefaults() {
+        return new ExternalMessengerConfiguration(null, null, null);
+    }
+
     public ExternalMessengerConfiguration {
         timeoutInMilliSeconds = timeoutInMilliSeconds == null ? 1000L : timeoutInMilliSeconds;
         cleanPrevious = cleanPrevious == null ? Boolean.FALSE : cleanPrevious;
