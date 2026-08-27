@@ -1,6 +1,5 @@
 package com.unblu.middleware.bots.service;
 
-import com.google.common.base.Strings;
 import com.unblu.middleware.bots.config.BotConfiguration;
 import com.unblu.middleware.bots.registration.BotPersonRegistrationService;
 import com.unblu.middleware.common.config.MiddlewareConfiguration;
@@ -96,7 +95,7 @@ public class BotRegistrationService extends RegistrationService<CustomDialogBotD
         return Optional.of(botData
                 .webhookApiVersion(EWebApiVersion.V4)
                 .name(getRegistrationName())
-                .description(Strings.isNullOrEmpty(middlewareConfiguration.description()) ? "Registered from Middleware: " + middlewareConfiguration.name() : middlewareConfiguration.description())
+                .description(middlewareConfiguration.description() == null || middlewareConfiguration.description().isBlank() ? "Registered from Middleware: " + middlewareConfiguration.name() : middlewareConfiguration.description())
                 .webhookEndpoint(getBotUrl())
                 .webhookSecret(outboundRequestsConfiguration.secret())
                 .outboundTimeoutMillis(botConfiguration.timeoutInMilliSeconds())

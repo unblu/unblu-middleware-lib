@@ -12,7 +12,6 @@ import org.springframework.core.io.support.PropertySourceFactory;
 import java.util.Optional;
 import java.util.Properties;
 
-import static com.google.common.base.Strings.emptyToNull;
 import static java.util.Objects.requireNonNull;
 import static org.springframework.beans.factory.config.YamlProcessor.MatchStatus.*;
 
@@ -28,7 +27,7 @@ public class YamlPropertySourceFactory implements PropertySourceFactory {
 
         YamlPropertiesFactoryBean yamlFactory = new YamlPropertiesFactoryBean();
         yamlFactory.setDocumentMatchers(properties ->
-                Optional.ofNullable(emptyToNull(properties.getProperty("spring.profiles")))
+                Optional.ofNullable(properties.getProperty("spring.profiles")).filter(profiles -> !profiles.isEmpty())
                         .map(it -> it.contains(activeProfile) ? FOUND : NOT_FOUND)
                         .orElse(ABSTAIN));
 

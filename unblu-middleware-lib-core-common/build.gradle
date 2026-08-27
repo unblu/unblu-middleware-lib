@@ -3,19 +3,16 @@ dependencies {
     api "io.projectreactor.addons:reactor-extra:3.6.0"
     api "io.micrometer:context-propagation:1.2.0"
     api "jakarta.annotation:jakarta.annotation-api:3.0.0"
-    api "jakarta.validation:jakarta.validation-api:4.0.0-M1"
+    api "jakarta.validation:jakarta.validation-api:3.1.1"
 
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
     annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 
     api "org.slf4j:slf4j-api:2.0.16"
-    api "ch.qos.logback:logback-classic:1.5.27"
-    api "net.logstash.logback:logstash-logback-encoder:[7.4,)"
 
     api "com.unblu.openapi:jersey3-client-v4:[8.37.0, 9.0.0)"
 
-    api "com.google.guava:guava:[32.1.2-jre,)"
-    api "org.skyscreamer:jsonassert:2.0-rc1"
+    implementation "org.skyscreamer:jsonassert:2.0-rc1"
     api "commons-codec:commons-codec:1.21.0"
 
     testImplementation "io.projectreactor:reactor-test:3.8.2"

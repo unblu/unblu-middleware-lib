@@ -9,6 +9,8 @@ import org.springframework.context.annotation.Configuration;
 public class ObjectMapperConfiguration {
     @Bean
     public ObjectMapper objectMapper() {
-        return ObjectUtils.getObjectMapper();
+        // a copy: consumers customizing the injected mapper must not mutate the
+        // JVM-static instance the library uses internally (Quarkus does the same)
+        return ObjectUtils.getObjectMapper().copy();
     }
 }

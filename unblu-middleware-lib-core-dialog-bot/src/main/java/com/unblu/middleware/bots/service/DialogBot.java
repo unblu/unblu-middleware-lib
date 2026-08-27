@@ -188,10 +188,22 @@ public interface DialogBot {
     }
 
 
+    /**
+     * Registers a synchronous handler. The consumer's return value (if the lambda body is an
+     * expression) is DISCARDED — in particular, a returned {@code Mono} is never subscribed.
+     * Handlers migrated from 1.x {@code Function<T, Mono<Void>>} must use the {@code *Mono}
+     * variant instead, otherwise they silently do nothing.
+     */
     default void onDialogOpen(Consumer<BotDialogOpenRequest> action) {
         onDialogOpen(action, ContextSpec.empty());
     }
 
+    /**
+     * Registers a synchronous handler. The consumer's return value (if the lambda body is an
+     * expression) is DISCARDED — in particular, a returned {@code Mono} is never subscribed.
+     * Handlers migrated from 1.x {@code Function<T, Mono<Void>>} must use the {@code *Mono}
+     * variant instead, otherwise they silently do nothing.
+     */
     default void onDialogMessage(Consumer<BotDialogMessageRequest> action) {
         onDialogMessage(action, ContextSpec.empty());
     }
@@ -204,14 +216,32 @@ public interface DialogBot {
         onDialogCounterpartChanged(action, ContextSpec.empty());
     }
 
+    /**
+     * Registers a synchronous handler. The consumer's return value (if the lambda body is an
+     * expression) is DISCARDED — in particular, a returned {@code Mono} is never subscribed.
+     * Handlers migrated from 1.x {@code Function<T, Mono<Void>>} must use the {@code *Mono}
+     * variant instead, otherwise they silently do nothing.
+     */
     default void onDialogClosed(Consumer<BotDialogClosedRequest> action) {
         onDialogClosed(action, ContextSpec.empty());
     }
 
+    /**
+     * Registers a synchronous handler. The consumer's return value (if the lambda body is an
+     * expression) is DISCARDED — in particular, a returned {@code Mono} is never subscribed.
+     * Handlers migrated from 1.x {@code Function<T, Mono<Void>>} must use the {@code *Mono}
+     * variant instead, otherwise they silently do nothing.
+     */
     default void onDialogOpen(Consumer<BotDialogOpenRequest> action, ContextSpec<BotDialogOpenRequest> contextSpec) {
         onDialogOpenMono(event -> Mono.fromRunnable(() -> action.accept(event)), contextSpec);
     }
 
+    /**
+     * Registers a synchronous handler. The consumer's return value (if the lambda body is an
+     * expression) is DISCARDED — in particular, a returned {@code Mono} is never subscribed.
+     * Handlers migrated from 1.x {@code Function<T, Mono<Void>>} must use the {@code *Mono}
+     * variant instead, otherwise they silently do nothing.
+     */
     default void onDialogMessage(Consumer<BotDialogMessageRequest> action, ContextSpec<BotDialogMessageRequest> contextSpec) {
         onDialogMessageMono(event -> Mono.fromRunnable(() -> action.accept(event)), contextSpec);
     }
@@ -224,6 +254,12 @@ public interface DialogBot {
         onDialogCounterpartChangedMono(event -> Mono.fromRunnable(() -> action.accept(event)), contextSpec);
     }
 
+    /**
+     * Registers a synchronous handler. The consumer's return value (if the lambda body is an
+     * expression) is DISCARDED — in particular, a returned {@code Mono} is never subscribed.
+     * Handlers migrated from 1.x {@code Function<T, Mono<Void>>} must use the {@code *Mono}
+     * variant instead, otherwise they silently do nothing.
+     */
     default void onDialogClosed(Consumer<BotDialogClosedRequest> action, ContextSpec<BotDialogClosedRequest> contextSpec) {
         onDialogClosedMono(event -> Mono.fromRunnable(() -> action.accept(event)), contextSpec);
     }

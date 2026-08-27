@@ -1,6 +1,5 @@
 package com.unblu.middleware.externalmessenger.service;
 
-import com.google.common.base.Strings;
 import com.unblu.middleware.common.config.MiddlewareConfiguration;
 import com.unblu.middleware.common.error.RegistrationException;
 import com.unblu.middleware.common.registration.RegistrationConfiguration;
@@ -79,7 +78,7 @@ public class ExternalMessengerRegistrationService extends RegistrationService<Cu
         }
         return Optional.of(channel
                         .name(getRegistrationName())
-                        .description(Strings.isNullOrEmpty(middlewareConfiguration.description()) ? "Registered from Middleware: " + middlewareConfiguration.name() : middlewareConfiguration.description())
+                        .description(middlewareConfiguration.description() == null || middlewareConfiguration.description().isBlank() ? "Registered from Middleware: " + middlewareConfiguration.name() : middlewareConfiguration.description())
                         .webhookApiVersion(EWebApiVersion.V4)
                         .outboundSupported(true)
                         .webhookEndpoint(getExternalMessengerUrl())
