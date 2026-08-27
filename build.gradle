@@ -75,8 +75,8 @@ subprojects {
 
         sourceSets.main.resources {
             srcDir(generatedExtensionResourcesDir)
-            exclude('META-INF/quarkus-extension.yaml')
-            exclude('META-INF/quarkus-extension.properties')
+            // no excludes: the generated quarkus-extension.yaml/.properties MUST be packaged,
+            // otherwise Quarkus treats the modules as plain jars and the deployment module never binds
         }
 
         tasks.named('processResources') {
