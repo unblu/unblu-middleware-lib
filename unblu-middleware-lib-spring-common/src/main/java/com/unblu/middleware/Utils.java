@@ -33,8 +33,14 @@ public class Utils {
     }
 
     public @NonNull Mono<RawRequest> toLibHttpRequest(Flux<DataBuffer> bodyBuffer, HttpHeaders headers) {
+        return toLibHttpRequest(bodyBuffer, headers, Integer.MAX_VALUE);
+    }
+
+    // maxBodyBytes: the raw Flux<DataBuffer> body bypasses spring.codec.max-in-memory-size,
+    // so the join itself must be capped (errors with DataBufferLimitException when exceeded)
+    public @NonNull Mono<RawRequest> toLibHttpRequest(Flux<DataBuffer> bodyBuffer, HttpHeaders headers, int maxBodyBytes) {
         return DataBufferUtils
-                .join(bodyBuffer)
+                .join(bodyBuffer, maxBodyBytes)
                 .switchIfEmpty(Mono.fromSupplier(() -> emptyBuffer(headers.getContentLength())))
                 // covers buffers dropped on cancel/error before map() takes ownership
                 .doOnDiscard(DataBuffer.class, DataBufferUtils::release)

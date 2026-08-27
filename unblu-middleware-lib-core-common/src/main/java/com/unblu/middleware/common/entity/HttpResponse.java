@@ -4,6 +4,7 @@ import java.net.http.HttpHeaders;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 public record HttpResponse<T>(
         int status,
@@ -31,7 +32,9 @@ public record HttpResponse<T>(
     }
 
     public HttpResponse<T> withHeader(String headerName, String headerValue) {
-        var headersMap = new HashMap<>(headers.map());
+        // case-insensitive: HttpHeaders.of throws on duplicate names differing only in case
+        var headersMap = new TreeMap<String, List<String>>(String.CASE_INSENSITIVE_ORDER);
+        headersMap.putAll(headers.map());
         headersMap.put(headerName, List.of(headerValue));
         return new HttpResponse<>(this.status, HttpHeaders.of(headersMap, (k, v) -> true), this.body);
     }

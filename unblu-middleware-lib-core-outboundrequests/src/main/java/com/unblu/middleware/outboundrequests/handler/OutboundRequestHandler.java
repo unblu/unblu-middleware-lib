@@ -12,6 +12,7 @@ import com.unblu.middleware.common.utils.ThrowingFunction;
 import com.unblu.middleware.outboundrequests.entity.OutboundRequestHandlerOptions;
 import com.unblu.middleware.outboundrequests.entity.OutboundRequestType;
 import com.unblu.webapi.model.v4.PingRequest;
+import io.micrometer.context.ContextSnapshotFactory;
 import com.unblu.webapi.model.v4.PingResponse;
 import jakarta.annotation.PostConstruct;
 import jakarta.inject.Named;
@@ -19,6 +20,7 @@ import jakarta.inject.Singleton;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -253,7 +255,15 @@ public class OutboundRequestHandler extends RequestQueueServiceImpl {
         var contextSpec = (ContextSpec<Request<T>>) contextEntriesByRequestType.getOrDefault(requestClass, ContextSpec.empty());
         return Mono.justOrEmpty(function)
                 .switchIfEmpty(Mono.error(new NoHandlerException("No handler registered for outbound request type: " + requestType)))
-                .flatMap(it -> (Mono<Object>) it.apply(request))
+                // hop off the Netty event loop: response functions are user code and may block
+                // (e.g. a Jersey Web API call); defer also turns synchronous throws into error
+                // signals. The context snapshot restores ThreadLocal-based context (MDC etc.)
+                // on the worker thread, which subscribeOn alone does not do inside defer.
+                .flatMap(it -> Mono.deferContextual(contextView -> {
+                    try (var contextScope = ContextSnapshotFactory.builder().build().setThreadLocalsFrom(contextView)) {
+                        return (Mono<Object>) it.apply(request);
+                    }
+                }).subscribeOn(Schedulers.boundedElastic()))
                 .contextWrite(contextSpec.applyTo(request));
     }
 

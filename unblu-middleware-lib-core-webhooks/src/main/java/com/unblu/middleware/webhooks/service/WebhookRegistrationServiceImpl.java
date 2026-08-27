@@ -1,7 +1,6 @@
 
 package com.unblu.middleware.webhooks.service;
 
-import com.google.common.base.Strings;
 import com.unblu.middleware.common.config.MiddlewareConfiguration;
 import com.unblu.middleware.common.error.RegistrationException;
 import com.unblu.middleware.common.registration.RegistrationConfiguration;
@@ -115,7 +114,7 @@ public class WebhookRegistrationServiceImpl extends RegistrationService<WebhookR
         }
         return Optional.of(webhookRegistration
                 .name(getRegistrationName())
-                .description(Strings.isNullOrEmpty(middlewareConfiguration.description()) ? "Registered from Middleware: " + middlewareConfiguration.name() : middlewareConfiguration.description())
+                .description(middlewareConfiguration.description() == null || middlewareConfiguration.description().isBlank() ? "Registered from Middleware: " + middlewareConfiguration.name() : middlewareConfiguration.description())
                 .events(registeredEventNames.stream().map(EventName::name).toList())
                 .apiVersion(EWebApiVersion.V4)
                 .endpoint(getWebhookUrl())

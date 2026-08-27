@@ -47,6 +47,11 @@ public class OutboundRoute {
     }
 
     private static void writeResponse(RoutingContext context, HttpResponse<String> response) {
+        if (response == null) {
+            // an empty handler Mono yields a null item through monoToUni; answer 200 like the Spring tier
+            context.response().setStatusCode(200).end();
+            return;
+        }
         var vertxResponse = context.response().setStatusCode(response.status());
         response.headers().map().forEach((name, values) -> values.forEach(value -> vertxResponse.putHeader(name, value)));
         if (response.body() == null) {

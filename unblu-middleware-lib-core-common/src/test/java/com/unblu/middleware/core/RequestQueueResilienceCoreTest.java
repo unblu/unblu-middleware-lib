@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 
 import java.net.http.HttpHeaders;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -82,5 +83,53 @@ class RequestQueueResilienceCoreTest {
 
         assertTrue(latch.await(5, TimeUnit.SECONDS), "queue stopped processing after a throwing key extractor");
         queue.shutdown();
+    }
+
+    @Test
+    void sameKeyAsyncHandlersProcessInArrivalOrder() throws InterruptedException {
+        var queue = newQueue();
+        var completions = new ConcurrentLinkedQueue<String>();
+        var latch = new CountDownLatch(2);
+
+        queue.on(String.class,
+                request -> Mono.delay(request.equals("first") ? Duration.ofMillis(300) : Duration.ofMillis(1))
+                        .doOnNext(_t -> {
+                            completions.add(request);
+                            latch.countDown();
+                        })
+                        .then(),
+                RequestOrderSpec.mustPreserveOrderForThoseWithTheSame(_request -> "same-key"),
+                ContextSpec.empty());
+
+        queue.getFlux().subscribe();
+        queue.queueRequest(new Request<>("first", NO_HEADERS));
+        queue.queueRequest(new Request<>("second", NO_HEADERS));
+
+        assertTrue(latch.await(5, TimeUnit.SECONDS), "requests were not processed");
+        assertEquals(List.of("first", "second"), List.copyOf(completions),
+                "same-key async requests must complete in arrival order");
+        queue.shutdown();
+    }
+
+    @Test
+    void shutdownDrainsAlreadyQueuedRequests() throws InterruptedException {
+        var queue = newQueue();
+        var processed = new ConcurrentLinkedQueue<String>();
+
+        queue.on(String.class,
+                request -> Mono.delay(Duration.ofMillis(100))
+                        .doOnNext(_t -> processed.add(request))
+                        .then(),
+                RequestOrderSpec.mustPreserveOrder(),
+                ContextSpec.empty());
+
+        queue.getFlux().subscribe();
+        queue.queueRequest(new Request<>("one", NO_HEADERS));
+        queue.queueRequest(new Request<>("two", NO_HEADERS));
+
+        queue.shutdown(); // must block until already-acknowledged requests are processed
+
+        assertEquals(List.of("one", "two"), List.copyOf(processed),
+                "requests queued before shutdown must still be processed");
     }
 }

@@ -59,7 +59,7 @@ public class RequestHandler {
                     return Mono.just(HttpResponse.badRequest("No handler registered for request"));
                 })
                 .onErrorResume(e -> {
-                    log.error("Error while processing request: {}", e.getMessage());
+                    log.error("Error while processing request: {}", e.getMessage(), e);
                     return Mono.just(HttpResponse.internalServerError("Error while processing request: " + e.getMessage()));
                 })
                 .map(this::signed)

@@ -24,6 +24,10 @@ public record BotConfiguration(
         @Min(0) @Max(5) Long retryCount,
         @Min(0) @Max(10000) Long retryDelayInMilliSeconds
 ) {
+    public static BotConfiguration withDefaults() {
+        return new BotConfiguration(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+    }
+
     public BotConfiguration {
         timeoutInMilliSeconds = timeoutInMilliSeconds == null ? 10000L : timeoutInMilliSeconds;
         cleanPrevious = cleanPrevious == null ? Boolean.FALSE : cleanPrevious;

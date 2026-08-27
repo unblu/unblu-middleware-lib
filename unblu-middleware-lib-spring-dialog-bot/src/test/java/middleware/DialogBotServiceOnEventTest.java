@@ -127,7 +127,9 @@ class DialogBotServiceOnEventTest {
         await().atMost(5, SECONDS)
                 .until(() -> testQueue.size() >= 6);
 
-        assertThat(testQueue).containsExactly("Zero", "One", "Two", "Three", "Four", "Five");
+        // same-dialog requests are processed strictly one after another: the dialog-open
+        // handler finishes completely ("One", then "Five") before the next request starts
+        assertThat(testQueue).containsExactly("Zero", "One", "Five", "Two", "Three", "Four");
     }
 
     @SneakyThrows
