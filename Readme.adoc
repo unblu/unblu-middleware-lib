@@ -5,6 +5,31 @@ This library is used to create middleware for the Unblu v8 platform (API v4). It
 
 *NOTE:* The legacy aggregate artifacts (`unblu-middleware-lib-core`, `unblu-middleware-lib-spring`, `unblu-middleware-lib-quarkus`) were removed. Use feature modules instead.
 
+== Compatibility
+
+The Unblu Jersey client (`com.unblu.openapi:jersey3-client-v4`) occasionally introduces source-breaking changes (renamed classes, changed method signatures), even though the underlying REST API stays backward compatible. Each middleware-lib version stream therefore supports a bounded range of Jersey client versions:
+
+[cols="1,2,3"]
+|===
+|Middleware lib |Jersey client (`jersey3-client-v4`) |Notes
+
+|`2.0.x`
+|`< 8.37.0`
+|Before the `BotsApi` expand-parameter change.
+
+|`2.1.x` - `2.2.x`
+|`[8.37.0, 8.42.0)`
+|Up to and including `8.41.x`. The `PersonLabel` -> `Label` rename in `8.40.4` does not affect the lib itself, only application code that uses the `PersonLabel` model.
+
+|`3.x` (planned)
+|first client with the `WebhookRegistration` -> `WebhookRegistrationData` rename, and later
+|Not released yet; the required client version is not published yet either.
+|===
+
+Within a range, prefer the newest client. Note that these ranges are about *compile-time* compatibility: an already-built middleware keeps working at runtime against newer collaboration-server versions, because the REST API itself remains backward compatible.
+
+For the exact Java-level changes between client versions, see https://github.com/unblu/openapi-java-migration[openapi-java-migration].
+
 == Modules
 
 Recommended:
@@ -66,7 +91,7 @@ def unbluMiddlewareVersion = '2.2.0'
 dependencies {
     implementation platform("com.unblu.middleware:unblu-middleware-lib-bom:${unbluMiddlewareVersion}")
     implementation 'com.unblu.middleware:unblu-middleware-lib-spring-webhooks'
-    implementation 'com.unblu.openapi:jersey3-client-v4:8.24.0'
+    implementation 'com.unblu.openapi:jersey3-client-v4:8.41.4'
 }
 ----
 
@@ -123,7 +148,7 @@ def unbluMiddlewareVersion = '2.2.0'
 dependencies {
     implementation platform("com.unblu.middleware:unblu-middleware-lib-bom:${unbluMiddlewareVersion}")
     implementation 'com.unblu.middleware:unblu-middleware-lib-spring-dialog-bot'
-    implementation 'com.unblu.openapi:jersey3-client-v4:8.24.0'
+    implementation 'com.unblu.openapi:jersey3-client-v4:8.41.4'
 }
 ----
 
@@ -194,7 +219,7 @@ def unbluMiddlewareVersion = '2.2.0'
 dependencies {
     implementation platform("com.unblu.middleware:unblu-middleware-lib-bom:${unbluMiddlewareVersion}")
     implementation 'com.unblu.middleware:unblu-middleware-lib-quarkus-dialog-bot'
-    implementation 'com.unblu.openapi:jersey3-client-v4:8.24.0'
+    implementation 'com.unblu.openapi:jersey3-client-v4:8.41.4'
 }
 ----
 
