@@ -7,7 +7,7 @@ import com.unblu.middleware.webhooks.service.WebhookRegistrationServiceImpl;
 import com.unblu.webapi.jersey.v4.api.WebhookRegistrationsApi;
 import com.unblu.webapi.jersey.v4.invoker.ApiException;
 import com.unblu.webapi.model.v4.ERegistrationStatus;
-import com.unblu.webapi.model.v4.WebhookRegistration;
+import com.unblu.webapi.model.v4.WebhookRegistrationData;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -29,14 +29,14 @@ class WebhookRegistrationServiceCoreTest {
     void givenNoPriorRegistration_assertRegisteredCallsCreate() throws ApiException {
         var webhookRegistrationsApi = mock(WebhookRegistrationsApi.class);
         var service = createService(webhookRegistrationsApi, false, null);
-        var registrationCaptor = ArgumentCaptor.forClass(WebhookRegistration.class);
+        var registrationCaptor = ArgumentCaptor.forClass(WebhookRegistrationData.class);
 
-        when(webhookRegistrationsApi.webhookRegistrationsGetByName("middleware webhook"))
+        when(webhookRegistrationsApi.webhookRegistrationsGetByName("middleware webhook", null))
                 .thenThrow(new ApiException(404, "Not Found"));
 
         service.assertRegistered(eventNames("something.happened"));
 
-        verify(webhookRegistrationsApi, times(1)).webhookRegistrationsCreate(registrationCaptor.capture());
+        verify(webhookRegistrationsApi, times(1)).webhookRegistrationsCreate(registrationCaptor.capture(), isNull());
         var registration = registrationCaptor.getValue();
         assertEquals("middleware webhook", registration.getName());
         assertEquals(ERegistrationStatus.ACTIVE, registration.getStatus());
@@ -47,14 +47,14 @@ class WebhookRegistrationServiceCoreTest {
     void givenNoPriorRegistrationWithMultipleEvents_assertRegisteredCallsCreate() throws ApiException {
         var webhookRegistrationsApi = mock(WebhookRegistrationsApi.class);
         var service = createService(webhookRegistrationsApi, false, null);
-        var registrationCaptor = ArgumentCaptor.forClass(WebhookRegistration.class);
+        var registrationCaptor = ArgumentCaptor.forClass(WebhookRegistrationData.class);
 
-        when(webhookRegistrationsApi.webhookRegistrationsGetByName("middleware webhook"))
+        when(webhookRegistrationsApi.webhookRegistrationsGetByName("middleware webhook", null))
                 .thenThrow(new ApiException(404, "Not Found"));
 
         service.assertRegistered(eventNames("something.happened", "and.another.something.happened"));
 
-        verify(webhookRegistrationsApi, times(1)).webhookRegistrationsCreate(registrationCaptor.capture());
+        verify(webhookRegistrationsApi, times(1)).webhookRegistrationsCreate(registrationCaptor.capture(), isNull());
         var registration = registrationCaptor.getValue();
         assertEquals("middleware webhook", registration.getName());
         assertEquals(ERegistrationStatus.ACTIVE, registration.getStatus());
@@ -67,10 +67,10 @@ class WebhookRegistrationServiceCoreTest {
     void givenPriorRegistration_assertRegisteredCallsUpdate() throws ApiException {
         var webhookRegistrationsApi = mock(WebhookRegistrationsApi.class);
         var service = createService(webhookRegistrationsApi, false, null);
-        var updateCaptor = ArgumentCaptor.forClass(WebhookRegistration.class);
+        var updateCaptor = ArgumentCaptor.forClass(WebhookRegistrationData.class);
 
-        when(webhookRegistrationsApi.webhookRegistrationsGetByName("middleware webhook")).thenReturn(
-                new WebhookRegistration().name("middleware webhook")
+        when(webhookRegistrationsApi.webhookRegistrationsGetByName("middleware webhook", null)).thenReturn(
+                new WebhookRegistrationData().name("middleware webhook")
                         .id("middleware-id")
                         .events(List.of("whatever.nonsense"))
                         .status(ERegistrationStatus.INACTIVE_UNAVAILABLE)
@@ -78,7 +78,7 @@ class WebhookRegistrationServiceCoreTest {
 
         service.assertRegistered(eventNames("something.happened"));
 
-        verify(webhookRegistrationsApi, times(1)).webhookRegistrationsUpdate(updateCaptor.capture());
+        verify(webhookRegistrationsApi, times(1)).webhookRegistrationsUpdate(updateCaptor.capture(), isNull());
         var registration = updateCaptor.getValue();
         assertEquals("middleware-id", registration.getId());
         assertEquals("middleware webhook", registration.getName());
@@ -90,10 +90,10 @@ class WebhookRegistrationServiceCoreTest {
     void givenPriorRegistrationAndCleanPrevious_assertRegisteredCallsDeleteThenCreate() throws ApiException {
         var webhookRegistrationsApi = mock(WebhookRegistrationsApi.class);
         var service = createService(webhookRegistrationsApi, true, null);
-        var createCaptor = ArgumentCaptor.forClass(WebhookRegistration.class);
+        var createCaptor = ArgumentCaptor.forClass(WebhookRegistrationData.class);
 
-        when(webhookRegistrationsApi.webhookRegistrationsGetByName("middleware webhook")).thenReturn(
-                new WebhookRegistration().name("middleware webhook")
+        when(webhookRegistrationsApi.webhookRegistrationsGetByName("middleware webhook", null)).thenReturn(
+                new WebhookRegistrationData().name("middleware webhook")
                         .id("middleware-id")
                         .events(List.of("whatever.nonsense"))
                         .status(ERegistrationStatus.INACTIVE)
@@ -102,7 +102,7 @@ class WebhookRegistrationServiceCoreTest {
         service.assertRegistered(eventNames("something.happened"));
 
         verify(webhookRegistrationsApi, times(1)).webhookRegistrationsDelete("middleware-id");
-        verify(webhookRegistrationsApi, times(1)).webhookRegistrationsCreate(createCaptor.capture());
+        verify(webhookRegistrationsApi, times(1)).webhookRegistrationsCreate(createCaptor.capture(), isNull());
         var registration = createCaptor.getValue();
         assertEquals("middleware webhook", registration.getName());
         assertEquals(ERegistrationStatus.ACTIVE, registration.getStatus());
@@ -113,14 +113,14 @@ class WebhookRegistrationServiceCoreTest {
     void givenConfiguredEventNames_autoRegisterUsesConfiguration() throws ApiException {
         var webhookRegistrationsApi = mock(WebhookRegistrationsApi.class);
         var service = createService(webhookRegistrationsApi, false, eventNames("something.happened", "another.event"));
-        var createCaptor = ArgumentCaptor.forClass(WebhookRegistration.class);
+        var createCaptor = ArgumentCaptor.forClass(WebhookRegistrationData.class);
 
-        when(webhookRegistrationsApi.webhookRegistrationsGetByName("middleware webhook"))
+        when(webhookRegistrationsApi.webhookRegistrationsGetByName("middleware webhook", null))
                 .thenThrow(new ApiException(404, "Not Found"));
 
         service.autoRegister();
 
-        verify(webhookRegistrationsApi, times(1)).webhookRegistrationsCreate(createCaptor.capture());
+        verify(webhookRegistrationsApi, times(1)).webhookRegistrationsCreate(createCaptor.capture(), isNull());
         var registration = createCaptor.getValue();
         assertEquals("middleware webhook", registration.getName());
         assertEquals(ERegistrationStatus.ACTIVE, registration.getStatus());
@@ -133,14 +133,14 @@ class WebhookRegistrationServiceCoreTest {
     void givenCustomWebhookApiPath_registrationEndpointUsesConfiguredPath() throws ApiException {
         var webhookRegistrationsApi = mock(WebhookRegistrationsApi.class);
         var service = createService(webhookRegistrationsApi, false, eventNames("something.happened"), "/custom-webhook");
-        var createCaptor = ArgumentCaptor.forClass(WebhookRegistration.class);
+        var createCaptor = ArgumentCaptor.forClass(WebhookRegistrationData.class);
 
-        when(webhookRegistrationsApi.webhookRegistrationsGetByName("middleware webhook"))
+        when(webhookRegistrationsApi.webhookRegistrationsGetByName("middleware webhook", null))
                 .thenThrow(new ApiException(404, "Not Found"));
 
         service.autoRegister();
 
-        verify(webhookRegistrationsApi).webhookRegistrationsCreate(createCaptor.capture());
+        verify(webhookRegistrationsApi).webhookRegistrationsCreate(createCaptor.capture(), isNull());
         assertEquals("https://dummy-webhook/custom-webhook", createCaptor.getValue().getEndpoint());
     }
 
@@ -148,36 +148,36 @@ class WebhookRegistrationServiceCoreTest {
     void givenRegistrationAutoDisabled_selfHealRestoresState() throws ApiException {
         var webhookRegistrationsApi = mock(WebhookRegistrationsApi.class);
         var service = createService(webhookRegistrationsApi, false, eventNames("something.happened", "another.event"));
-        var createCaptor = ArgumentCaptor.forClass(WebhookRegistration.class);
+        var createCaptor = ArgumentCaptor.forClass(WebhookRegistrationData.class);
 
-        when(webhookRegistrationsApi.webhookRegistrationsGetByName("middleware webhook"))
+        when(webhookRegistrationsApi.webhookRegistrationsGetByName("middleware webhook", null))
                 .thenThrow(new ApiException(404, "Not Found"));
         service.autoRegister();
 
-        verify(webhookRegistrationsApi).webhookRegistrationsCreate(createCaptor.capture());
+        verify(webhookRegistrationsApi).webhookRegistrationsCreate(createCaptor.capture(), isNull());
         var created = createCaptor.getValue();
         clearInvocations(webhookRegistrationsApi);
 
         doReturn(copyOf(created).status(ERegistrationStatus.INACTIVE_UNAVAILABLE))
                 .when(webhookRegistrationsApi)
-                .webhookRegistrationsGetByName("middleware webhook");
+                .webhookRegistrationsGetByName("middleware webhook", null);
 
         service.selfHeal();
 
-        verify(webhookRegistrationsApi, atLeastOnce()).webhookRegistrationsUpdate(any(WebhookRegistration.class));
+        verify(webhookRegistrationsApi, atLeastOnce()).webhookRegistrationsUpdate(any(WebhookRegistrationData.class), isNull());
     }
 
     @Test
     void givenOnlyEventOrderChanged_selfHealDoesNotUpdate() throws ApiException {
         var webhookRegistrationsApi = mock(WebhookRegistrationsApi.class);
         var service = createService(webhookRegistrationsApi, false, eventNames("something.happened", "another.event"));
-        var createCaptor = ArgumentCaptor.forClass(WebhookRegistration.class);
+        var createCaptor = ArgumentCaptor.forClass(WebhookRegistrationData.class);
 
-        when(webhookRegistrationsApi.webhookRegistrationsGetByName("middleware webhook"))
+        when(webhookRegistrationsApi.webhookRegistrationsGetByName("middleware webhook", null))
                 .thenThrow(new ApiException(404, "Not Found"));
         service.autoRegister();
 
-        verify(webhookRegistrationsApi).webhookRegistrationsCreate(createCaptor.capture());
+        verify(webhookRegistrationsApi).webhookRegistrationsCreate(createCaptor.capture(), isNull());
         var created = createCaptor.getValue();
         clearInvocations(webhookRegistrationsApi);
 
@@ -185,34 +185,34 @@ class WebhookRegistrationServiceCoreTest {
         Collections.reverse(reversedEvents);
         doReturn(copyOf(created).events(reversedEvents))
                 .when(webhookRegistrationsApi)
-                .webhookRegistrationsGetByName("middleware webhook");
+                .webhookRegistrationsGetByName("middleware webhook", null);
 
         service.selfHeal();
 
-        verify(webhookRegistrationsApi, never()).webhookRegistrationsUpdate(any(WebhookRegistration.class));
+        verify(webhookRegistrationsApi, never()).webhookRegistrationsUpdate(any(WebhookRegistrationData.class), any());
     }
 
     @Test
     void givenRegistrationManuallyDisabled_selfHealDoesNotUpdate() throws ApiException {
         var webhookRegistrationsApi = mock(WebhookRegistrationsApi.class);
         var service = createService(webhookRegistrationsApi, false, eventNames("something.happened", "another.event"));
-        var createCaptor = ArgumentCaptor.forClass(WebhookRegistration.class);
+        var createCaptor = ArgumentCaptor.forClass(WebhookRegistrationData.class);
 
-        when(webhookRegistrationsApi.webhookRegistrationsGetByName("middleware webhook"))
+        when(webhookRegistrationsApi.webhookRegistrationsGetByName("middleware webhook", null))
                 .thenThrow(new ApiException(404, "Not Found"));
         service.autoRegister();
 
-        verify(webhookRegistrationsApi).webhookRegistrationsCreate(createCaptor.capture());
+        verify(webhookRegistrationsApi).webhookRegistrationsCreate(createCaptor.capture(), isNull());
         var created = createCaptor.getValue();
         clearInvocations(webhookRegistrationsApi);
 
         doReturn(copyOf(created).status(ERegistrationStatus.INACTIVE))
                 .when(webhookRegistrationsApi)
-                .webhookRegistrationsGetByName("middleware webhook");
+                .webhookRegistrationsGetByName("middleware webhook", null);
 
         service.selfHeal();
 
-        verify(webhookRegistrationsApi, never()).webhookRegistrationsUpdate(any(WebhookRegistration.class));
+        verify(webhookRegistrationsApi, never()).webhookRegistrationsUpdate(any(WebhookRegistrationData.class), any());
     }
 
     private static WebhookRegistrationServiceImpl createService(

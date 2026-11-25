@@ -2,7 +2,7 @@ package com.unblu.middleware.webhooks.service;
 
 import com.unblu.middleware.common.error.RegistrationException;
 import com.unblu.middleware.webhooks.entity.EventName;
-import com.unblu.webapi.model.v4.WebhookRegistration;
+import com.unblu.webapi.model.v4.WebhookRegistrationData;
 import lombok.NonNull;
 
 import java.util.Optional;
@@ -18,7 +18,7 @@ public interface WebhookRegistrationService {
 
     void assertRegistered(@NonNull Set<EventName> eventNames) throws RegistrationException;
 
-    Optional<WebhookRegistration> getRegistration() throws RegistrationException;
+    Optional<WebhookRegistrationData> getRegistration() throws RegistrationException;
 
     void deleteWebhookRegistration() throws RegistrationException;
 

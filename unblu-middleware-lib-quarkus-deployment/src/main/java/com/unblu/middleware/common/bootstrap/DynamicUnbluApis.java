@@ -42,6 +42,7 @@ public class DynamicUnbluApis {
             Map.entry("FileUploadInterceptorsApi", FileUploadInterceptorsApiBeanCreator.class),
             Map.entry("ImagesApi", ImagesApiBeanCreator.class),
             Map.entry("InvitationsApi", InvitationsApiBeanCreator.class),
+            Map.entry("LabelsApi", LabelsApiBeanCreator.class),
             Map.entry("MessageInterceptorsApi", MessageInterceptorsApiBeanCreator.class),
             Map.entry("NamedAreasApi", NamedAreasApiBeanCreator.class),
             Map.entry("PersonLabelsApi", PersonLabelsApiBeanCreator.class),
