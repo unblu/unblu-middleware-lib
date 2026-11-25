@@ -86,7 +86,7 @@ Add dependencies to `build.gradle`:
 
 [source,gradle]
 ----
-def unbluMiddlewareVersion = '2.2.1'
+def unbluMiddlewareVersion = '2.3.0'
 
 dependencies {
     implementation platform("com.unblu.middleware:unblu-middleware-lib-bom:${unbluMiddlewareVersion}")
@@ -143,7 +143,7 @@ Add dependencies to `build.gradle`:
 
 [source,gradle]
 ----
-def unbluMiddlewareVersion = '2.2.1'
+def unbluMiddlewareVersion = '2.3.0'
 
 dependencies {
     implementation platform("com.unblu.middleware:unblu-middleware-lib-bom:${unbluMiddlewareVersion}")
@@ -214,7 +214,7 @@ Add dependencies to `build.gradle`:
 
 [source,gradle]
 ----
-def unbluMiddlewareVersion = '2.2.1'
+def unbluMiddlewareVersion = '2.3.0'
 
 dependencies {
     implementation platform("com.unblu.middleware:unblu-middleware-lib-bom:${unbluMiddlewareVersion}")
