@@ -321,6 +321,17 @@ public class UnbluApis {
 
     @Configuration(proxyBeanMethods = false)
     @Lazy
+    @ConditionalOnClass(LabelsApi.class)
+    static class LabelsApiConfiguration {
+        @Bean
+        @ConditionalOnMissingBean
+        public LabelsApi labelsApi(ApiClient apiClient) {
+            return new LabelsApi(apiClient);
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    @Lazy
     @ConditionalOnClass(MessageInterceptorsApi.class)
     static class MessageInterceptorsApiConfiguration {
         @Bean

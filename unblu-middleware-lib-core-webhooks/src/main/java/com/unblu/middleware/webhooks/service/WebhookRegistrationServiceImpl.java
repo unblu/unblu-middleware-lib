@@ -11,7 +11,7 @@ import com.unblu.webapi.jersey.v4.api.WebhookRegistrationsApi;
 import com.unblu.webapi.jersey.v4.invoker.ApiException;
 import com.unblu.webapi.model.v4.ERegistrationStatus;
 import com.unblu.webapi.model.v4.EWebApiVersion;
-import com.unblu.webapi.model.v4.WebhookRegistration;
+import com.unblu.webapi.model.v4.WebhookRegistrationData;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import lombok.NonNull;
@@ -24,7 +24,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 @Named("WebhookRegistrationService")
 @Singleton
 @Slf4j
-public class WebhookRegistrationServiceImpl extends RegistrationService<WebhookRegistration> implements WebhookRegistrationService {
+public class WebhookRegistrationServiceImpl extends RegistrationService<WebhookRegistrationData> implements WebhookRegistrationService {
 
     private final WebhookRegistrationsApi webhookRegistrationsApi;
     private final WebhookConfiguration webhookConfiguration;
@@ -80,32 +80,32 @@ public class WebhookRegistrationServiceImpl extends RegistrationService<WebhookR
     }
 
     @Override
-    protected void callCreateNewRegistration(WebhookRegistration registration) throws ApiException {
-        webhookRegistrationsApi.webhookRegistrationsCreate(registration);
+    protected void callCreateNewRegistration(WebhookRegistrationData registration) throws ApiException {
+        webhookRegistrationsApi.webhookRegistrationsCreate(registration, null);
     }
 
     @Override
-    protected void callUpdateRegistration(WebhookRegistration registration) throws ApiException {
-        webhookRegistrationsApi.webhookRegistrationsUpdate(registration);
+    protected void callUpdateRegistration(WebhookRegistrationData registration) throws ApiException {
+        webhookRegistrationsApi.webhookRegistrationsUpdate(registration, null);
     }
 
     @Override
-    protected void callDeleteRegistration(WebhookRegistration registration) throws ApiException {
+    protected void callDeleteRegistration(WebhookRegistrationData registration) throws ApiException {
         webhookRegistrationsApi.webhookRegistrationsDelete(registration.getId());
     }
 
     @Override
-    protected WebhookRegistration callGetRegistration(String registrationName) throws ApiException {
-        return webhookRegistrationsApi.webhookRegistrationsGetByName(registrationName);
+    protected WebhookRegistrationData callGetRegistration(String registrationName) throws ApiException {
+        return webhookRegistrationsApi.webhookRegistrationsGetByName(registrationName, null);
     }
 
     @Override
-    protected WebhookRegistration emptyConfiguration() {
-        return new WebhookRegistration();
+    protected WebhookRegistrationData emptyConfiguration() {
+        return new WebhookRegistrationData();
     }
 
     @Override
-    protected Optional<WebhookRegistration> applyConfiguration(WebhookRegistration webhookRegistration) {
+    protected Optional<WebhookRegistrationData> applyConfiguration(WebhookRegistrationData webhookRegistration) {
         if (registeredEventNames.isEmpty()) {
             return Optional.empty(); // No events to register, skip registration
         }
