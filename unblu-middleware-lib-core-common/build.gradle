@@ -10,10 +10,9 @@ dependencies {
 
     api "org.slf4j:slf4j-api:2.0.16"
 
-    // Upper bound: the WebhookRegistration -> WebhookRegistrationData rename (collab-server MR 11984,
-    // expected in the first client release after 8.41.x) breaks this lib. The 3.x stream will support it.
-    // Raise the bound in a patch release if the rename ships later than 8.42.
-    api "com.unblu.openapi:jersey3-client-v4:[8.37.0, 8.42.0)"
+    // Upper bound: client 8.43.x renames WebhookRegistration -> WebhookRegistrationData (and adds an
+    // expand parameter to the webhook registration calls), which breaks this lib. The 3.x stream supports it.
+    api "com.unblu.openapi:jersey3-client-v4:[8.37.0, 8.43.0)"
 
     implementation "org.skyscreamer:jsonassert:2.0-rc1"
     api "commons-codec:commons-codec:1.21.0"

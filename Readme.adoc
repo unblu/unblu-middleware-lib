@@ -18,12 +18,12 @@ The Unblu Jersey client (`com.unblu.openapi:jersey3-client-v4`) occasionally int
 |Before the `BotsApi` expand-parameter change.
 
 |`2.1.x` - `2.2.x`
-|`[8.37.0, 8.42.0)`
-|Up to and including `8.41.x`. The `PersonLabel` -> `Label` rename in `8.40.4` does not affect the lib itself, only application code that uses the `PersonLabel` model.
+|`[8.37.0, 8.43.0)`
+|Up to and including `8.42.x`. The `PersonLabel` -> `Label` rename in `8.40.4` does not affect the lib itself, only application code that uses the `PersonLabel` model.
 
 |`3.x` (planned)
-|first client with the `WebhookRegistration` -> `WebhookRegistrationData` rename, and later
-|Not released yet; the required client version is not published yet either.
+|`>= 8.43.0`
+|Client `8.43.x` renames `WebhookRegistration` -> `WebhookRegistrationData`; 2.x cannot compile against it.
 |===
 
 Within a range, prefer the newest client. Note that these ranges are about *compile-time* compatibility: an already-built middleware keeps working at runtime against newer collaboration-server versions, because the REST API itself remains backward compatible.
@@ -91,7 +91,7 @@ def unbluMiddlewareVersion = '2.2.0'
 dependencies {
     implementation platform("com.unblu.middleware:unblu-middleware-lib-bom:${unbluMiddlewareVersion}")
     implementation 'com.unblu.middleware:unblu-middleware-lib-spring-webhooks'
-    implementation 'com.unblu.openapi:jersey3-client-v4:8.41.4'
+    implementation 'com.unblu.openapi:jersey3-client-v4:8.42.2'
 }
 ----
 
@@ -148,7 +148,7 @@ def unbluMiddlewareVersion = '2.2.0'
 dependencies {
     implementation platform("com.unblu.middleware:unblu-middleware-lib-bom:${unbluMiddlewareVersion}")
     implementation 'com.unblu.middleware:unblu-middleware-lib-spring-dialog-bot'
-    implementation 'com.unblu.openapi:jersey3-client-v4:8.41.4'
+    implementation 'com.unblu.openapi:jersey3-client-v4:8.42.2'
 }
 ----
 
@@ -219,7 +219,7 @@ def unbluMiddlewareVersion = '2.2.0'
 dependencies {
     implementation platform("com.unblu.middleware:unblu-middleware-lib-bom:${unbluMiddlewareVersion}")
     implementation 'com.unblu.middleware:unblu-middleware-lib-quarkus-dialog-bot'
-    implementation 'com.unblu.openapi:jersey3-client-v4:8.41.4'
+    implementation 'com.unblu.openapi:jersey3-client-v4:8.42.2'
 }
 ----
 
